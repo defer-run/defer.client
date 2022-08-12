@@ -1,0 +1,43 @@
+{
+  "name": "@cuarun/client",
+  "version": "0.0.1",
+  "description": "cua JavaScript client",
+  "main": "dist/cjs/index.js",
+  "repository": "git@github.com:charlypoly/cua-client.git",
+  "author": "Charly POLY <cpoly55@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@whatwg-node/fetch": "^0.2.9"
+  },
+  "devDependencies": {
+    "bob-the-bundler": "^4.0.0",
+    "typescript": "^4.7.4"
+  },
+  "type": "module",
+  "module": "dist/esm/index.js",
+  "typings": "dist/typings/index.d.ts",
+  "typescript": {
+    "definition": "dist/typings/index.d.ts"
+  },
+  "exports": {
+    ".": {
+      "require": {
+        "types": "./dist/typings/index.d.cts",
+        "default": "./dist/cjs/index.js"
+      },
+      "import": {
+        "types": "./dist/typings/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "default": {
+        "types": "./dist/typings/index.d.ts",
+        "default": "./dist/esm/index.js"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "directory": "dist",
+    "access": "public"
+  }
+}
