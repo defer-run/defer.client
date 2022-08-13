@@ -1,5 +1,5 @@
 import { fetch } from "@whatwg-node/fetch";
-import { DOMAIN, PATH } from "./constants";
+import { DOMAIN, PATH } from "./constants.js";
 
 interface Options {
   apiToken: string;
