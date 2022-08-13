@@ -1,4 +1,5 @@
 import { fetch } from "@whatwg-node/fetch";
+import { DOMAIN, PATH } from "./constants";
 
 interface Options {
   apiToken: string;
@@ -11,7 +12,7 @@ export default {
   },
   push: (fn: string, args?: any[], options?: Options) => {
     const { apiToken = token } = options || {};
-    return fetch(`${DOMAIN}/${PATH}`, {
+    return fetch(`${DOMAIN}${PATH}`, {
       method: "POST",
       body: JSON.stringify({
         fn,

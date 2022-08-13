@@ -1,2 +1,2 @@
-const DOMAIN = "https://cua.run";
-const PATH = "/push";
+export const DOMAIN = "https://cua.run";
+export const PATH = "/push";
