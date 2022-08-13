@@ -1,6 +1,6 @@
 # `@cua.run/client`
 
-`cua` is your favorite async tasks handler for serverless environments.
+`cua` is your favorite async tasks handler to offload your JavaScript API.
 
 
 ## Install
