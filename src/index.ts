@@ -11,7 +11,7 @@ export default {
     token = apiToken;
   },
   push: (fn: string, args: Record<string, any>, _options: Options) => {
-    fetch(`${DOMAIN}/${PATH}`, {
+    return fetch(`${DOMAIN}/${PATH}`, {
       method: "POST",
       body: JSON.stringify({
         fn,
