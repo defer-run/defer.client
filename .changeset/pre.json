@@ -1,0 +1,8 @@
+{
+  "mode": "pre",
+  "tag": "next",
+  "initialVersions": {
+    "@cua.run/client": "0.0.2"
+  },
+  "changesets": []
+}
