@@ -1,5 +1,5 @@
 {
-  "name": "@cuarun/client",
+  "name": "@cua.run/client",
   "version": "0.0.1",
   "description": "cua JavaScript client",
   "main": "dist/cjs/index.js",
@@ -8,6 +8,9 @@
   "license": "MIT",
   "dependencies": {
     "@whatwg-node/fetch": "^0.2.9"
+  },
+  "scripts": {
+    "build": "bob build"
   },
   "devDependencies": {
     "bob-the-bundler": "^4.0.0",

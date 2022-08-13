@@ -12,6 +12,7 @@ export default {
   },
   push: (fn: string, args: Record<string, any>, _options: Options) => {
     fetch(`${DOMAIN}/${PATH}`, {
+      method: "POST",
       body: JSON.stringify({
         fn,
         args,
