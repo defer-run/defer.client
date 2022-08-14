@@ -1,5 +1,11 @@
 # @cua.run/client
 
+## 0.0.7
+
+### Patch Changes
+
+- support multiple arguments + error handling
+
 ## 0.0.6
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@cua.run/client",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "cua JavaScript client",
   "main": "dist/cjs/index.js",
   "repository": "git@github.com:charlypoly/cua-client.git",
@@ -11,8 +11,7 @@
     "@whatwg-node/fetch": "^0.2.9"
   },
   "scripts": {
-    "build": "bob build",
-    "publish": "changeset version && changeset publish"
+    "build": "bob build"
   },
   "devDependencies": {
     "bob-the-bundler": "^4.0.0",
