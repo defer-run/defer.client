@@ -1,49 +1,54 @@
-# `@cua.run/client`
+# `@defer.run/client`
 
-`cua` is your favorite async tasks handler to offload your JavaScript API.
+`defer` is your favorite async tasks handler to offload your JavaScript API.
 
 
 ## Install
 
 
 ```sh
-yarn add @cua.run/client
+yarn add @defer.run/client
 
 # or
 
-npm i @cua.run/client
+npm i @defer.run/client
 ```
 
 ## Configuration
 
-```ts
-import cua from "@cua.run/client";
-
-cua.init({ apiToken: "YOUR API TOKEN" });
-```
+Make sure to define the `DEFER_TOKEN` environment variable in production/staging environments.
 
 ## Usage
 
 
-### Recommended usage
+### 1. Define your background function
 
-For a seamless integration with your project, we recommend to install our `@cua.run/babel` babel plugin.
-Our babel plugin will replace all usage of cua functions to client pushes:
+A background function should be a unique default export of a file placed in `background-functions/` folder.
 
 ```ts
-import type { NextApiRequest, NextApiResponse } from "next";
-import sentToIntercom from "../../cua-functions/sendToIntercom";
+import { defer } from "@defer.run/client";
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  const user = { /* ... */ }
-  await sentToIntercom(user); // will be replaced by `cua.push('sentToIntercom', [user])` by our babel plugin
-  res.status(200).json({ name: "John Doe" });
+function importContacts(intercomId: string) {
+  // import contacts from Hubspot and insert them in the database
 }
+
+export default defer(importContacts)
 ```
 
 
-### Programmatic usage
+### 2. Call your background function
+
+For a seamless integration with your project, we recommend to install our `@defer.run/babel` babel plugin.
+Our babel plugin will replace all usage of defer functions to client pushes:
 
 ```ts
-await cua.push('function name', args)
+import type { NextApiRequest, NextApiResponse } from "next";
+import sentToIntercom from "../../background-functions/importContacts";
+
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
+  // will be executed in the background
+  await importContacts(currentUser.intercomId);
+
+  res.status(200).json({ name: "John Doe" });
+}
 ```
