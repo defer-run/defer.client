@@ -1,6 +1,6 @@
 {
   "name": "@defer.run/client",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "cua JavaScript client",
   "main": "dist/cjs/index.js",
   "repository": "git@github.com:charlypoly/cua-client.git",
