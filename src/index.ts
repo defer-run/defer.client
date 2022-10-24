@@ -24,8 +24,8 @@ export function defer(fn: any): any {
         let body = "";
         try {
           body = JSON.stringify({
-            fn: fn.name,
-            args: JSON.stringify(args),
+            name: fn.name,
+            arguments: args,
           });
         } catch (error) {
           console.log(
