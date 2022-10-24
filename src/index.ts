@@ -9,13 +9,15 @@ interface Options {
 let token: string | undefined = process.env[TOKEN_ENV_NAME];
 let apiEndpoint = `${DOMAIN}${PATH}`;
 
-const init = ({ apiToken, apiUrl }: Options) => {
+export const init = ({ apiToken, apiUrl }: Options) => {
   token = apiToken || process.env[TOKEN_ENV_NAME];
   apiEndpoint = apiUrl || `${DOMAIN}${PATH}`;
 };
 
-function defer<F extends (...args: any | undefined) => Promise<any>>(fn: F): F;
-function defer(fn: any): any {
+export function defer<F extends (...args: any | undefined) => Promise<any>>(
+  fn: F
+): F;
+export function defer(fn: any): any {
   const ret = (...args: any[]) => {
     if (token) {
       return new Promise((resolve, reject) => {
@@ -36,7 +38,9 @@ function defer(fn: any): any {
           body,
           headers: {
             "Content-type": "application/json",
-            Authorization: `Bearer ${token}`,
+            Authorization: `Basic ${Buffer.from(":" + token).toString(
+              "base64"
+            )}`,
           },
         }).then(resolve, (error) => {
           console.log(`[defer.run][${fn}] Failed to execute: ${error}`);
@@ -49,5 +53,3 @@ function defer(fn: any): any {
   };
   return ret;
 }
-
-export default { defer, init };
