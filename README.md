@@ -1,6 +1,6 @@
 # `@defer.run/client`
 
-`defer` is your favorite async tasks handler to offload your JavaScript API.
+`defer` is your favorite background tasks handler to offload your JavaScript API.
 
 
 ## Install
