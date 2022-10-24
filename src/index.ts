@@ -2,13 +2,16 @@ import { fetch } from "@whatwg-node/fetch";
 import { DOMAIN, PATH, TOKEN_ENV_NAME } from "./constants.js";
 
 interface Options {
-  apiToken: string;
+  apiToken?: string;
+  apiUrl?: string;
 }
 
 let token: string | undefined = process.env[TOKEN_ENV_NAME];
+let apiEndpoint = `${DOMAIN}${PATH}`;
 
-export const init = ({ apiToken }: Options) => {
-  token = apiToken;
+const init = ({ apiToken, apiUrl }: Options) => {
+  token = apiToken || process.env[TOKEN_ENV_NAME];
+  apiEndpoint = apiUrl || `${DOMAIN}${PATH}`;
 };
 
 function defer<F extends (...args: any | undefined) => Promise<any>>(fn: F): F;
@@ -28,7 +31,7 @@ function defer(fn: any): any {
           );
           reject();
         }
-        fetch(`${DOMAIN}${PATH}`, {
+        fetch(apiEndpoint, {
           method: "POST",
           body,
           headers: {
@@ -47,4 +50,4 @@ function defer(fn: any): any {
   return ret;
 }
 
-export default defer;
+export default { defer, init };
