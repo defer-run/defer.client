@@ -4,10 +4,13 @@ import { DOMAIN, PATH, TOKEN_ENV_NAME } from "./constants.js";
 interface Options {
   apiToken?: string;
   apiUrl?: string;
+  debug?: boolean;
 }
 
 let token: string | undefined = process.env[TOKEN_ENV_NAME];
 let apiEndpoint = `${DOMAIN}${PATH}`;
+
+let debug = false;
 
 export const init = ({ apiToken, apiUrl }: Options) => {
   token = apiToken || process.env[TOKEN_ENV_NAME];
@@ -19,6 +22,9 @@ export function defer<F extends (...args: any | undefined) => Promise<any>>(
 ): F;
 export function defer(fn: any): any {
   const ret = (...args: any[]) => {
+    if (debug) {
+      console.log(`[defer.run][${fn}] invoked.`);
+    }
     if (token) {
       return new Promise((resolve, reject) => {
         let body = "";
@@ -42,12 +48,27 @@ export function defer(fn: any): any {
               "base64"
             )}`,
           },
-        }).then(resolve, (error) => {
-          console.log(`[defer.run][${fn}] Failed to execute: ${error}`);
-          reject();
-        });
+        }).then(
+          async (resp) => {
+            if (debug) {
+              console.log(
+                `[defer.run][${fn}] response[${
+                  resp.statusText
+                }]: ${await resp.text()}`
+              );
+            }
+            resolve(resp);
+          },
+          (error) => {
+            console.log(`[defer.run][${fn}] Failed to execute: ${error}`);
+            reject();
+          }
+        );
       });
     } else {
+      if (debug) {
+        console.log(`[defer.run][${fn}] defer ignore, no token found.`);
+      }
       return fn(...args);
     }
   };
