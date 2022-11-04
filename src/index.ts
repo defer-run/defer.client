@@ -24,7 +24,7 @@ export function defer<F extends (...args: any | undefined) => Promise<any>>(
 export function defer(fn: any): any {
   const ret = (...args: any[]) => {
     if (debug) {
-      console.log(`[defer.run][${fn}] invoked.`);
+      console.log(`[defer.run][${fn.name}] invoked.`);
     }
     if (token) {
       return new Promise((resolve, reject) => {
@@ -36,7 +36,7 @@ export function defer(fn: any): any {
           });
         } catch (error) {
           console.log(
-            `[defer.run][${fn}] Failed to serialize arguments: ${error}`
+            `[defer.run][${fn.name}] Failed to serialize arguments: ${error}`
           );
           reject();
         }
@@ -53,7 +53,7 @@ export function defer(fn: any): any {
           async (resp) => {
             if (debug) {
               console.log(
-                `[defer.run][${fn}] response[${
+                `[defer.run][${fn.name}] response[${
                   resp.statusText
                 }]: ${await resp.text()}`
               );
@@ -61,14 +61,14 @@ export function defer(fn: any): any {
             resolve(resp);
           },
           (error) => {
-            console.log(`[defer.run][${fn}] Failed to execute: ${error}`);
+            console.log(`[defer.run][${fn.name}] Failed to execute: ${error}`);
             reject();
           }
         );
       });
     } else {
       if (debug) {
-        console.log(`[defer.run][${fn}] defer ignore, no token found.`);
+        console.log(`[defer.run][${fn.name}] defer ignore, no token found.`);
       }
       return fn(...args);
     }
