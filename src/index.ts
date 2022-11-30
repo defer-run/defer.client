@@ -7,6 +7,8 @@ interface Options {
   debug?: boolean;
 }
 
+console.log("test");
+
 let token: string | undefined = process.env[TOKEN_ENV_NAME];
 let apiEndpoint = `${DOMAIN}${PATH}`;
 
