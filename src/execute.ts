@@ -25,17 +25,17 @@ export function executeBackgroundFunction(
       async (resp) => {
         if (debug) {
           console.log(
-            `[defer.run][${fnName}] response[${
-              resp.statusText
-            }]: ${await resp.clone().text()}`
+            `[defer.run][${fnName}] response[${resp.statusText}]: ${await resp
+              .clone()
+              .text()}`
           );
         }
         try {
-          const result = (await resp.json()) as DeferExecuteResponse
+          const result = (await resp.json()) as DeferExecuteResponse;
           if (result.error) {
-            reject(new Error(result.error))
+            reject(new Error(result.error));
           } else {
-            resolve(result)
+            resolve(result);
           }
         } catch (error) {
           console.log(`[defer.run][${fnName}] Failed to execute: ${error}`);
@@ -85,7 +85,7 @@ export function serializeBackgroundFunctionArguments(
 //   return body;
 // }
 
-export interface  DeferExecutionResponse {
+export interface DeferExecutionResponse {
   state: "running" | "created" | "failed" | "succeed";
   data: any;
   error: string;
@@ -101,17 +101,16 @@ export function poolForExecutionResult<R>(
   const getResult = async () =>
     fetcher(`run/${runId}`, {
       method: "GET",
-    }).then(
-      async (resp) =>
-        (await resp.json()) as DeferExecutionResponse
-    );
+    }).then(async (resp) => (await resp.json()) as DeferExecutionResponse);
 
   return new Promise<R>((resolve, reject) => {
     const poll = async () => {
       const result = await getResult();
       if (debug) {
         console.log(
-          `[defer.run][${fnName}] execution polling response: ${JSON.stringify(result)}`
+          `[defer.run][${fnName}] execution polling response: ${JSON.stringify(
+            result
+          )}`
         );
       }
       if (result.data) {
