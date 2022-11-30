@@ -1,5 +1,12 @@
-import { fetch } from "@whatwg-node/fetch";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { DOMAIN, PATH, TOKEN_ENV_NAME } from "./constants.js";
+import {
+  DeferExecuteResponse,
+  executeBackgroundFunction,
+  poolForExecutionResult,
+  serializeBackgroundFunctionArguments,
+} from "./execute.js";
+import { makeFetcher } from "./fetcher.js";
 
 interface Options {
   apiToken?: string;
@@ -12,66 +19,74 @@ let apiEndpoint = `${DOMAIN}${PATH}`;
 
 let debug = false;
 
+let fetcher = token ? makeFetcher(apiEndpoint, token) : undefined;
+
 export const init = ({ apiToken, apiUrl, debug: debugValue }: Options) => {
   token = apiToken || process.env[TOKEN_ENV_NAME];
   apiEndpoint = apiUrl || `${DOMAIN}${PATH}`;
   debug = debugValue || debug;
+  fetcher = token ? makeFetcher(apiEndpoint, token) : undefined;
 };
 
-export function defer<F extends (...args: any | undefined) => Promise<any>>(
-  fn: F
-): F;
-export function defer(fn: any): any {
-  const ret = (...args: any[]) => {
+type UnPromise<F> = F extends Promise<infer R> ? R : F;
+
+interface Defer {
+  <F extends (...args: any | undefined) => Promise<any>>(fn: F): (
+    ...args: Parameters<F>
+  ) => Promise<DeferExecuteResponse>;
+  await: <F extends (...args: any | undefined) => Promise<any>>(
+    fn: F
+  ) => (
+    ...args: Parameters<F>
+  ) => Promise<DeferExecuteResponse | UnPromise<ReturnType<F>>>;
+}
+
+export const defer: Defer = (fn) => {
+  const ret = (...args: Parameters<typeof fn>) => {
     if (debug) {
       console.log(`[defer.run][${fn.name}] invoked.`);
     }
-    if (token) {
-      return new Promise((resolve, reject) => {
-        let body = "";
-        try {
-          body = JSON.stringify({
-            name: fn.name,
-            arguments: args,
-          });
-        } catch (error) {
-          console.log(
-            `[defer.run][${fn.name}] Failed to serialize arguments: ${error}`
-          );
-          reject();
-        }
-        fetch(apiEndpoint, {
-          method: "POST",
-          body,
-          headers: {
-            "Content-type": "application/json",
-            Authorization: `Basic ${Buffer.from(":" + token).toString(
-              "base64"
-            )}`,
-          },
-        }).then(
-          async (resp) => {
-            if (debug) {
-              console.log(
-                `[defer.run][${fn.name}] response[${
-                  resp.statusText
-                }]: ${await resp.text()}`
-              );
-            }
-            resolve(resp);
-          },
-          (error) => {
-            console.log(`[defer.run][${fn.name}] Failed to execute: ${error}`);
-            reject();
-          }
-        );
-      });
+    if (token && fetcher) {
+      return executeBackgroundFunction(fn.name, args, fetcher, debug);
     } else {
       if (debug) {
         console.log(`[defer.run][${fn.name}] defer ignore, no token found.`);
       }
-      return fn(...args);
+      // try to serialize arguments for develpment warning purposes
+      serializeBackgroundFunctionArguments(fn.name, args);
+      return fn(...(args as any));
     }
   };
-  return ret;
-}
+  return ret as any;
+};
+
+defer.await = (fn) => {
+  const ret = async (...args: Parameters<typeof fn>) => {
+    const executionResult = await defer(fn)(...args);
+
+    if (executionResult.runId) {
+      return await poolForExecutionResult<ReturnType<typeof fn>>(
+        fn.name,
+        executionResult.runId,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        fetcher!,
+        debug
+      );
+    } else {
+      throw new Error(executionResult.error || "Failed to create execution");
+    }
+  };
+  return ret as any;
+};
+
+// TS tests
+
+// (async function() {
+//   const a = (input: string) => Promise.resolve(1);
+
+//   const b = await defer(a)("");
+//   //    ^?
+
+//   const c = await defer.await(a);
+//   //    ^?
+// });
