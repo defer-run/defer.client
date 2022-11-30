@@ -12,6 +12,8 @@ let apiEndpoint = `${DOMAIN}${PATH}`;
 
 let debug = false;
 
+console.log("test");
+
 export const init = ({ apiToken, apiUrl, debug: debugValue }: Options) => {
   token = apiToken || process.env[TOKEN_ENV_NAME];
   apiEndpoint = apiUrl || `${DOMAIN}${PATH}`;
