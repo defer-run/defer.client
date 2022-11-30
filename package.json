@@ -7,7 +7,6 @@
   "author": "Charly POLY <cpoly55@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "@changesets/cli": "^2.24.2",
     "@whatwg-node/fetch": "^0.2.9"
   },
   "scripts": {
@@ -16,6 +15,8 @@
     "release": "changeset publish"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.24.2",
+    "@changesets/changelog-github": "^0.4.7",
     "bob-the-bundler": "^4.0.0",
     "typescript": "^4.7.4"
   },
