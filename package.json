@@ -11,7 +11,9 @@
     "@whatwg-node/fetch": "^0.2.9"
   },
   "scripts": {
-    "build": "bob build"
+    "build": "bob build",
+    "prerelease": "yarn build",
+    "release": "changeset publish"
   },
   "devDependencies": {
     "bob-the-bundler": "^4.0.0",
