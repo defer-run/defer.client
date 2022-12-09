@@ -1,5 +1,11 @@
 # @cua.run/client
 
+## 0.0.16
+
+### Patch Changes
+
+- [#5](https://github.com/defer-run/defer.client/pull/5) [`7a54246`](https://github.com/defer-run/defer.client/commit/7a5424696aa340e4f5b24ae9b5cb504b09a826dc) Thanks [@gearnode](https://github.com/gearnode)! - Update endpoint
+
 ## 0.0.7
 
 ### Patch Changes
