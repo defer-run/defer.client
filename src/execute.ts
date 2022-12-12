@@ -18,7 +18,7 @@ export function executeBackgroundFunction(
     if (!body) {
       throw new Error(`[defer.run][${fnName}] failed to serialize arguments`);
     }
-    fetcher("exec", {
+    fetcher("enqueue", {
       method: "POST",
       body,
     }).then(
@@ -86,9 +86,9 @@ export function serializeBackgroundFunctionArguments(
 // }
 
 export interface DeferExecutionResponse {
+  id: string;
   state: "running" | "created" | "failed" | "succeed";
-  data: any;
-  error: string;
+  result: any;
 }
 
 // TODO(charly): handler error cases
@@ -99,7 +99,7 @@ export function poolForExecutionResult<R>(
   debug = false
 ): Promise<R> {
   const getResult = async () =>
-    fetcher(`run/${runId}`, {
+    fetcher(`executions/${runId}`, {
       method: "GET",
     }).then(async (resp) => (await resp.json()) as DeferExecutionResponse);
 
@@ -113,12 +113,13 @@ export function poolForExecutionResult<R>(
           )}`
         );
       }
-      if (result.data) {
-        resolve(result.data);
+      if (result.result) {
+        resolve(result.result);
         return;
       } else if (result.state === "failed") {
         // TODO
-        reject(result.error);
+        // reject(result.error);
+        reject(new Error("Defer execution failed"));
         return;
       }
       setTimeout(poll, FN_EXECUTION_POLLING_INTERVAL);

@@ -35,7 +35,7 @@ describe("defer.await()", () => {
         }).
         // third `/runs/:id` call
         mockImplementationOnce(() => {
-          return new Response(JSON.stringify({ state:'succeed', data: 'coucou' } as DeferExecutionResponse))
+          return new Response(JSON.stringify({ state:'succeed', result: 'coucou' } as DeferExecutionResponse))
         })
 
         jest.mocked(makeFetcher).
