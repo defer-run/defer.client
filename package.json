@@ -10,12 +10,15 @@
     "@whatwg-node/fetch": "^0.2.9"
   },
   "scripts": {
-    "build": "bob build",
+    "build": "bob build  --single",
     "lint": "eslint src/**/*.ts",
     "prerelease": "yarn build",
     "release": "changeset publish",
     "test": "jest --passWithNoTests --config ./tests/jest.ts --runInBand",
     "test:dev": "jest --passWithNoTests --config ./tests/jest.ts --runInBand --watch"
+  },
+  "buildOptions": {
+    "input": "./src/index.ts"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.4.7",

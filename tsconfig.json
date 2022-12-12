@@ -25,5 +25,6 @@
     "noUnusedParameters": true,
     "importsNotUsedAsValues": "error",
     "checkJs": true
-  }
+  },
+  "include": ["src/index.ts"]
 }
