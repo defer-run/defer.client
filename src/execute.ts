@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { FN_EXECUTION_POLLING_INTERVAL } from "./constants";
-import type { DeferConfiguredFetcher } from "./fetcher";
+import { FN_EXECUTION_POLLING_INTERVAL } from "./constants.js";
+import type { DeferConfiguredFetcher } from "./fetcher.js";
 
 export interface DeferExecuteResponse {
   runId?: string;
