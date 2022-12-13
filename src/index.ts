@@ -30,19 +30,26 @@ export const init = ({ apiToken, apiUrl, debug: debugValue }: Options) => {
 
 type UnPromise<F> = F extends Promise<infer R> ? R : F;
 
+interface DeferRetFn<F extends (...args: any | undefined) => Promise<any>> {
+  (...args: Parameters<F>): Promise<DeferExecuteResponse>;
+  __fn: F;
+}
+interface DeferAwaitRetFn<
+  F extends (...args: any | undefined) => Promise<any>
+> {
+  (...args: Parameters<F>): Promise<UnPromise<ReturnType<F>>>;
+  __fn: F;
+}
+
 interface Defer {
-  <F extends (...args: any | undefined) => Promise<any>>(fn: F): (
-    ...args: Parameters<F>
-  ) => Promise<DeferExecuteResponse>;
+  <F extends (...args: any | undefined) => Promise<any>>(fn: F): DeferRetFn<F>;
   await: <F extends (...args: any | undefined) => Promise<any>>(
     fn: F
-  ) => (
-    ...args: Parameters<F>
-  ) => Promise<DeferExecuteResponse | UnPromise<ReturnType<F>>>;
+  ) => DeferAwaitRetFn<F>;
 }
 
 export const defer: Defer = (fn) => {
-  const ret = (...args: Parameters<typeof fn>) => {
+  const ret: DeferRetFn<typeof fn> = (...args: Parameters<typeof fn>) => {
     if (debug) {
       console.log(`[defer.run][${fn.name}] invoked.`);
     }
@@ -57,24 +64,26 @@ export const defer: Defer = (fn) => {
       return fn(...(args as any));
     }
   };
+  ret.__fn = fn;
   return ret as any;
 };
 
 defer.await = (fn) => {
-  const ret = async (...args: Parameters<typeof fn>) => {
+  const ret: DeferAwaitRetFn<typeof fn> = async (
+    ...args: Parameters<typeof fn>
+  ) => {
     const executionResult = await defer(fn)(...args);
 
-    if (executionResult.id) {
-      return await poolForExecutionResult<ReturnType<typeof fn>>(
-        fn.name,
-        executionResult.id,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        fetcher!,
-        debug
-      );
-    } else {
-      throw new Error(executionResult.error || "Failed to create execution");
-    }
+    // an exception is raised in case of failed execution creation, the below code becoming unreachable
+    return await poolForExecutionResult<UnPromise<ReturnType<typeof fn>>>(
+      fn.name,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      executionResult.id!,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      fetcher!,
+      debug
+    );
   };
+  ret.__fn = fn;
   return ret as any;
 };
