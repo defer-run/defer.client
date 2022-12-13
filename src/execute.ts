@@ -3,7 +3,7 @@ import { FN_EXECUTION_POLLING_INTERVAL } from "./constants.js";
 import type { DeferConfiguredFetcher } from "./fetcher.js";
 
 export interface DeferExecuteResponse {
-  runId?: string;
+  id?: string;
   error?: string;
 }
 

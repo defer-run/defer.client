@@ -64,10 +64,10 @@ defer.await = (fn) => {
   const ret = async (...args: Parameters<typeof fn>) => {
     const executionResult = await defer(fn)(...args);
 
-    if (executionResult.runId) {
+    if (executionResult.id) {
       return await poolForExecutionResult<ReturnType<typeof fn>>(
         fn.name,
-        executionResult.runId,
+        executionResult.id,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         fetcher!,
         debug
@@ -78,15 +78,3 @@ defer.await = (fn) => {
   };
   return ret as any;
 };
-
-// TS tests
-
-// (async function() {
-//   const a = (input: string) => Promise.resolve(1);
-
-//   const b = await defer(a)("");
-//   //    ^?
-
-//   const c = await defer.await(a);
-//   //    ^?
-// });
