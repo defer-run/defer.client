@@ -23,7 +23,7 @@ describe("defer.await()", () => {
         const responseFn = jest.fn().
         // first `/exec` call
         mockImplementationOnce(() => {
-          return new Response(JSON.stringify({ runId: '1' } as DeferExecuteResponse))
+          return new Response(JSON.stringify({ id: '1' } as DeferExecuteResponse))
         }).
         // first `/runs/:id` call
         mockImplementationOnce(() => {

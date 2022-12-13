@@ -8,6 +8,8 @@ import {
 } from "./execute.js";
 import { makeFetcher } from "./fetcher.js";
 
+export type { DeferExecuteResponse } from "./execute.js";
+
 interface Options {
   apiToken?: string;
   apiUrl?: string;
@@ -31,7 +33,7 @@ export const init = ({ apiToken, apiUrl, debug: debugValue }: Options) => {
 type UnPromise<F> = F extends Promise<infer R> ? R : F;
 
 interface DeferRetFn<F extends (...args: any | undefined) => Promise<any>> {
-  (...args: Parameters<F>): Promise<DeferExecuteResponse>;
+  (...args: Parameters<F>): ReturnType<F>;
   __fn: F;
 }
 interface DeferAwaitRetFn<
@@ -48,6 +50,9 @@ interface Defer {
   ) => DeferAwaitRetFn<F>;
 }
 
+export const isDeferExecution = (obj: any): obj is DeferExecuteResponse =>
+  !!obj.__deferExecutionResponse;
+
 export const defer: Defer = (fn) => {
   const ret: DeferRetFn<typeof fn> = (...args: Parameters<typeof fn>) => {
     if (debug) {
@@ -61,7 +66,8 @@ export const defer: Defer = (fn) => {
       }
       // try to serialize arguments for develpment warning purposes
       serializeBackgroundFunctionArguments(fn.name, args);
-      return fn(...(args as any));
+      // FIX: do better
+      return fn(...(args as any)) as any;
     }
   };
   ret.__fn = fn;

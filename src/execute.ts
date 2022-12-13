@@ -5,6 +5,7 @@ import type { DeferConfiguredFetcher } from "./fetcher.js";
 export interface DeferExecuteResponse {
   id?: string;
   error?: string;
+  __deferExecutionResponse?: boolean;
 }
 
 export function executeBackgroundFunction(
@@ -35,7 +36,7 @@ export function executeBackgroundFunction(
           if (result.error) {
             reject(new Error(result.error));
           } else {
-            resolve(result);
+            resolve({ ...result, __deferExecutionResponse: true });
           }
         } catch (error) {
           console.log(`[defer.run][${fnName}] Failed to execute: ${error}`);

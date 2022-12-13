@@ -31,7 +31,7 @@ describe("defer()", () => {
     describe('with successful API responses', () => {
       beforeAll(() => {
         jest.mocked(makeFetcher).mockImplementationOnce(() => async () => {
-          return new Response(JSON.stringify({ runId: '1' } as DeferExecuteResponse))
+          return new Response(JSON.stringify({ id: '1' } as DeferExecuteResponse))
         })
         init({ apiToken: "test" });
       });
@@ -53,12 +53,12 @@ describe("defer()", () => {
         );
       });
 
-      it("should NOT call the wrapped function and return runId", async () => {
+      it("should NOT call the wrapped function and return execution ID", async () => {
         const myFunction = jest.fn(async (_str: string) => {});
         const deferred = defer(myFunction);
   
         const result = await deferred("")
-        expect(result).toEqual({ runId: '1' })
+        expect(result).toEqual({ id: '1', __deferExecutionResponse: true })
         expect(myFunction).not.toHaveBeenCalled();
       });
 
