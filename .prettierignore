@@ -1,0 +1,6 @@
+tests/**
+node_modules/
+coverage/
+dist/
+yarn.lock
+.bob/
