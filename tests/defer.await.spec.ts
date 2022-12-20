@@ -2,9 +2,13 @@ import { Response } from "@whatwg-node/fetch";
 import { defer, init } from "../src";
 import type { DeferExecuteResponse, DeferExecutionResponse } from "../src/execute";
 import { makeFetcher } from "../src/fetcher";
+import * as constants from '../src/constants';
+
+const FN_EXECUTION_POLLING_INTERVAL_SECS = constants.FN_EXECUTION_POLLING_INTERVAL_SECS
 
 
 jest.mock("../src/fetcher")
+jest.setTimeout(20000)
 
 describe("defer.await()", () => {
   describe("common", () => {
@@ -44,8 +48,15 @@ describe("defer.await()", () => {
             return responseFn()
           })
 
-        init({ apiToken: "test" });
+        init({ apiToken: "test", debug: true });
+        // @ts-expect-error
+        constants.FN_EXECUTION_POLLING_INTERVAL_SECS = .1
       });
+
+      afterAll(() => {
+        // @ts-expect-error
+        constants.FN_EXECUTION_POLLING_INTERVAL_SECS = FN_EXECUTION_POLLING_INTERVAL_SECS
+      })
 
       it("should NOT call the wrapped function and return the function execution result", async () => {
         const myFunction = jest.fn(async (_str: string) => 'Hello World!');
