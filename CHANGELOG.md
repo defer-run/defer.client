@@ -1,5 +1,17 @@
 # @cua.run/client
 
+## 0.1.0
+
+### Minor Changes
+
+- [#4](https://github.com/defer-run/defer.client/pull/4) [`08f0945`](https://github.com/defer-run/defer.client/commit/08f09459d0b4815b3540d8303c3877b75f6e7d69) Thanks [@charlypoly](https://github.com/charlypoly)! - `defer.await()`
+
+### Patch Changes
+
+- [#8](https://github.com/defer-run/defer.client/pull/8) [`991697d`](https://github.com/defer-run/defer.client/commit/991697da3c5dc27ab4f91f3f321add4de4eec161) Thanks [@charlypoly](https://github.com/charlypoly)! - expose client version (internal)
+
+* [#9](https://github.com/defer-run/defer.client/pull/9) [`87ea1d4`](https://github.com/defer-run/defer.client/commit/87ea1d4de38498ac174a45b5786240798979229c) Thanks [@charlypoly](https://github.com/charlypoly)! - Execution polling jitter algorithm
+
 ## 0.0.16
 
 ### Patch Changes
