@@ -7,6 +7,7 @@ import {
   serializeBackgroundFunctionArguments,
 } from "./execute.js";
 import { makeFetcher } from "./fetcher.js";
+import { version as deferClientVersion } from "../package.json";
 
 export type { DeferExecuteResponse } from "./execute.js";
 
@@ -35,12 +36,14 @@ type UnPromise<F> = F extends Promise<infer R> ? R : F;
 interface DeferRetFn<F extends (...args: any | undefined) => Promise<any>> {
   (...args: Parameters<F>): ReturnType<F>;
   __fn: F;
+  __client_version: string;
 }
 interface DeferAwaitRetFn<
   F extends (...args: any | undefined) => Promise<any>
 > {
   (...args: Parameters<F>): Promise<UnPromise<ReturnType<F>>>;
   __fn: F;
+  __client_version: string;
 }
 
 interface Defer {
@@ -71,6 +74,7 @@ export const defer: Defer = (fn) => {
     }
   };
   ret.__fn = fn;
+  ret.__client_version = deferClientVersion;
   return ret as any;
 };
 
@@ -91,5 +95,6 @@ defer.await = (fn) => {
     );
   };
   ret.__fn = fn;
+  ret.__client_version = deferClientVersion;
   return ret as any;
 };
