@@ -133,9 +133,9 @@ export function poolForExecutionResult<R>(
         reject(new Error("Defer execution failed"));
         return;
       }
-      setTimeout(poll, jitter(attempt++));
+      setTimeout(poll, jitter(attempt++) * 1000);
     };
     // initial call
-    setTimeout(poll, jitter(attempt++));
+    setTimeout(poll, jitter(attempt++) * 1000);
   });
 }
