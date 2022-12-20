@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { FN_EXECUTION_POLLING_INTERVAL } from "./constants.js";
+import { FN_EXECUTION_POLLING_INTERVAL_SECS } from "./constants.js";
 import type { DeferConfiguredFetcher } from "./fetcher.js";
 
 export interface DeferExecuteResponse {
@@ -92,6 +92,15 @@ export interface DeferExecutionResponse {
   result: any;
 }
 
+const jitter = (attempt: number) =>
+  Math.floor(
+    Math.random() *
+      (Math.min(15, Math.pow(FN_EXECUTION_POLLING_INTERVAL_SECS * 2, attempt)) -
+        0 +
+        1) +
+      0
+  );
+
 // TODO(charly): handler error cases
 export function poolForExecutionResult<R>(
   fnName: string,
@@ -99,6 +108,7 @@ export function poolForExecutionResult<R>(
   fetcher: DeferConfiguredFetcher,
   debug = false
 ): Promise<R> {
+  let attempt = 1;
   const getResult = async () =>
     fetcher(`executions/${runId}`, {
       method: "GET",
@@ -123,8 +133,9 @@ export function poolForExecutionResult<R>(
         reject(new Error("Defer execution failed"));
         return;
       }
-      setTimeout(poll, FN_EXECUTION_POLLING_INTERVAL);
+      setTimeout(poll, jitter(attempt++));
     };
-    poll();
+    // initial call
+    setTimeout(poll, jitter(attempt++));
   });
 }
