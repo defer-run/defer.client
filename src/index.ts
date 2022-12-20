@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { DOMAIN, PATH, TOKEN_ENV_NAME } from "./constants.js";
+import { DOMAIN, INTERNAL_VERSION, PATH, TOKEN_ENV_NAME } from "./constants.js";
 import {
   DeferExecuteResponse,
   executeBackgroundFunction,
@@ -35,12 +35,14 @@ type UnPromise<F> = F extends Promise<infer R> ? R : F;
 interface DeferRetFn<F extends (...args: any | undefined) => Promise<any>> {
   (...args: Parameters<F>): ReturnType<F>;
   __fn: F;
+  __version: number;
 }
 interface DeferAwaitRetFn<
   F extends (...args: any | undefined) => Promise<any>
 > {
   (...args: Parameters<F>): Promise<UnPromise<ReturnType<F>>>;
   __fn: F;
+  __version: number;
 }
 
 interface Defer {
@@ -71,6 +73,7 @@ export const defer: Defer = (fn) => {
     }
   };
   ret.__fn = fn;
+  ret.__version = INTERNAL_VERSION;
   return ret as any;
 };
 
@@ -91,5 +94,6 @@ defer.await = (fn) => {
     );
   };
   ret.__fn = fn;
+  ret.__version = INTERNAL_VERSION;
   return ret as any;
 };
