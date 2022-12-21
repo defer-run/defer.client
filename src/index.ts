@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Units } from "parse-duration";
 import { DOMAIN, INTERNAL_VERSION, PATH, TOKEN_ENV_NAME } from "./constants.js";
 import {
   DeferExecuteResponse,
@@ -32,24 +33,30 @@ export const init = ({ apiToken, apiUrl, debug: debugValue }: Options) => {
 
 type UnPromise<F> = F extends Promise<infer R> ? R : F;
 
+export type DelayString = `${string}${Units}`;
+export interface DeferExecutionOptions {
+  delay: DelayString | Date;
+}
+
+type DeferRetFnParameters<
+  F extends (...args: any | undefined) => Promise<any>
+> = [...first: Parameters<F>, options: DeferExecutionOptions];
+
 interface DeferRetFn<F extends (...args: any | undefined) => Promise<any>> {
   (...args: Parameters<F>): ReturnType<F>;
   __fn: F;
   __version: number;
+  await: DeferAwaitRetFn<F>;
+  delayed: (...args: DeferRetFnParameters<F>) => ReturnType<F>;
 }
 interface DeferAwaitRetFn<
   F extends (...args: any | undefined) => Promise<any>
 > {
   (...args: Parameters<F>): Promise<UnPromise<ReturnType<F>>>;
-  __fn: F;
-  __version: number;
 }
 
 interface Defer {
   <F extends (...args: any | undefined) => Promise<any>>(fn: F): DeferRetFn<F>;
-  await: <F extends (...args: any | undefined) => Promise<any>>(
-    fn: F
-  ) => DeferAwaitRetFn<F>;
 }
 
 export const isDeferExecution = (obj: any): obj is DeferExecuteResponse =>
@@ -74,13 +81,7 @@ export const defer: Defer = (fn) => {
   };
   ret.__fn = fn;
   ret.__version = INTERNAL_VERSION;
-  return ret as any;
-};
-
-defer.await = (fn) => {
-  const ret: DeferAwaitRetFn<typeof fn> = async (
-    ...args: Parameters<typeof fn>
-  ) => {
+  ret.await = async (...args) => {
     const executionResult = await defer(fn)(...args);
 
     // an exception is raised in case of failed execution creation, the below code becoming unreachable
@@ -93,7 +94,49 @@ defer.await = (fn) => {
       debug
     );
   };
-  ret.__fn = fn;
-  ret.__version = INTERNAL_VERSION;
+  ret.delayed = (...args) => {
+    if (debug) {
+      console.log(`[defer.run][${fn.name}] invoked.`);
+    }
+    if (token && fetcher) {
+      return executeBackgroundFunction(fn.name, args, fetcher, debug);
+    } else {
+      if (debug) {
+        console.log(`[defer.run][${fn.name}] defer ignore, no token found.`);
+      }
+      // try to serialize arguments for develpment warning purposes
+      serializeBackgroundFunctionArguments(fn.name, args);
+      // FIX: do better
+      return fn(...(args as any)) as any;
+    }
+  };
   return ret as any;
 };
+
+// EXAMPLES:
+//
+// interface Contact {
+//   id: string;
+//   name: string;
+// }
+//
+// const importContacts = (companyId: string, contacts: Contact[]) => {
+//   return new Promise<{ imported: number; companyId: string }>((resolve) => {
+//     console.log(`Start importing contacts for company#${companyId}`);
+//     setTimeout(() => {
+//       console.log(contacts);
+//       console.log("Done.");
+//       resolve({ imported: 10000, companyId });
+//     }, 5000);
+//   });
+// };
+//
+// const importContactsD = defer(importContacts);
+//
+// async function test() {
+//   await importContactsD("1", []); // fire and forget
+//
+//   await importContactsD.await("1", []); // wait for execution result
+//
+//   await importContactsD.delayed("1", [], { delay: "2 days" }); // scheduled
+// }
