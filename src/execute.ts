@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { FN_EXECUTION_POLLING_INTERVAL_SECS } from "./constants.js";
 import type { DeferConfiguredFetcher } from "./fetcher.js";
+import type { DeferExecutionOptions } from "./index.js";
+import parseDuration from "parse-duration";
 
 export interface DeferExecuteResponse {
   id?: string;
@@ -12,10 +14,15 @@ export function executeBackgroundFunction(
   fnName: string,
   args: any[],
   fetcher: DeferConfiguredFetcher,
-  debug = false
+  debug = false,
+  executionOptions?: DeferExecutionOptions
 ): Promise<DeferExecuteResponse> {
   return new Promise<DeferExecuteResponse>((resolve, reject) => {
-    const body = serializeBackgroundFunctionArguments(fnName, args);
+    const body = serializeBackgroundFunctionArguments(
+      fnName,
+      args,
+      executionOptions
+    );
     if (!body) {
       throw new Error(`[defer.run][${fnName}] failed to serialize arguments`);
     }
@@ -51,15 +58,34 @@ export function executeBackgroundFunction(
   });
 }
 
+const delayOptionsToScheduleForValue = (
+  delay: DeferExecutionOptions["delay"]
+) => {
+  if (delay instanceof Date) {
+    return delay.toISOString();
+  } else {
+    const ms = parseDuration(delay);
+    return new Date(Date.now() + ms).toISOString();
+  }
+};
+
 export function serializeBackgroundFunctionArguments(
   fnName: string,
-  args: any[]
+  args: any[],
+  executionOptions?: DeferExecutionOptions
 ) {
   let body: string | false = "[]";
   try {
     body = JSON.stringify({
       name: fnName,
       arguments: args,
+      ...(executionOptions && executionOptions.delay
+        ? {
+            schedule_for: delayOptionsToScheduleForValue(
+              executionOptions.delay
+            ),
+          }
+        : {}),
     });
     return body;
   } catch (error) {

@@ -16,7 +16,7 @@ describe("defer.await()", () => {
       function myFunction(_customerId: string) {}
 
       // @ts-expect-error Type 'void' is not assignable to type 'Promise<any>'.ts(2345)
-      const deferred = defer.await(myFunction);
+      const deferred = defer(myFunction);
     });
   });
 
@@ -60,9 +60,9 @@ describe("defer.await()", () => {
 
       it("should NOT call the wrapped function and return the function execution result", async () => {
         const myFunction = jest.fn(async (_str: string) => 'Hello World!');
-        const deferred = defer.await(myFunction);
+        const deferred = defer(myFunction);
   
-        const result = await deferred("")
+        const result = await deferred.await("")
         expect(result).toEqual('coucou')
         expect(myFunction).not.toHaveBeenCalled();
       });
