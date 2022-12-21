@@ -128,9 +128,14 @@ export function poolForExecutionResult<R>(
         resolve(result.result);
         return;
       } else if (result.state === "failed") {
-        // TODO
-        // reject(result.error);
-        reject(new Error("Defer execution failed"));
+        let error = new Error("Defer execution failed");
+        if (result.result.message) {
+          error = new Error(result.result.message);
+          error.stack = result.result.stack;
+        } else if (result.result) {
+          error = result.result;
+        }
+        reject(error);
         return;
       }
       setTimeout(poll, jitter(attempt++) * 1000);
