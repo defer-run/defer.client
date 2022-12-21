@@ -1,5 +1,15 @@
 # @cua.run/client
 
+## 0.2.0
+
+### Minor Changes
+
+- [#11](https://github.com/defer-run/defer.client/pull/11) [`9c7895c`](https://github.com/defer-run/defer.client/commit/9c7895c46a764ece759f01cdb0ab9a4ed4fa05ee) Thanks [@charlypoly](https://github.com/charlypoly)! - Support for delayed functions
+
+### Patch Changes
+
+- [#12](https://github.com/defer-run/defer.client/pull/12) [`5cde47b`](https://github.com/defer-run/defer.client/commit/5cde47b6901544a90d66d654c24b9ac506bb87b1) Thanks [@charlypoly](https://github.com/charlypoly)! - Forward the received error for `deferred.await()`
+
 ## 0.1.0
 
 ### Minor Changes
