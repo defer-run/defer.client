@@ -94,12 +94,16 @@ export const defer: Defer = (fn) => {
       debug
     );
   };
-  ret.delayed = (...args) => {
+  ret.delayed = (...allArgs) => {
     if (debug) {
       console.log(`[defer.run][${fn.name}] invoked.`);
     }
+    const [args, options] = allArgs as unknown as [
+      Parameters<typeof fn>,
+      DeferExecutionOptions
+    ];
     if (token && fetcher) {
-      return executeBackgroundFunction(fn.name, args, fetcher, debug);
+      return executeBackgroundFunction(fn.name, args, fetcher, debug, options);
     } else {
       if (debug) {
         console.log(`[defer.run][${fn.name}] defer ignore, no token found.`);
