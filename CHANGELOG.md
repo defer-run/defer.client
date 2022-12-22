@@ -1,5 +1,11 @@
 # @cua.run/client
 
+## 0.2.1
+
+### Patch Changes
+
+- [#14](https://github.com/defer-run/defer.client/pull/14) [`2007397`](https://github.com/defer-run/defer.client/commit/200739753643c5bc6a3946f8040c4a16c8fa3052) Thanks [@charlypoly](https://github.com/charlypoly)! - `DeferFunction.await()` should be noop when `DEFER_TOKEN` is not set
+
 ## 0.2.0
 
 ### Minor Changes
