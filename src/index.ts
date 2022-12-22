@@ -82,17 +82,22 @@ export const defer: Defer = (fn) => {
   ret.__fn = fn;
   ret.__version = INTERNAL_VERSION;
   ret.await = async (...args) => {
-    const executionResult = await defer(fn)(...args);
+    const executionResult = (await defer(fn)(...args)) as UnPromise<
+      ReturnType<typeof fn>
+    >;
 
-    // an exception is raised in case of failed execution creation, the below code becoming unreachable
-    return await poolForExecutionResult<UnPromise<ReturnType<typeof fn>>>(
-      fn.name,
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      executionResult.id!,
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      fetcher!,
-      debug
-    );
+    if (isDeferExecution(executionResult)) {
+      return await poolForExecutionResult<UnPromise<ReturnType<typeof fn>>>(
+        fn.name,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        executionResult.id!,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        fetcher!,
+        debug
+      );
+    } else {
+      return Promise.resolve(executionResult);
+    }
   };
   ret.delayed = (...args) => {
     if (debug) {
