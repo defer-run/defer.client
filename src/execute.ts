@@ -115,7 +115,7 @@ export function serializeBackgroundFunctionArguments(
 export interface DeferExecutionResponse {
   id: string;
   state: "running" | "created" | "failed" | "succeed";
-  result: any;
+  result?: any;
 }
 
 const jitter = (attempt: number) =>
@@ -155,7 +155,7 @@ export function poolForExecutionResult<R>(
         return;
       } else if (result.state === "failed") {
         let error = new Error("Defer execution failed");
-        if (result.result.message) {
+        if (result.result?.message) {
           error = new Error(result.result.message);
           error.stack = result.result.stack;
         } else if (result.result) {
