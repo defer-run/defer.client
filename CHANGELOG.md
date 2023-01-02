@@ -1,5 +1,11 @@
 # @cua.run/client
 
+## 0.2.2
+
+### Patch Changes
+
+- [#16](https://github.com/defer-run/defer.client/pull/16) [`e282ee3`](https://github.com/defer-run/defer.client/commit/e282ee3ddbb6c8502036b67d19b554bd70f376d0) Thanks [@charlypoly](https://github.com/charlypoly)! - Handle error without result on polling
+
 ## 0.2.1
 
 ### Patch Changes
