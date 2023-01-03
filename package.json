@@ -8,6 +8,7 @@
   "license": "MIT",
   "dependencies": {
     "@whatwg-node/fetch": "^0.2.9",
+    "friendly-cron": "^0.0.2",
     "parse-duration": "^1.0.2"
   },
   "scripts": {
