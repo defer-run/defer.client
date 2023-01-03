@@ -25,5 +25,5 @@ export default defer.schedule(myDeferWorkflow, 'every day at 10am')
 **Notes**
 
 - a scheduled function should not take arguments
-- a scheduled function is scheduled on PST time (beta)
+- a scheduled function is **scheduled on UTC time**
 - a scheduled function should not be invoked (will result in errors)
