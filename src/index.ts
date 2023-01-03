@@ -31,31 +31,33 @@ export const init = ({ apiToken, apiUrl, debug: debugValue }: Options) => {
   fetcher = token ? makeFetcher(apiEndpoint, token) : undefined;
 };
 
-type UnPromise<F> = F extends Promise<infer R> ? R : F;
+export type UnPromise<F> = F extends Promise<infer R> ? R : F;
 
 export type DelayString = `${string}${Units}`;
 export interface DeferExecutionOptions {
   delay: DelayString | Date;
 }
 
-type DeferRetFnParameters<
+export type DeferRetFnParameters<
   F extends (...args: any | undefined) => Promise<any>
 > = [...first: Parameters<F>, options: DeferExecutionOptions];
 
-interface DeferRetFn<F extends (...args: any | undefined) => Promise<any>> {
+export interface DeferRetFn<
+  F extends (...args: any | undefined) => Promise<any>
+> {
   (...args: Parameters<F>): ReturnType<F>;
   __fn: F;
   __version: number;
   await: DeferAwaitRetFn<F>;
   delayed: (...args: DeferRetFnParameters<F>) => ReturnType<F>;
 }
-interface DeferAwaitRetFn<
+export interface DeferAwaitRetFn<
   F extends (...args: any | undefined) => Promise<any>
 > {
   (...args: Parameters<F>): Promise<UnPromise<ReturnType<F>>>;
 }
 
-interface Defer {
+export interface Defer {
   <F extends (...args: any | undefined) => Promise<any>>(fn: F): DeferRetFn<F>;
 }
 
