@@ -1,5 +1,11 @@
 # @cua.run/client
 
+## 0.2.3
+
+### Patch Changes
+
+- [#18](https://github.com/defer-run/defer.client/pull/18) [`27fe426`](https://github.com/defer-run/defer.client/commit/27fe4260af99dd97213368a7b235911130a0ea1e) Thanks [@charlypoly](https://github.com/charlypoly)! - Typings fixes
+
 ## 0.2.2
 
 ### Patch Changes
