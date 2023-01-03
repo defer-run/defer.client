@@ -19,7 +19,7 @@ async function myDeferWorkflow() {
   // do something...
 }
 
-defer.schedule(myDeferWorkflow, 'every day at 10am')
+export default defer.schedule(myDeferWorkflow, 'every day at 10am')
 ```
 
 **Notes**
