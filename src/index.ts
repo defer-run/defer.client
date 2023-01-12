@@ -143,10 +143,13 @@ defer.schedule = (fn, schedule) => {
     throw new Error("`defer.scheduled()` functions should not be invoked.");
   };
 
+  const cronTab = friendlyCron(schedule) as string;
+
   ret.__fn = fn;
   ret.__metadata = {
     version: INTERNAL_VERSION,
-    cron: friendlyCron(schedule) || schedule,
+    // remove seconds from crontab (not supported)
+    cron: cronTab ? cronTab.split(" ").splice(1).join(" ") : schedule,
   };
 
   return ret;
