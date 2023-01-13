@@ -1,5 +1,35 @@
 # @cua.run/client
 
+## 0.3.0
+
+### Minor Changes
+
+- [#20](https://github.com/defer-run/defer.client/pull/20) [`99ed4df`](https://github.com/defer-run/defer.client/commit/99ed4df58266a08c7c3a58410a9b7be55bcbcb40) Thanks [@charlypoly](https://github.com/charlypoly)! - Introduce `defer.schedule(fn, frequencyStr)`
+
+  Defer now support scheduled functions (CRON), as follows:
+
+  ```ts
+  import { defer } from "@defer.run/client";
+
+  async function myDeferWorkflow() {
+    const users = await prisma.user.find({
+      where: {
+        // ...
+      }
+    });
+
+    // do something...
+  }
+
+  export default defer.schedule(myDeferWorkflow, "every day at 10am");
+  ```
+
+  **Notes**
+
+  - a scheduled function should not take arguments
+  - a scheduled function is **scheduled on UTC time**
+  - a scheduled function should not be invoked (will result in errors)
+
 ## 0.2.3
 
 ### Patch Changes
