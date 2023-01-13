@@ -7,8 +7,8 @@
   "author": "Charly POLY <cpoly55@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "@darkeyedevelopers/natural-cron.js": "^1.1.0",
     "@whatwg-node/fetch": "^0.2.9",
-    "friendly-cron": "^0.0.2",
     "parse-duration": "^1.0.2"
   },
   "scripts": {

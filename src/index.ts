@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Units } from "parse-duration";
-// @ts-expect-error no types def
-import friendlyCron from "friendly-cron";
+// @ts-expect-error untyped dep
+import getCronString from "@darkeyedevelopers/natural-cron.js";
 import { DOMAIN, INTERNAL_VERSION, PATH, TOKEN_ENV_NAME } from "./constants.js";
 import {
   DeferExecuteResponse,
@@ -143,7 +143,7 @@ defer.schedule = (fn, schedule) => {
     throw new Error("`defer.scheduled()` functions should not be invoked.");
   };
 
-  const cronTab = friendlyCron(schedule) as string;
+  const cronTab = getCronString(schedule) as string;
 
   ret.__fn = fn;
   ret.__metadata = {
@@ -173,11 +173,11 @@ defer.schedule = (fn, schedule) => {
 //   });
 // };
 
-// async function myFunction() {
-//   return 1;
-// }
+async function myFunction() {
+  return 1;
+}
 
-// defer.schedule(myFunction, "every day");
+defer.schedule(myFunction, "every day");
 
 // const importContactsD = defer(importContacts);
 
