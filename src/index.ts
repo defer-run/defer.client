@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Units } from "parse-duration";
+// @ts-expect-error untyped dep
+import getCronString from "@darkeyedevelopers/natural-cron.js";
 import { DOMAIN, INTERNAL_VERSION, PATH, TOKEN_ENV_NAME } from "./constants.js";
 import {
   DeferExecuteResponse,
@@ -42,14 +44,25 @@ export type DeferRetFnParameters<
   F extends (...args: any | undefined) => Promise<any>
 > = [...first: Parameters<F>, options: DeferExecutionOptions];
 
+export interface HasDeferMetadata {
+  __metadata: {
+    version: number;
+    cron?: string;
+  };
+}
+
 export interface DeferRetFn<
   F extends (...args: any | undefined) => Promise<any>
-> {
+> extends HasDeferMetadata {
   (...args: Parameters<F>): ReturnType<F>;
   __fn: F;
-  __version: number;
   await: DeferAwaitRetFn<F>;
   delayed: (...args: DeferRetFnParameters<F>) => ReturnType<F>;
+}
+export interface DeferScheduledFn<F extends (...args: never) => Promise<any>>
+  extends HasDeferMetadata {
+  (...args: Parameters<F>): void;
+  __fn: F;
 }
 export interface DeferAwaitRetFn<
   F extends (...args: any | undefined) => Promise<any>
@@ -59,6 +72,10 @@ export interface DeferAwaitRetFn<
 
 export interface Defer {
   <F extends (...args: any | undefined) => Promise<any>>(fn: F): DeferRetFn<F>;
+  schedule: <F extends (args: never[]) => Promise<any>>(
+    fn: F,
+    schedule: string
+  ) => DeferScheduledFn<F>;
 }
 
 export const isDeferExecution = (obj: any): obj is DeferExecuteResponse =>
@@ -82,7 +99,7 @@ export const defer: Defer = (fn) => {
     }
   };
   ret.__fn = fn;
-  ret.__version = INTERNAL_VERSION;
+  ret.__metadata = { version: INTERNAL_VERSION };
   ret.await = async (...args) => {
     const executionResult = (await defer(fn)(...args)) as UnPromise<
       ReturnType<typeof fn>
@@ -121,13 +138,27 @@ export const defer: Defer = (fn) => {
   return ret as any;
 };
 
+defer.schedule = (fn, schedule) => {
+  const ret: DeferScheduledFn<typeof fn> = () => {
+    throw new Error("`defer.scheduled()` functions should not be invoked.");
+  };
+
+  ret.__fn = fn;
+  ret.__metadata = {
+    version: INTERNAL_VERSION,
+    cron: getCronString(schedule) as string,
+  };
+
+  return ret;
+};
+
 // EXAMPLES:
-//
+
 // interface Contact {
 //   id: string;
 //   name: string;
 // }
-//
+
 // const importContacts = (companyId: string, contacts: Contact[]) => {
 //   return new Promise<{ imported: number; companyId: string }>((resolve) => {
 //     console.log(`Start importing contacts for company#${companyId}`);
@@ -138,13 +169,19 @@ export const defer: Defer = (fn) => {
 //     }, 5000);
 //   });
 // };
-//
+
+async function myFunction() {
+  return 1;
+}
+
+defer.schedule(myFunction, "every day");
+
 // const importContactsD = defer(importContacts);
-//
+
 // async function test() {
 //   await importContactsD("1", []); // fire and forget
-//
+
 //   await importContactsD.await("1", []); // wait for execution result
-//
+
 //   await importContactsD.delayed("1", [], { delay: "2 days" }); // scheduled
 // }
