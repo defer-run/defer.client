@@ -1,5 +1,21 @@
 # @cua.run/client
 
+## 0.4.0
+
+### Minor Changes
+
+- [#24](https://github.com/defer-run/defer.client/pull/24) [`ca35544`](https://github.com/defer-run/defer.client/commit/ca35544849cc76cff8c4038ce30eb90a293af1e0) Thanks [@charlypoly](https://github.com/charlypoly)! - Introduce a new API to delay an execution:
+
+  ```ts
+  import { delay } from "@defer.run/client";
+  import { helloWorld } from "../defer/helloWorld";
+
+  // create a delayed execution
+  const delayedHelloWorld = delay(helloWorld, "1h");
+
+  delayedHelloWorld(); // background execution in 1 hour
+  ```
+
 ## 0.3.0
 
 ### Minor Changes
