@@ -57,6 +57,9 @@ export interface DeferRetFn<
   (...args: Parameters<F>): ReturnType<F>;
   __fn: F;
   await: DeferAwaitRetFn<F>;
+  /**
+   * @deprecated use `delay(deferFn)` instead
+   */
   delayed: (...args: DeferRetFnParameters<F>) => ReturnType<F>;
 }
 export interface DeferScheduledFn<F extends (...args: never) => Promise<any>>
@@ -152,6 +155,42 @@ defer.schedule = (fn, schedule) => {
   return ret;
 };
 
+interface DeferDelay {
+  <F extends (...args: any | undefined) => Promise<any>>(
+    deferFn: DeferRetFn<F>,
+    delay: DelayString | Date
+  ): (...args: Parameters<F>) => ReturnType<F>;
+}
+
+/**
+ * Delay the execution of a background function
+ * @constructor
+ * @param {Function} deferFn - A background function (`defer(...)` result)
+ * @param {string|Date} delay - The delay (ex: "1h" or a Date object)
+ * @returns Function
+ */
+export const delay: DeferDelay =
+  (deferFn, delay) =>
+  (...args) => {
+    const fn = deferFn.__fn;
+    if (debug) {
+      console.log(`[defer.run][${fn.name}] invoked.`);
+    }
+    if (token && fetcher) {
+      return executeBackgroundFunction(fn.name, args, fetcher, debug, {
+        delay,
+      });
+    } else {
+      if (debug) {
+        console.log(`[defer.run][${fn.name}] defer ignore, no token found.`);
+      }
+      // try to serialize arguments for develpment warning purposes
+      serializeBackgroundFunctionArguments(fn.name, args);
+      // FIX: do better
+      return fn(...(args as any)) as any;
+    }
+  };
+
 // EXAMPLES:
 
 // interface Contact {
@@ -170,13 +209,13 @@ defer.schedule = (fn, schedule) => {
 //   });
 // };
 
-async function myFunction() {
-  return 1;
-}
-
-defer.schedule(myFunction, "every day");
-
 // const importContactsD = defer(importContacts);
+
+// async function myFunction() {
+//   return 1;
+// }
+
+// defer.schedule(myFunction, "every day");
 
 // async function test() {
 //   await importContactsD("1", []); // fire and forget
@@ -185,3 +224,6 @@ defer.schedule(myFunction, "every day");
 
 //   await importContactsD.delayed("1", [], { delay: "2 days" }); // scheduled
 // }
+
+// const delayed = delay(importContactsD, "1h");
+// delayed("", []);
