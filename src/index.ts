@@ -155,6 +155,13 @@ defer.schedule = (fn, schedule) => {
   return ret;
 };
 
+interface DeferDelay {
+  <F extends (...args: any | undefined) => Promise<any>>(
+    deferFn: DeferRetFn<F>,
+    delay: DelayString | Date
+  ): (...args: Parameters<F>) => ReturnType<F>;
+}
+
 /**
  * Delay the execution of a background function
  * @constructor
@@ -162,13 +169,9 @@ defer.schedule = (fn, schedule) => {
  * @param {string|Date} delay - The delay (ex: "1h" or a Date object)
  * @returns Function
  */
-export const delay =
-  <F extends (...args: any | undefined) => Promise<any>>(
-    deferFn: DeferRetFn<F>,
-    delay: DelayString | Date
-  ): F =>
-  // @ts-expect-error (charly) to fix
-  (...args: Parameters<F>) => {
+export const delay: DeferDelay =
+  (deferFn, delay) =>
+  (...args) => {
     const fn = deferFn.__fn;
     if (debug) {
       console.log(`[defer.run][${fn.name}] invoked.`);
@@ -176,7 +179,7 @@ export const delay =
     if (token && fetcher) {
       return executeBackgroundFunction(fn.name, args, fetcher, debug, {
         delay,
-      }) as unknown as ReturnType<F>;
+      });
     } else {
       if (debug) {
         console.log(`[defer.run][${fn.name}] defer ignore, no token found.`);
@@ -184,7 +187,7 @@ export const delay =
       // try to serialize arguments for develpment warning purposes
       serializeBackgroundFunctionArguments(fn.name, args);
       // FIX: do better
-      return fn(...(args as any)) as unknown as ReturnType<F>;
+      return fn(...(args as any)) as any;
     }
   };
 
@@ -222,5 +225,5 @@ export const delay =
 //   await importContactsD.delayed("1", [], { delay: "2 days" }); // scheduled
 // }
 
-// const delayed = delay(importContactsD, '1h')
-// delayed('', [])
+// const delayed = delay(importContactsD, "1h");
+// delayed("", []);
