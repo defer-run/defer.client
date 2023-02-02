@@ -17,45 +17,48 @@ export function executeBackgroundFunction(
   debug = false,
   executionOptions?: DeferExecutionOptions
 ): Promise<DeferExecuteResponse> {
-  return new Promise<DeferExecuteResponse>((resolve, reject) => {
-    const body = serializeBackgroundFunctionArguments(
-      fnName,
-      args,
-      executionOptions
-    );
-    if (!body) {
-      throw new Error(`[defer.run][${fnName}] failed to serialize arguments`);
-    }
-    fetcher("enqueue", {
-      method: "POST",
-      body,
-    }).then(
-      async (resp) => {
-        if (debug) {
-          console.log(
-            `[defer.run][${fnName}] response[${resp.statusText}]: ${await resp
-              .clone()
-              .text()}`
-          );
-        }
-        try {
-          const result = (await resp.json()) as DeferExecuteResponse;
-          if (result.error) {
-            reject(new Error(result.error));
-          } else {
-            resolve({ ...result, __deferExecutionResponse: true });
-          }
-        } catch (error) {
-          console.log(`[defer.run][${fnName}] Failed to execute: ${error}`);
-          reject();
-        }
-      },
-      (error) => {
-        console.log(`[defer.run][${fnName}] Failed to execute: ${error}`);
-        reject(error);
+  return mustBeAwaited(
+    new Promise<DeferExecuteResponse>((resolve, reject) => {
+      const body = serializeBackgroundFunctionArguments(
+        fnName,
+        args,
+        executionOptions
+      );
+      if (!body) {
+        throw new Error(`[defer.run][${fnName}] failed to serialize arguments`);
       }
-    );
-  });
+      fetcher("enqueue", {
+        method: "POST",
+        body,
+      }).then(
+        async (resp) => {
+          if (debug) {
+            console.log(
+              `[defer.run][${fnName}] response[${resp.statusText}]: ${await resp
+                .clone()
+                .text()}`
+            );
+          }
+          try {
+            const result = (await resp.json()) as DeferExecuteResponse;
+            if (result.error) {
+              reject(new Error(result.error));
+            } else {
+              resolve({ ...result, __deferExecutionResponse: true });
+            }
+          } catch (error) {
+            console.log(`[defer.run][${fnName}] Failed to execute: ${error}`);
+            reject();
+          }
+        },
+        (error) => {
+          console.log(`[defer.run][${fnName}] Failed to execute: ${error}`);
+          reject(error);
+        }
+      );
+    }),
+    fnName
+  );
 }
 
 const delayOptionsToScheduleForValue = (
@@ -170,3 +173,34 @@ export function poolForExecutionResult<R>(
     setTimeout(poll, jitter(attempt++) * 1000);
   });
 }
+
+// helper to ensure that a background function is called with `await`
+const mustBeAwaited = <T>(
+  {
+    then: originalThen,
+    catch: originalCatch,
+    finally: originalFinally,
+    [Symbol.toStringTag]: toStringTag,
+  }: Promise<T>,
+  fnName: string
+): Promise<T> => {
+  const timeout = setTimeout(() => {
+    console.error(
+      `[defer.run][${fnName}] a background function should be called with 'await'`
+    );
+  });
+
+  const proxy =
+    (fn: any) =>
+    (...args: any[]) => {
+      clearTimeout(timeout);
+      return fn(...args);
+    };
+
+  return {
+    then: proxy(originalThen),
+    catch: proxy(originalCatch),
+    finally: proxy(originalFinally),
+    [Symbol.toStringTag]: toStringTag,
+  };
+};

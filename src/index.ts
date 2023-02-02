@@ -170,11 +170,11 @@ defer.schedule = (fn, schedule) => {
 //   });
 // };
 
-async function myFunction() {
-  return 1;
-}
+// async function myFunction() {
+//   return 1;
+// }
 
-defer.schedule(myFunction, "every day");
+// defer.schedule(myFunction, "every day");
 
 // const importContactsD = defer(importContacts);
 
