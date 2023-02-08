@@ -44,10 +44,13 @@ export type DeferRetFnParameters<
   F extends (...args: any | undefined) => Promise<any>
 > = [...first: Parameters<F>, options: DeferExecutionOptions];
 
+export type RetryNumber = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
+
 export interface HasDeferMetadata {
   __metadata: {
     version: number;
     cron?: string;
+    retry?: RetryNumber;
   };
 }
 
@@ -74,7 +77,10 @@ export interface DeferAwaitRetFn<
 }
 
 export interface Defer {
-  <F extends (...args: any | undefined) => Promise<any>>(fn: F): DeferRetFn<F>;
+  <F extends (...args: any | undefined) => Promise<any>>(
+    fn: F,
+    options?: DeferOptions
+  ): DeferRetFn<F>;
   schedule: <F extends (args: never[]) => Promise<any>>(
     fn: F,
     schedule: string
@@ -84,7 +90,11 @@ export interface Defer {
 export const isDeferExecution = (obj: any): obj is DeferExecuteResponse =>
   !!obj.__deferExecutionResponse;
 
-export const defer: Defer = (fn) => {
+export interface DeferOptions {
+  retry?: boolean | RetryNumber;
+}
+
+export const defer: Defer = (fn, options) => {
   const ret: DeferRetFn<typeof fn> = (...args: Parameters<typeof fn>) => {
     if (debug) {
       console.log(`[defer.run][${fn.name}] invoked.`);
@@ -102,7 +112,14 @@ export const defer: Defer = (fn) => {
     }
   };
   ret.__fn = fn;
-  ret.__metadata = { version: INTERNAL_VERSION };
+  let retryPolicy: RetryNumber = 0;
+  if (options?.retry === true) {
+    retryPolicy = 12;
+  }
+  if (typeof options?.retry === "number") {
+    retryPolicy = options.retry;
+  }
+  ret.__metadata = { version: INTERNAL_VERSION, retry: retryPolicy };
   ret.await = async (...args) => {
     const executionResult = (await defer(fn)(...args)) as UnPromise<
       ReturnType<typeof fn>
@@ -225,5 +242,11 @@ export const delay: DeferDelay =
 //   await importContactsD.delayed("1", [], { delay: "2 days" }); // scheduled
 // }
 
+// // Delayed
+
 // const delayed = delay(importContactsD, "1h");
 // delayed("", []);
+
+// // Retry options
+
+// const importContactsRetried = defer(importContacts, { retry: 3 });
