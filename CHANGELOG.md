@@ -1,4 +1,4 @@
-# @cua.run/client
+# @defer.run/client
 
 ## 0.5.0
 
