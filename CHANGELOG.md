@@ -1,5 +1,21 @@
 # @cua.run/client
 
+## 0.5.0
+
+### Minor Changes
+
+- [#26](https://github.com/defer-run/defer.client/pull/26) [`4d2c4d4`](https://github.com/defer-run/defer.client/commit/4d2c4d4392493a0936ab457e30ff88fe2e7d769c) Thanks [@gearnode](https://github.com/gearnode)! - Add a primary retry option when defining defer function.
+
+  ```js
+  import { defer } from "@defer.run/client";
+
+  async function makeAPICallWhoMaybeFail() {
+    // do something...
+  }
+
+  export default defer(makeAPICallWhoMaybeFail, { retry: 5 });
+  ```
+
 ## 0.4.0
 
 ### Minor Changes
