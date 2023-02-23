@@ -5,6 +5,7 @@ import getCronString from "@darkeyedevelopers/natural-cron.js";
 import { INTERNAL_VERSION } from "./constants.js";
 
 import { enqueueExecution, waitExecutionResult } from "./client.js";
+import { DeferError } from "./errors.js";
 import { HTTPClient, makeHTTPClient } from "./httpClient.js";
 
 interface Options {
@@ -86,10 +87,16 @@ export interface DeferOptions {
 }
 
 export const defer: Defer = (fn, options) => {
-	const ret: DeferRetFn<typeof fn> = (...args: Parameters<typeof fn>) => {
+	const ret = async (...args: Parameters<typeof fn>): Promise<ReturnType<DeferRetFn<typeof fn>>> => {
 		if (__verbose) console.log(`[defer.run][${fn.name}] invoked.`);
 
-		const functionArguments = JSON.parse(JSON.stringify(args))
+		let functionArguments: any;
+		try {
+			functionArguments = JSON.parse(JSON.stringify(args))
+		} catch (error) {
+			const e = error as Error
+			throw new DeferError(`cannot serialize argument: ${e.message}`)
+		}
 
 		if (__httpClient) {
 			return enqueueExecution(__httpClient, {
@@ -115,7 +122,7 @@ export const defer: Defer = (fn, options) => {
 		retryPolicy = options.retry;
 	}
 	ret.__metadata = { version: INTERNAL_VERSION, retry: retryPolicy };
-	ret.await = async (...args) => {
+	ret.await = async (...args: Parameters<typeof fn>) => {
 		const response0 = (await defer(fn)(...args)) as UnPromise<ReturnType<typeof fn>>;
 
 		if (!__httpClient)
