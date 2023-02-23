@@ -9,12 +9,13 @@ import { DeferError } from "./errors.js";
 import { HTTPClient, makeHTTPClient } from "./httpClient.js";
 
 interface Options {
-	accessToken?: string;
-	endpoint?: string;
-	verbose?: boolean;
+  accessToken?: string;
+  endpoint?: string;
+  verbose?: boolean;
 }
 
-export const withDelay = (dt: Date, delay: DelayString): Date => new Date(dt.getTime() + parseDuration(delay));
+export const withDelay = (dt: Date, delay: DelayString): Date =>
+  new Date(dt.getTime() + parseDuration(delay));
 
 let __accessToken: string | undefined = process.env["DEFER_TOKEN"];
 let __endpoint = "https://api.defer.run";
@@ -23,137 +24,141 @@ let __httpClient: HTTPClient | undefined;
 if (__accessToken) __httpClient = makeHTTPClient(__endpoint, __accessToken);
 
 export function configure(opts = {} as Options): void {
-	if (opts.accessToken) __accessToken = opts.accessToken;
-	if (opts.endpoint) __endpoint = opts.endpoint;
-	if (opts.verbose) __verbose = opts.verbose;
+  if (opts.accessToken) __accessToken = opts.accessToken;
+  if (opts.endpoint) __endpoint = opts.endpoint;
+  if (opts.verbose) __verbose = opts.verbose;
 
-	if (__accessToken) __httpClient = makeHTTPClient(__endpoint, __accessToken);
+  if (__accessToken) __httpClient = makeHTTPClient(__endpoint, __accessToken);
 
-	return;
+  return;
 }
 
 export type UnPromise<F> = F extends Promise<infer R> ? R : F;
 
 export type DelayString = `${string}${Units}`;
 export interface DeferExecutionOptions {
-	delay: DelayString | Date;
+  delay: DelayString | Date;
 }
 
 export type DeferRetFnParameters<
-	F extends (...args: any | undefined) => Promise<any>
+  F extends (...args: any | undefined) => Promise<any>
 > = [...first: Parameters<F>, options: DeferExecutionOptions];
 
 export type RetryNumber = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 
 export interface HasDeferMetadata {
-	__metadata: {
-		version: number;
-		cron?: string;
-		retry?: RetryNumber;
-	};
+  __metadata: {
+    version: number;
+    cron?: string;
+    retry?: RetryNumber;
+  };
 }
 
 export interface DeferRetFn<
-	F extends (...args: any | undefined) => Promise<any>
+  F extends (...args: any | undefined) => Promise<any>
 > extends HasDeferMetadata {
-	(...args: Parameters<F>): ReturnType<F>;
-	__fn: F;
-	await: DeferAwaitRetFn<F>;
+  (...args: Parameters<F>): ReturnType<F>;
+  __fn: F;
+  await: DeferAwaitRetFn<F>;
 }
 export interface DeferScheduledFn<F extends (...args: never) => Promise<any>>
-	extends HasDeferMetadata {
-	(...args: Parameters<F>): void;
-	__fn: F;
+  extends HasDeferMetadata {
+  (...args: Parameters<F>): void;
+  __fn: F;
 }
 export interface DeferAwaitRetFn<
-	F extends (...args: any | undefined) => Promise<any>
+  F extends (...args: any | undefined) => Promise<any>
 > {
-	(...args: Parameters<F>): Promise<UnPromise<ReturnType<F>>>;
+  (...args: Parameters<F>): Promise<UnPromise<ReturnType<F>>>;
 }
 
 export interface Defer {
-	<F extends (...args: any | undefined) => Promise<any>>(
-		fn: F,
-		options?: DeferOptions
-	): DeferRetFn<F>;
-	schedule: <F extends (args: never[]) => Promise<any>>(
-		fn: F,
-		schedule: string
-	) => DeferScheduledFn<F>;
+  <F extends (...args: any | undefined) => Promise<any>>(
+    fn: F,
+    options?: DeferOptions
+  ): DeferRetFn<F>;
+  schedule: <F extends (args: never[]) => Promise<any>>(
+    fn: F,
+    schedule: string
+  ) => DeferScheduledFn<F>;
 }
 
 export interface DeferOptions {
-	retry?: boolean | RetryNumber;
+  retry?: boolean | RetryNumber;
 }
 
 export const defer: Defer = (fn, options) => {
-	const ret = async (...args: Parameters<typeof fn>): Promise<ReturnType<DeferRetFn<typeof fn>>> => {
-		if (__verbose) console.log(`[defer.run][${fn.name}] invoked.`);
+  const ret = async (
+    ...args: Parameters<typeof fn>
+  ): Promise<ReturnType<DeferRetFn<typeof fn>>> => {
+    if (__verbose) console.log(`[defer.run][${fn.name}] invoked.`);
 
-		let functionArguments: any;
-		try {
-			functionArguments = JSON.parse(JSON.stringify(args))
-		} catch (error) {
-			const e = error as Error
-			throw new DeferError(`cannot serialize argument: ${e.message}`)
-		}
+    let functionArguments: any;
+    try {
+      functionArguments = JSON.parse(JSON.stringify(args));
+    } catch (error) {
+      const e = error as Error;
+      throw new DeferError(`cannot serialize argument: ${e.message}`);
+    }
 
-		if (__httpClient) {
-			return enqueueExecution(__httpClient, {
-				name: fn.name,
-				arguments: functionArguments,
-				scheduleFor: new Date(),
-			});
-		}
+    if (__httpClient) {
+      return enqueueExecution(__httpClient, {
+        name: fn.name,
+        arguments: functionArguments,
+        scheduleFor: new Date(),
+      });
+    }
 
-		if (__verbose)
-			console.log(`[defer.run][${fn.name}] defer ignore, no token found.`);
+    if (__verbose)
+      console.log(`[defer.run][${fn.name}] defer ignore, no token found.`);
 
+    return fn(...functionArguments) as any;
+  };
 
-		return fn(...functionArguments) as any;
-	};
+  ret.__fn = fn;
+  let retryPolicy: RetryNumber = 0;
+  if (options?.retry === true) {
+    retryPolicy = 12;
+  }
+  if (typeof options?.retry === "number") {
+    retryPolicy = options.retry;
+  }
+  ret.__metadata = { version: INTERNAL_VERSION, retry: retryPolicy };
+  ret.await = async (...args: Parameters<typeof fn>) => {
+    const response0 = (await defer(fn)(...args)) as UnPromise<
+      ReturnType<typeof fn>
+    >;
 
-	ret.__fn = fn;
-	let retryPolicy: RetryNumber = 0;
-	if (options?.retry === true) {
-		retryPolicy = 12;
-	}
-	if (typeof options?.retry === "number") {
-		retryPolicy = options.retry;
-	}
-	ret.__metadata = { version: INTERNAL_VERSION, retry: retryPolicy };
-	ret.await = async (...args: Parameters<typeof fn>) => {
-		const response0 = (await defer(fn)(...args)) as UnPromise<ReturnType<typeof fn>>;
+    if (!__httpClient) return Promise.resolve(response0);
 
-		if (!__httpClient)
-			return Promise.resolve(response0);
+    const response1 = await waitExecutionResult(__httpClient, {
+      id: response0.id,
+    });
+    return Promise.resolve(response1.result);
+  };
 
-		const response1 = await waitExecutionResult(__httpClient, { id: response0.id })
-		return Promise.resolve(response1.result)
-	};
-
-	return ret as any;
+  return ret as any;
 };
 
 defer.schedule = (fn, schedule) => {
-	const ret: DeferScheduledFn<typeof fn> = () => {
-		throw new Error("`defer.scheduled()` functions should not be invoked.");
-	};
+  const ret: DeferScheduledFn<typeof fn> = () => {
+    throw new Error("`defer.scheduled()` functions should not be invoked.");
+  };
 
-	ret.__fn = fn;
-	ret.__metadata = {
-		version: INTERNAL_VERSION,
-		cron: getCronString(schedule) as string,
-	};
+  ret.__fn = fn;
+  ret.__metadata = {
+    version: INTERNAL_VERSION,
+    cron: getCronString(schedule) as string,
+  };
 
-	return ret;
+  return ret;
 };
 
 interface DeferDelay {
-	<F extends (...args: any | undefined) => Promise<any>>(
-		deferFn: DeferRetFn<F>,
-		delay: DelayString | Date
-	): (...args: Parameters<F>) => ReturnType<F>;
+  <F extends (...args: any | undefined) => Promise<any>>(
+    deferFn: DeferRetFn<F>,
+    delay: DelayString | Date
+  ): (...args: Parameters<F>) => ReturnType<F>;
 }
 
 /**
@@ -164,34 +169,34 @@ interface DeferDelay {
  * @returns Function
  */
 export const delay: DeferDelay =
-	(deferFn, delay) =>
-		(...args) => {
-			const fn = deferFn.__fn;
-			const functionArguments = JSON.parse(JSON.stringify(args))
+  (deferFn, delay) =>
+  (...args) => {
+    const fn = deferFn.__fn;
+    const functionArguments = JSON.parse(JSON.stringify(args));
 
-			if (__verbose) console.log(`[defer.run][${fn.name}] invoked.`);
+    if (__verbose) console.log(`[defer.run][${fn.name}] invoked.`);
 
-			if (__httpClient) {
-				let scheduleFor: Date;
-				if (delay instanceof Date) {
-					scheduleFor = delay
-				} else {
-					const now = new Date()
-					scheduleFor = withDelay(now, delay)
-				}
+    if (__httpClient) {
+      let scheduleFor: Date;
+      if (delay instanceof Date) {
+        scheduleFor = delay;
+      } else {
+        const now = new Date();
+        scheduleFor = withDelay(now, delay);
+      }
 
-				return enqueueExecution(__httpClient, {
-					name: fn.name,
-					arguments: functionArguments,
-					scheduleFor: scheduleFor,
-				});
-			}
+      return enqueueExecution(__httpClient, {
+        name: fn.name,
+        arguments: functionArguments,
+        scheduleFor: scheduleFor,
+      });
+    }
 
-			if (__verbose)
-				console.log(`[defer.run][${fn.name}] defer ignore, no token found.`);
+    if (__verbose)
+      console.log(`[defer.run][${fn.name}] defer ignore, no token found.`);
 
-			return fn(...functionArguments) as any;
-		};
+    return fn(...functionArguments) as any;
+  };
 
 // EXAMPLES:
 
