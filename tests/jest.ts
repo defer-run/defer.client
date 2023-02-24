@@ -5,13 +5,16 @@ const config: Config.InitialOptions = {
   rootDir: "../.",
   testRegex: ".spec.ts$",
   transform: {
-    "^.+\\.(t|j)s$": ["ts-jest", {
-      tsconfig: "<rootDir>/tsconfig.json",
-    }],
+    "^.+\\.(t|j)s$": [
+      "ts-jest",
+      {
+        tsconfig: "<rootDir>/tsconfig.json",
+      },
+    ],
   },
   coverageDirectory: "../coverage",
   testEnvironment: "node",
-  resolver: 'bob-the-bundler/jest-resolver.js',
+  resolver: "bob-the-bundler/jest-resolver.js",
 };
 
 export default config;
