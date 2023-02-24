@@ -140,7 +140,19 @@ export const defer: Defer = (fn, options) => {
     const response1 = await waitExecutionResult(__httpClient, {
       id: response0.id,
     });
-    return Promise.resolve(response1.result);
+
+    if (response1.state === "failed") {
+      let error = new Error("Defer execution failed");
+      if (response1.result?.message) {
+        error = new Error(response1.result.message);
+        error.stack = response1.result.stack;
+      } else if (response1.result) {
+        error = response1.result;
+      }
+
+      throw error;
+    }
+      return Promise.resolve(response1.result);
   };
 
   return ret as any;
