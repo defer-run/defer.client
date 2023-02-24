@@ -24,13 +24,6 @@ export class HTTPRequestError extends ClientError {
   }
 }
 
-export class DecodeResponseError extends ClientError {
-  constructor(msg: string) {
-    super(msg);
-    Object.setPrototypeOf(this, DecodeResponseError.prototype);
-  }
-}
-
 export class APIError extends ClientError {
   public readonly code: string;
 
