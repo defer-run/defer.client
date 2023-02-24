@@ -61,7 +61,7 @@ export interface HasDeferMetadata {
 export interface DeferRetFn<
   F extends (...args: any | undefined) => Promise<any>
 > extends HasDeferMetadata {
-  (...args: Parameters<F>): ReturnType<F> | Promise<EnqueueExecutionResponse>;
+  (...args: Parameters<F>): Promise<EnqueueExecutionResponse>;
   __fn: F;
   await: DeferAwaitRetFn<F>;
 }
@@ -70,12 +70,11 @@ export interface DeferScheduledFn<F extends (...args: never) => Promise<any>>
   (...args: Parameters<F>): void;
   __fn: F;
 }
+
 export interface DeferAwaitRetFn<
   F extends (...args: any | undefined) => Promise<any>
 > {
-  (...args: Parameters<F>): Promise<
-    UnPromise<ReturnType<F>> | EnqueueExecutionResponse
-  >;
+  (...args: Parameters<F>): Promise<UnPromise<ReturnType<F>>>;
 }
 
 export interface Defer {
@@ -96,7 +95,7 @@ export interface DeferOptions {
 export const defer: Defer = (fn, options) => {
   const ret = async (
     ...args: Parameters<typeof fn>
-  ): Promise<ReturnType<DeferRetFn<typeof fn>>> => {
+  ): Promise<UnPromise<ReturnType<DeferRetFn<typeof fn>>>> => {
     if (__verbose) console.log(`[defer.run][${fn.name}] invoked.`);
 
     let functionArguments: any;
@@ -118,7 +117,9 @@ export const defer: Defer = (fn, options) => {
     if (__verbose)
       console.log(`[defer.run][${fn.name}] defer ignore, no token found.`);
 
-    return fn(...functionArguments) as any;
+    await fn(...functionArguments);
+
+    return { id: "00000000000000000000000000000000" };
   };
 
   ret.__fn = fn;
@@ -131,31 +132,55 @@ export const defer: Defer = (fn, options) => {
   }
   ret.__metadata = { version: INTERNAL_VERSION, retry: retryPolicy };
   ret.await = async (...args: Parameters<typeof fn>) => {
-    const response0 = (await defer(fn)(...args)) as UnPromise<
-      ReturnType<typeof fn>
-    >;
+    let functionArguments: any;
+    try {
+      functionArguments = JSON.parse(JSON.stringify(args));
+    } catch (error) {
+      const e = error as Error;
+      throw new DeferError(`cannot serialize argument: ${e.message}`);
+    }
 
-    if (!__httpClient) return Promise.resolve(response0);
+    if (__httpClient) {
+      const { id } = await enqueueExecution(__httpClient, {
+        name: fn.name,
+        arguments: functionArguments,
+        scheduleFor: new Date(),
+      });
 
-    const response1 = await waitExecutionResult(__httpClient, {
-      id: response0.id,
-    });
+      const response = await waitExecutionResult(__httpClient, { id: id });
 
-    if (response1.state === "failed") {
-      let error = new Error("Defer execution failed");
-      if (response1.result?.message) {
-        error = new Error(response1.result.message);
-        error.stack = response1.result.stack;
-      } else if (response1.result) {
-        error = response1.result;
+      if (response.state === "failed") {
+        let error = new Error("Defer execution failed");
+        if (response.result?.message) {
+          error = new Error(response.result.message);
+          error.stack = response.result.stack;
+        } else if (response.result) {
+          error = response.result;
+        }
+
+        throw error;
+      }
+
+      return response.result;
+    }
+
+    try {
+      return Promise.resolve(await fn(...functionArguments));
+    } catch (error) {
+      // const e = error as Error;
+      let deferError: any = new Error("Defer execution failed");
+      if (error instanceof Error) {
+        deferError = new Error(error.message);
+        deferError.stack = error.stack || "";
+      } else {
+        deferError = error;
       }
 
       throw error;
     }
-    return Promise.resolve(response1.result);
   };
 
-  return ret as any;
+  return ret;
 };
 
 defer.schedule = (fn, schedule) => {
