@@ -203,9 +203,7 @@ interface DeferDelay {
   <F extends (...args: any | undefined) => Promise<any>>(
     deferFn: DeferRetFn<F>,
     delay: DelayString | Date
-  ): (
-    ...args: Parameters<F>
-  ) => ReturnType<F> | Promise<EnqueueExecutionResponse>;
+  ): (...args: Parameters<F>) => Promise<EnqueueExecutionResponse>;
 }
 
 /**
@@ -248,7 +246,9 @@ export const delay: DeferDelay =
     if (__verbose)
       console.log(`[defer.run][${fn.name}] defer ignore, no token found.`);
 
-    return fn(...functionArguments);
+    await fn(...functionArguments);
+
+    return { id: FakeID };
   };
 
 // EXAMPLES:
