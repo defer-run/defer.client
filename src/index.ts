@@ -18,7 +18,7 @@ interface Options {
   verbose?: boolean;
 }
 
-export const withDelay = (dt: Date, delay: DelayString): Date =>
+const withDelay = (dt: Date, delay: DelayString): Date =>
   new Date(dt.getTime() + parseDuration(delay));
 
 let __accessToken: string | undefined = process.env["DEFER_TOKEN"];
