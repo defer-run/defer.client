@@ -3,6 +3,7 @@ import { jitter } from "./jitter.js";
 
 export interface EnqueueExecutionRequest {
   name: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   arguments: any[];
   scheduleFor: Date;
 }
@@ -20,6 +21,7 @@ export type ExecutionState = "running" | "created" | "failed" | "succeed";
 export interface FetchExecutionResponse {
   id: string;
   state: ExecutionState;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   result?: any;
 }
 
