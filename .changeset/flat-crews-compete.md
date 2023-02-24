@@ -2,4 +2,4 @@
 "@defer.run/client": major
 ---
 
-foo
+Remove deprecated `.delayed` API.
