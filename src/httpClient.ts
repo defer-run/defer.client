@@ -28,7 +28,7 @@ export function makeHTTPClient(
     let endpoint;
 
     try {
-      endpoint = new URL(apiEndpoint, path);
+      endpoint = new URL(path, apiEndpoint);
     } catch (error) {
       let message;
 

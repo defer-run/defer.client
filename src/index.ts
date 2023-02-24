@@ -4,6 +4,8 @@ import parseDuration, { Units } from "parse-duration";
 import getCronString from "@darkeyedevelopers/natural-cron.js";
 import { INTERNAL_VERSION } from "./constants.js";
 
+const FakeID = "00000000000000000000000000000000";
+
 import {
   enqueueExecution,
   EnqueueExecutionResponse,
@@ -119,7 +121,7 @@ export const defer: Defer = (fn, options) => {
 
     await fn(...functionArguments);
 
-    return { id: "00000000000000000000000000000000" };
+    return { id: FakeID };
   };
 
   ret.__fn = fn;
