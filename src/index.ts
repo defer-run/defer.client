@@ -61,7 +61,7 @@ export interface HasDeferMetadata {
 export interface DeferRetFn<
   F extends (...args: any | undefined) => Promise<any>
 > extends HasDeferMetadata {
-  (...args: Parameters<F>): ReturnType<F>;
+  (...args: Parameters<F>): ReturnType<F> | Promise<EnqueueExecutionResponse>;
   __fn: F;
   await: DeferAwaitRetFn<F>;
 }
@@ -73,7 +73,9 @@ export interface DeferScheduledFn<F extends (...args: never) => Promise<any>>
 export interface DeferAwaitRetFn<
   F extends (...args: any | undefined) => Promise<any>
 > {
-  (...args: Parameters<F>): Promise<UnPromise<ReturnType<F>>>;
+  (...args: Parameters<F>): Promise<
+    UnPromise<ReturnType<F>> | EnqueueExecutionResponse
+  >;
 }
 
 export interface Defer {
@@ -176,11 +178,7 @@ interface DeferDelay {
  */
 export const delay: DeferDelay =
   (deferFn, delay) =>
-  async (
-    ...args: Parameters<typeof deferFn>
-  ): Promise<
-    UnPromise<ReturnType<DeferRetFn<typeof deferFn>>> | EnqueueExecutionResponse
-  > => {
+  async (...args) => {
     const fn = deferFn.__fn;
     let functionArguments: any;
     try {
@@ -211,7 +209,7 @@ export const delay: DeferDelay =
     if (__verbose)
       console.log(`[defer.run][${fn.name}] defer ignore, no token found.`);
 
-    return fn(...functionArguments) as any;
+    return fn(...functionArguments);
   };
 
 // EXAMPLES:
