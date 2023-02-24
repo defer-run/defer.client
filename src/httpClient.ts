@@ -54,7 +54,7 @@ export function makeHTTPClient(
     let data: string;
 
     try {
-      response = await fetch(endpoint, options);
+      response = await fetch(endpoint.toString(), options);
     } catch (error) {
       let message;
 
