@@ -20,8 +20,8 @@ describe("delay()", () => {
         const myFunction = jest.fn(async function testFn(_str: bigint) {});
         const deferred = defer(myFunction);
         const delayed = delay(deferred, "1h");
-          await expect(delayed(2n)).rejects.toThrow(
-	      "cannot serialize argument: Do not know how to serialize a BigInt"
+        await expect(delayed(2n)).rejects.toThrow(
+          "cannot serialize argument: Do not know how to serialize a BigInt"
         );
 
         expect(myFunction).not.toHaveBeenCalled();
