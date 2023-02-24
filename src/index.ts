@@ -152,7 +152,7 @@ export const defer: Defer = (fn, options) => {
 
       throw error;
     }
-      return Promise.resolve(response1.result);
+    return Promise.resolve(response1.result);
   };
 
   return ret as any;
