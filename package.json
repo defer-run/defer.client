@@ -1,5 +1,5 @@
 {
-  "name": "@defer.run/client",
+  "name": "@defer/client",
   "version": "0.5.0",
   "description": "Zero infrastructure NodeJS background jobs",
   "main": "dist/cjs/index.js",
