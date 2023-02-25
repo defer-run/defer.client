@@ -1,4 +1,4 @@
-# `@defer.run/client`
+# `@defer/client`
 
 `defer` is your favorite background tasks handler to offload your JavaScript API.
 
@@ -7,11 +7,11 @@
 
 
 ```sh
-yarn add @defer.run/client
+yarn add @defer/client
 
 # or
 
-npm i @defer.run/client
+npm i @defer/client
 ```
 
 ## Configuration
@@ -26,7 +26,7 @@ Make sure to define the `DEFER_TOKEN` environment variable in production/staging
 A background function should be a unique default export of a file placed in `background-functions/` folder.
 
 ```ts
-import { defer } from "@defer.run/client";
+import { defer } from "@defer/client";
 
 function importContacts(intercomId: string) {
   // import contacts from Hubspot and insert them in the database

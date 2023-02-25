@@ -1,5 +1,5 @@
 ---
-"@defer.run/client": major
+"@defer/client": major
 ---
 
 Keep same behavior in dev and prod

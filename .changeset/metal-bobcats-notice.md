@@ -1,5 +1,5 @@
 ---
-"@defer.run/client": major
+"@defer/client": major
 ---
 
 Handle API HTTP error by throwing an error

@@ -1,4 +1,4 @@
-# @defer.run/client
+# @defer/client
 
 ## 0.5.0
 
@@ -7,7 +7,7 @@
 - [#26](https://github.com/defer-run/defer.client/pull/26) [`4d2c4d4`](https://github.com/defer-run/defer.client/commit/4d2c4d4392493a0936ab457e30ff88fe2e7d769c) Thanks [@gearnode](https://github.com/gearnode)! - Add a primary retry option when defining defer function.
 
   ```js
-  import { defer } from "@defer.run/client";
+  import { defer } from "@defer/client";
 
   async function makeAPICallWhoMaybeFail() {
     // do something...
@@ -23,7 +23,7 @@
 - [#24](https://github.com/defer-run/defer.client/pull/24) [`ca35544`](https://github.com/defer-run/defer.client/commit/ca35544849cc76cff8c4038ce30eb90a293af1e0) Thanks [@charlypoly](https://github.com/charlypoly)! - Introduce a new API to delay an execution:
 
   ```ts
-  import { delay } from "@defer.run/client";
+  import { delay } from "@defer/client";
   import { helloWorld } from "../defer/helloWorld";
 
   // create a delayed execution
@@ -41,7 +41,7 @@
   Defer now support scheduled functions (CRON), as follows:
 
   ```ts
-  import { defer } from "@defer.run/client";
+  import { defer } from "@defer/client";
 
   async function myDeferWorkflow() {
     const users = await prisma.user.find({
