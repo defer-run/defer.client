@@ -1,5 +1,5 @@
 ---
-"@defer/client": minor
+"@defer/client": major
 ---
 
 Add concurrency limit option.
