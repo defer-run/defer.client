@@ -1,5 +1,5 @@
 ---
-"@defer.run/client": minor
+"@defer/client": minor
 ---
 
 Add concurrency limit option.
