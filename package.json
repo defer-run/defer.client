@@ -5,7 +5,7 @@
   "main": "dist/cjs/index.js",
   "repository": "git@github.com:defer-run/defer.client.git",
   "author": "Defer Inc <support@defer.run>",
-  "license": "MIT",
+  "license": "ISC",
   "dependencies": {
     "@darkeyedevelopers/natural-cron.js": "^1.1.0",
     "@whatwg-node/fetch": "^0.2.9",

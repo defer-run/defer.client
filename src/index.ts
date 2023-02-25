@@ -1,37 +1,43 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { Units } from "parse-duration";
+import parseDuration, { Units } from "parse-duration";
 // @ts-expect-error untyped dep
 import getCronString from "@darkeyedevelopers/natural-cron.js";
-import { DOMAIN, INTERNAL_VERSION, PATH, TOKEN_ENV_NAME } from "./constants.js";
-import {
-  DeferExecuteResponse,
-  executeBackgroundFunction,
-  poolForExecutionResult,
-  serializeBackgroundFunctionArguments,
-} from "./execute.js";
-import { makeFetcher } from "./fetcher.js";
+import { INTERNAL_VERSION } from "./constants.js";
 
-export type { DeferExecuteResponse } from "./execute.js";
+const FakeID = "00000000000000000000000000000000";
+
+import {
+  enqueueExecution,
+  EnqueueExecutionResponse,
+  waitExecutionResult,
+} from "./client.js";
+import { DeferError } from "./errors.js";
+import { HTTPClient, makeHTTPClient } from "./httpClient.js";
 
 interface Options {
-  apiToken?: string;
-  apiUrl?: string;
-  debug?: boolean;
+  accessToken?: string;
+  endpoint?: string;
+  verbose?: boolean;
 }
 
-let token: string | undefined = process.env[TOKEN_ENV_NAME];
-let apiEndpoint = `${DOMAIN}${PATH}`;
+const withDelay = (dt: Date, delay: DelayString): Date =>
+  new Date(dt.getTime() + parseDuration(delay));
 
-let debug = false;
+let __accessToken: string | undefined = process.env["DEFER_TOKEN"];
+let __endpoint = "https://api.defer.run";
+let __verbose = false;
+let __httpClient: HTTPClient | undefined;
+if (__accessToken) __httpClient = makeHTTPClient(__endpoint, __accessToken);
 
-let fetcher = token ? makeFetcher(apiEndpoint, token) : undefined;
+export function configure(opts = {} as Options): void {
+  if (opts.accessToken) __accessToken = opts.accessToken;
+  if (opts.endpoint) __endpoint = opts.endpoint;
+  if (opts.verbose) __verbose = opts.verbose;
 
-export const init = ({ apiToken, apiUrl, debug: debugValue }: Options) => {
-  token = apiToken || process.env[TOKEN_ENV_NAME];
-  apiEndpoint = apiUrl || `${DOMAIN}${PATH}`;
-  debug = debugValue || debug;
-  fetcher = token ? makeFetcher(apiEndpoint, token) : undefined;
-};
+  if (__accessToken) __httpClient = makeHTTPClient(__endpoint, __accessToken);
+
+  return;
+}
 
 export type UnPromise<F> = F extends Promise<infer R> ? R : F;
 
@@ -57,19 +63,16 @@ export interface HasDeferMetadata {
 export interface DeferRetFn<
   F extends (...args: any | undefined) => Promise<any>
 > extends HasDeferMetadata {
-  (...args: Parameters<F>): ReturnType<F>;
+  (...args: Parameters<F>): Promise<EnqueueExecutionResponse>;
   __fn: F;
   await: DeferAwaitRetFn<F>;
-  /**
-   * @deprecated use `delay(deferFn)` instead
-   */
-  delayed: (...args: DeferRetFnParameters<F>) => ReturnType<F>;
 }
 export interface DeferScheduledFn<F extends (...args: never) => Promise<any>>
   extends HasDeferMetadata {
   (...args: Parameters<F>): void;
   __fn: F;
 }
+
 export interface DeferAwaitRetFn<
   F extends (...args: any | undefined) => Promise<any>
 > {
@@ -87,30 +90,40 @@ export interface Defer {
   ) => DeferScheduledFn<F>;
 }
 
-export const isDeferExecution = (obj: any): obj is DeferExecuteResponse =>
-  !!obj.__deferExecutionResponse;
-
 export interface DeferOptions {
   retry?: boolean | RetryNumber;
 }
 
 export const defer: Defer = (fn, options) => {
-  const ret: DeferRetFn<typeof fn> = (...args: Parameters<typeof fn>) => {
-    if (debug) {
-      console.log(`[defer.run][${fn.name}] invoked.`);
+  const ret = async (
+    ...args: Parameters<typeof fn>
+  ): Promise<UnPromise<ReturnType<DeferRetFn<typeof fn>>>> => {
+    if (__verbose) console.log(`[defer.run][${fn.name}] invoked.`);
+
+    let functionArguments: any;
+    try {
+      functionArguments = JSON.parse(JSON.stringify(args));
+    } catch (error) {
+      const e = error as Error;
+      throw new DeferError(`cannot serialize argument: ${e.message}`);
     }
-    if (token && fetcher) {
-      return executeBackgroundFunction(fn.name, args, fetcher, debug);
-    } else {
-      if (debug) {
-        console.log(`[defer.run][${fn.name}] defer ignore, no token found.`);
-      }
-      // try to serialize arguments for develpment warning purposes
-      serializeBackgroundFunctionArguments(fn.name, args);
-      // FIX: do better
-      return fn(...(args as any)) as any;
+
+    if (__httpClient) {
+      return enqueueExecution(__httpClient, {
+        name: fn.name,
+        arguments: functionArguments,
+        scheduleFor: new Date(),
+      });
     }
+
+    if (__verbose)
+      console.log(`[defer.run][${fn.name}] defer ignore, no token found.`);
+
+    await fn(...functionArguments);
+
+    return { id: FakeID };
   };
+
   ret.__fn = fn;
   let retryPolicy: RetryNumber = 0;
   if (options?.retry === true) {
@@ -120,42 +133,56 @@ export const defer: Defer = (fn, options) => {
     retryPolicy = options.retry;
   }
   ret.__metadata = { version: INTERNAL_VERSION, retry: retryPolicy };
-  ret.await = async (...args) => {
-    const executionResult = (await defer(fn)(...args)) as UnPromise<
-      ReturnType<typeof fn>
-    >;
+  ret.await = async (...args: Parameters<typeof fn>) => {
+    let functionArguments: any;
+    try {
+      functionArguments = JSON.parse(JSON.stringify(args));
+    } catch (error) {
+      const e = error as Error;
+      throw new DeferError(`cannot serialize argument: ${e.message}`);
+    }
 
-    if (isDeferExecution(executionResult)) {
-      return await poolForExecutionResult<UnPromise<ReturnType<typeof fn>>>(
-        fn.name,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        executionResult.id!,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        fetcher!,
-        debug
-      );
-    } else {
-      return Promise.resolve(executionResult);
-    }
-  };
-  ret.delayed = (...args) => {
-    if (debug) {
-      console.log(`[defer.run][${fn.name}] invoked.`);
-    }
-    const [options] = args.splice(-1);
-    if (token && fetcher) {
-      return executeBackgroundFunction(fn.name, args, fetcher, debug, options);
-    } else {
-      if (debug) {
-        console.log(`[defer.run][${fn.name}] defer ignore, no token found.`);
+    if (__httpClient) {
+      const { id } = await enqueueExecution(__httpClient, {
+        name: fn.name,
+        arguments: functionArguments,
+        scheduleFor: new Date(),
+      });
+
+      const response = await waitExecutionResult(__httpClient, { id: id });
+
+      if (response.state === "failed") {
+        let error = new Error("Defer execution failed");
+        if (response.result?.message) {
+          error = new Error(response.result.message);
+          error.stack = response.result.stack;
+        } else if (response.result) {
+          error = response.result;
+        }
+
+        throw error;
       }
-      // try to serialize arguments for develpment warning purposes
-      serializeBackgroundFunctionArguments(fn.name, args);
-      // FIX: do better
-      return fn(...(args as any)) as any;
+
+      return response.result;
+    }
+
+    try {
+      return Promise.resolve(await fn(...functionArguments));
+    } catch (error) {
+      // const e = error as Error;
+      let deferError: any = new Error("Defer execution failed");
+      if (error instanceof Error) {
+        deferError = new Error(error.message);
+        deferError.stack = error.stack || "";
+      } else {
+        deferError = error;
+      }
+
+      throw error;
     }
   };
-  return ret as any;
+
+  return ret;
 };
 
 defer.schedule = (fn, schedule) => {
@@ -176,7 +203,7 @@ interface DeferDelay {
   <F extends (...args: any | undefined) => Promise<any>>(
     deferFn: DeferRetFn<F>,
     delay: DelayString | Date
-  ): (...args: Parameters<F>) => ReturnType<F>;
+  ): (...args: Parameters<F>) => Promise<EnqueueExecutionResponse>;
 }
 
 /**
@@ -188,24 +215,40 @@ interface DeferDelay {
  */
 export const delay: DeferDelay =
   (deferFn, delay) =>
-  (...args) => {
+  async (...args) => {
     const fn = deferFn.__fn;
-    if (debug) {
-      console.log(`[defer.run][${fn.name}] invoked.`);
+    let functionArguments: any;
+    try {
+      functionArguments = JSON.parse(JSON.stringify(args));
+    } catch (error) {
+      const e = error as Error;
+      throw new DeferError(`cannot serialize argument: ${e.message}`);
     }
-    if (token && fetcher) {
-      return executeBackgroundFunction(fn.name, args, fetcher, debug, {
-        delay,
-      });
-    } else {
-      if (debug) {
-        console.log(`[defer.run][${fn.name}] defer ignore, no token found.`);
+
+    if (__verbose) console.log(`[defer.run][${fn.name}] invoked.`);
+
+    if (__httpClient) {
+      let scheduleFor: Date;
+      if (delay instanceof Date) {
+        scheduleFor = delay;
+      } else {
+        const now = new Date();
+        scheduleFor = withDelay(now, delay);
       }
-      // try to serialize arguments for develpment warning purposes
-      serializeBackgroundFunctionArguments(fn.name, args);
-      // FIX: do better
-      return fn(...(args as any)) as any;
+
+      return enqueueExecution(__httpClient, {
+        name: fn.name,
+        arguments: functionArguments,
+        scheduleFor: scheduleFor,
+      });
     }
+
+    if (__verbose)
+      console.log(`[defer.run][${fn.name}] defer ignore, no token found.`);
+
+    await fn(...functionArguments);
+
+    return { id: FakeID };
   };
 
 // EXAMPLES:

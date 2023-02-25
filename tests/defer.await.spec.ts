@@ -1,14 +1,10 @@
-import { Response } from "@whatwg-node/fetch";
-import { defer, init } from "../src";
-import type { DeferExecuteResponse, DeferExecutionResponse } from "../src/execute";
-import { makeFetcher } from "../src/fetcher";
-import * as constants from '../src/constants';
+import { configure, defer } from "../src";
+import { makeHTTPClient } from "../src/httpClient";
+import { jitter } from "../src/jitter";
 
-const FN_EXECUTION_POLLING_INTERVAL_SECS = constants.FN_EXECUTION_POLLING_INTERVAL_SECS
-
-
-jest.mock("../src/fetcher")
-jest.setTimeout(20000)
+jest.mock("../src/httpClient");
+jest.mock("../src/jitter");
+jest.setTimeout(20000);
 
 describe("defer.await()", () => {
   describe("common", () => {
@@ -21,53 +17,46 @@ describe("defer.await()", () => {
   });
 
   describe("when Defer is active (`DEFER_TOKEN` is set)", () => {
-
-    describe('with successful functions execution', () => {
+    describe("with successful functions execution", () => {
       beforeAll(() => {
-        const responseFn = jest.fn().
-        // first `/exec` call
-        mockImplementationOnce(() => {
-          return new Response(JSON.stringify({ id: '1' } as DeferExecuteResponse))
-        }).
-        // first `/runs/:id` call
-        mockImplementationOnce(() => {
-          return new Response(JSON.stringify({ state:'created' } as DeferExecutionResponse))
-        }).
-        // second `/runs/:id` call
-        mockImplementationOnce(() => {
-          return new Response(JSON.stringify({ state:'running' } as DeferExecutionResponse))
-        }).
-        // third `/runs/:id` call
-        mockImplementationOnce(() => {
-          return new Response(JSON.stringify({ state:'succeed', result: 'coucou' } as DeferExecutionResponse))
-        })
-
-        jest.mocked(makeFetcher).
+        const responseFn = jest
+          .fn()
           // first `/exec` call
-          mockImplementation(() => async () => {
-            return responseFn()
+          .mockImplementationOnce(() => {
+            return { id: "1" };
           })
+          // first `/runs/:id` call
+          .mockImplementationOnce(() => {
+            return { id: "1", state: "created" };
+          })
+          // second `/runs/:id` call
+          .mockImplementationOnce(() => {
+            return { id: "1", state: "running" };
+          })
+          // third `/runs/:id` call
+          .mockImplementationOnce(() => {
+            return { id: "1", state: "succeed", result: "coucou" };
+          });
 
-        init({ apiToken: "test", debug: true });
-        // @ts-expect-error
-        constants.FN_EXECUTION_POLLING_INTERVAL_SECS = .1
+        jest.mocked(jitter).mockReturnValue(0);
+        jest
+          .mocked(makeHTTPClient)
+          // first `/exec` call
+          .mockImplementation(() => async () => {
+            return responseFn();
+          });
+
+        configure({ accessToken: "test", verbose: true });
       });
-
-      afterAll(() => {
-        // @ts-expect-error
-        constants.FN_EXECUTION_POLLING_INTERVAL_SECS = FN_EXECUTION_POLLING_INTERVAL_SECS
-      })
 
       it("should NOT call the wrapped function and return the function execution result", async () => {
-        const myFunction = jest.fn(async (_str: string) => 'Hello World!');
+        const myFunction = jest.fn(async (_str: string) => "Hello World!");
         const deferred = defer(myFunction);
-  
-        const result = await deferred.await("")
-        expect(result).toEqual('coucou')
+
+        const result = await deferred.await("");
+        expect(result).toEqual("coucou");
         expect(myFunction).not.toHaveBeenCalled();
       });
-
-    })
+    });
   });
-
 });
