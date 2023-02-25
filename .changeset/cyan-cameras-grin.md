@@ -5,7 +5,7 @@
 Add concurrency limit option.
 
 ```js
-import { defer } from "@defer.run/client";
+import { defer } from "@defer/client";
 
 async function oneByOne() {
   // do something...
