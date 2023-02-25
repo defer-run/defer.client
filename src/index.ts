@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import parseDuration, { Units } from "parse-duration";
-// @ts-expect-error untyped dep
-import getCronString from "@darkeyedevelopers/natural-cron.js";
 import { INTERNAL_VERSION } from "./constants.js";
 
 const FakeID = "00000000000000000000000000000000";
@@ -137,7 +135,7 @@ export interface Defer {
     fn: F,
     options?: DeferOptions
   ): DeferRetFn<F>;
-  schedule: <F extends (args: never[]) => Promise<any>>(
+  cron: <F extends (args: never[]) => Promise<any>>(
     fn: F,
     schedule: string
   ) => DeferScheduledFn<F>;
@@ -239,15 +237,15 @@ export const defer: Defer = (fn, options) => {
   return ret;
 };
 
-defer.schedule = (fn, schedule) => {
+defer.cron = (fn, schedule) => {
   const ret: DeferScheduledFn<typeof fn> = () => {
-    throw new Error("`defer.scheduled()` functions should not be invoked.");
+    throw new Error("`defer.cron()` functions should not be invoked.");
   };
 
   ret.__fn = fn;
   ret.__metadata = {
     version: INTERNAL_VERSION,
-    cron: getCronString(schedule) as string,
+    cron: schedule,
   };
 
   return ret;
@@ -329,7 +327,7 @@ export const delay: DeferDelay =
 //   return 1;
 // }
 
-// defer.schedule(myFunction, "every day");
+// defer.cron(myFunction, "every day");
 
 // async function test() {
 //   await importContactsD("1", []); // fire and forget
