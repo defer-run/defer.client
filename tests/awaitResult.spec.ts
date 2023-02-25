@@ -1,4 +1,4 @@
-import { configure, defer } from "../src";
+import { awaitResult, configure, defer } from "../src";
 import { makeHTTPClient } from "../src/httpClient";
 import { jitter } from "../src/jitter";
 
@@ -6,7 +6,7 @@ jest.mock("../src/httpClient");
 jest.mock("../src/jitter");
 jest.setTimeout(20000);
 
-describe("defer.await()", () => {
+describe("awaitResult(deferFn)", () => {
   describe("common", () => {
     it("defer() raises a type error is function is not async", () => {
       function myFunction(_customerId: string) {}
@@ -53,7 +53,8 @@ describe("defer.await()", () => {
         const myFunction = jest.fn(async (_str: string) => "Hello World!");
         const deferred = defer(myFunction);
 
-        const result = await deferred.await("");
+        const awaitable = awaitResult(deferred);
+        const result = await awaitable("");
         expect(result).toEqual("coucou");
         expect(myFunction).not.toHaveBeenCalled();
       });

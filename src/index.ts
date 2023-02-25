@@ -77,6 +77,7 @@ export interface DeferRetFn<
 > extends HasDeferMetadata {
   (...args: Parameters<F>): Promise<EnqueueExecutionResponse>;
   __fn: F;
+  /** @deprecated use `waitResult(deferFn)` instead */
   await: DeferAwaitRetFn<F>;
 }
 export interface DeferScheduledFn<F extends (...args: never) => Promise<any>>
@@ -264,6 +265,69 @@ export const delay: DeferDelay =
     return { id: FakeID };
   };
 
+interface DeferAwaitResult {
+  <F extends (...args: any | undefined) => Promise<any>>(
+    deferFn: DeferRetFn<F>
+  ): DeferAwaitRetFn<F>;
+}
+
+/**
+ * Trigger the execution of a background function and waits for its result
+ * @constructor
+ * @param {Function} deferFn - A background function (`defer(...)` result)
+ * @returns Function
+ */
+export const awaitResult: DeferAwaitResult =
+  (deferFn) =>
+  async (...args: Parameters<typeof deferFn>) => {
+    let functionArguments: any;
+    try {
+      functionArguments = JSON.parse(JSON.stringify(args));
+    } catch (error) {
+      const e = error as Error;
+      throw new DeferError(`cannot serialize argument: ${e.message}`);
+    }
+
+    if (__httpClient) {
+      const { id } = await enqueueExecution(__httpClient, {
+        name: deferFn.name,
+        arguments: functionArguments,
+        scheduleFor: new Date(),
+      });
+
+      const response = await waitExecutionResult(__httpClient, { id: id });
+
+      if (response.state === "failed") {
+        let error = new Error("Defer execution failed");
+        if (response.result?.message) {
+          error = new Error(response.result.message);
+          error.stack = response.result.stack;
+        } else if (response.result) {
+          error = response.result;
+        }
+
+        throw error;
+      }
+
+      return response.result;
+    }
+
+    try {
+      return Promise.resolve(await deferFn(...functionArguments));
+    } catch (error) {
+      // const e = error as Error;
+      let deferError: any = new Error("Defer execution failed");
+      if (error instanceof Error) {
+        deferError = new Error(error.message);
+        deferError.stack = error.stack || "";
+      } else {
+        deferError = error;
+      }
+
+      throw error;
+    }
+  };
+
 // EXAMPLES:
 
 // interface Contact {
@@ -293,9 +357,10 @@ export const delay: DeferDelay =
 // async function test() {
 //   await importContactsD("1", []); // fire and forget
 
-//   await importContactsD.await("1", []); // wait for execution result
+//   const r = await importContactsD.await("1", []); // wait for execution result
 
-//   await importContactsD.delayed("1", [], { delay: "2 days" }); // scheduled
+//   const awaitImportContact = awaitResult(importContactsD);
+//   const result = await awaitImportContact("1", []);
 // }
 
 // // Delayed
