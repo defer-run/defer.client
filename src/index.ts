@@ -280,6 +280,8 @@ interface DeferAwaitResult {
 export const awaitResult: DeferAwaitResult =
   (deferFn) =>
   async (...args: Parameters<typeof deferFn>) => {
+    const fnName = deferFn.__fn.name;
+    const fn = deferFn.__fn;
     let functionArguments: any;
     try {
       functionArguments = JSON.parse(JSON.stringify(args));
@@ -290,7 +292,7 @@ export const awaitResult: DeferAwaitResult =
 
     if (__httpClient) {
       const { id } = await enqueueExecution(__httpClient, {
-        name: deferFn.name,
+        name: fnName,
         arguments: functionArguments,
         scheduleFor: new Date(),
       });
@@ -313,7 +315,7 @@ export const awaitResult: DeferAwaitResult =
     }
 
     try {
-      return Promise.resolve(await deferFn(...functionArguments));
+      return Promise.resolve(await fn(...functionArguments));
     } catch (error) {
       // const e = error as Error;
       let deferError: any = new Error("Defer execution failed");
