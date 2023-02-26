@@ -1,5 +1,55 @@
 # @defer/client
 
+## 1.0.0
+
+### Major Changes
+
+- [#29](https://github.com/defer-run/defer.client/pull/29) [`859bf46`](https://github.com/defer-run/defer.client/commit/859bf465cd9808a94fa45f0d9ab022039d30b4e7) Thanks [@gearnode](https://github.com/gearnode)! - Add concurrency limit option.
+
+  ```js
+  import { defer } from "@defer/client";
+
+  async function oneByOne() {
+    // do something...
+  }
+
+  export default defer(oneByOne, { concurrency: 1 });
+  ```
+
+* [#31](https://github.com/defer-run/defer.client/pull/31) [`d791d79`](https://github.com/defer-run/defer.client/commit/d791d79f1b1af77818f849072721ef6accba3a38) Thanks [@gearnode](https://github.com/gearnode)! - Remove deprecated `.delayed` API.
+
+- [#31](https://github.com/defer-run/defer.client/pull/31) [`ef80061`](https://github.com/defer-run/defer.client/commit/ef800611dec0549eba9a406e093cd1940c7bb0cb) Thanks [@gearnode](https://github.com/gearnode)! - `init` function renamed in `configure`
+
+* [#31](https://github.com/defer-run/defer.client/pull/31) [`ef80061`](https://github.com/defer-run/defer.client/commit/ef800611dec0549eba9a406e093cd1940c7bb0cb) Thanks [@gearnode](https://github.com/gearnode)! - Handle API HTTP error by throwing an error
+
+- [#31](https://github.com/defer-run/defer.client/pull/31) [`ef80061`](https://github.com/defer-run/defer.client/commit/ef800611dec0549eba9a406e093cd1940c7bb0cb) Thanks [@gearnode](https://github.com/gearnode)! - Keep same behavior in dev and prod
+
+* [#34](https://github.com/defer-run/defer.client/pull/34) [`fe251f2`](https://github.com/defer-run/defer.client/commit/fe251f245baf2eb93c70ff5f295f4354a65ecbf6) Thanks [@charlypoly](https://github.com/charlypoly)! - BREAKING CHANGE:
+
+  - Renamed `defer.schedule()` to `defer.cron()`
+  - `defer.cron()` no longer takes a english string but a CRON tab string
+
+  ```ts
+  import { defer } from "@defer.run/client";
+
+  const weeklyBrief = async () => {
+    // ...
+  };
+
+  export default defer.cron(weeklyBrief, "5 0 * * *");
+  ```
+
+### Minor Changes
+
+- [#34](https://github.com/defer-run/defer.client/pull/34) [`e399d75`](https://github.com/defer-run/defer.client/commit/e399d75570b0431fe80aff794ab851e3b10f0d52) Thanks [@charlypoly](https://github.com/charlypoly)! - Deprecate `defer.await()` in favor of `awaitResult(deferFn)`
+
+  ```ts
+  import { importContacts } from "../defer/importContacts";
+
+  const importContactWithResult = awaitResult(importContacts);
+  const result = await importContactWithResult("1", []);
+  ```
+
 ## 0.5.0
 
 ### Minor Changes
