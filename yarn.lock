@@ -537,11 +537,6 @@
   dependencies:
     "@jridgewell/trace-mapping" "0.3.9"
 
-"@darkeyedevelopers/natural-cron.js@^1.1.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@darkeyedevelopers/natural-cron.js/-/natural-cron.js-1.1.0.tgz#d77721f6ea5912d9d114db6b0dbe6aa26eb7b235"
-  integrity sha512-CBRydMA7ExsLF6Ukmhf5QeUcv64RVfS417MqRZhN97hle1bDTJuT91AwO1K7gez/41uLSH6We07TqNp/XeLryA==
-
 "@esbuild/linux-loong64@0.14.54":
   version "0.14.54"
   resolved "https://registry.yarnpkg.com/@esbuild/linux-loong64/-/linux-loong64-0.14.54.tgz#de2a4be678bd4d0d1ffbb86e6de779cde5999028"

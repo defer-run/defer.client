@@ -7,7 +7,6 @@
   "author": "Defer Inc <support@defer.run>",
   "license": "ISC",
   "dependencies": {
-    "@darkeyedevelopers/natural-cron.js": "^1.1.0",
     "@whatwg-node/fetch": "^0.2.9",
     "parse-duration": "^1.0.2"
   },

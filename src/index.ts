@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import parseDuration, { Units } from "parse-duration";
-// @ts-expect-error untyped dep
-import getCronString from "@darkeyedevelopers/natural-cron.js";
 import { INTERNAL_VERSION } from "./constants.js";
 
 const FakeID = "00000000000000000000000000000000";
@@ -50,59 +48,20 @@ export type DeferRetFnParameters<
   F extends (...args: any | undefined) => Promise<any>
 > = [...first: Parameters<F>, options: DeferExecutionOptions];
 
-export type RetryNumber = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
+// https://stackoverflow.com/questions/39494689/is-it-possible-to-restrict-number-to-a-certain-range/70307091#70307091
+type Enumerate<
+  N extends number,
+  Acc extends number[] = []
+> = Acc["length"] extends N
+  ? Acc[number]
+  : Enumerate<N, [...Acc, Acc["length"]]>;
+type Range<F extends number, T extends number> = Exclude<
+  Enumerate<T>,
+  Enumerate<F>
+>;
 
-export type Concurrency =
-  | 1
-  | 2
-  | 3
-  | 4
-  | 5
-  | 6
-  | 7
-  | 8
-  | 9
-  | 10
-  | 11
-  | 12
-  | 13
-  | 14
-  | 15
-  | 16
-  | 17
-  | 18
-  | 19
-  | 20
-  | 21
-  | 22
-  | 23
-  | 24
-  | 25
-  | 26
-  | 27
-  | 28
-  | 29
-  | 30
-  | 31
-  | 32
-  | 33
-  | 34
-  | 35
-  | 36
-  | 37
-  | 38
-  | 39
-  | 40
-  | 41
-  | 42
-  | 43
-  | 44
-  | 45
-  | 46
-  | 47
-  | 48
-  | 49
-  | 50;
+export type RetryNumber = Range<0, 13>;
+export type Concurrency = Range<0, 51>;
 
 export interface HasDeferMetadata {
   __metadata: {
@@ -118,6 +77,7 @@ export interface DeferRetFn<
 > extends HasDeferMetadata {
   (...args: Parameters<F>): Promise<EnqueueExecutionResponse>;
   __fn: F;
+  /** @deprecated use `waitResult(deferFn)` instead */
   await: DeferAwaitRetFn<F>;
 }
 export interface DeferScheduledFn<F extends (...args: never) => Promise<any>>
@@ -137,7 +97,7 @@ export interface Defer {
     fn: F,
     options?: DeferOptions
   ): DeferRetFn<F>;
-  schedule: <F extends (args: never[]) => Promise<any>>(
+  cron: <F extends (args: never[]) => Promise<any>>(
     fn: F,
     schedule: string
   ) => DeferScheduledFn<F>;
@@ -239,15 +199,15 @@ export const defer: Defer = (fn, options) => {
   return ret;
 };
 
-defer.schedule = (fn, schedule) => {
+defer.cron = (fn, schedule) => {
   const ret: DeferScheduledFn<typeof fn> = () => {
-    throw new Error("`defer.scheduled()` functions should not be invoked.");
+    throw new Error("`defer.cron()` functions should not be invoked.");
   };
 
   ret.__fn = fn;
   ret.__metadata = {
     version: INTERNAL_VERSION,
-    cron: getCronString(schedule) as string,
+    cron: schedule,
   };
 
   return ret;
@@ -305,6 +265,71 @@ export const delay: DeferDelay =
     return { id: FakeID };
   };
 
+interface DeferAwaitResult {
+  <F extends (...args: any | undefined) => Promise<any>>(
+    deferFn: DeferRetFn<F>
+  ): DeferAwaitRetFn<F>;
+}
+
+/**
+ * Trigger the execution of a background function and waits for its result
+ * @constructor
+ * @param {Function} deferFn - A background function (`defer(...)` result)
+ * @returns Function
+ */
+export const awaitResult: DeferAwaitResult =
+  (deferFn) =>
+  async (...args: Parameters<typeof deferFn>) => {
+    const fnName = deferFn.__fn.name;
+    const fn = deferFn.__fn;
+    let functionArguments: any;
+    try {
+      functionArguments = JSON.parse(JSON.stringify(args));
+    } catch (error) {
+      const e = error as Error;
+      throw new DeferError(`cannot serialize argument: ${e.message}`);
+    }
+
+    if (__httpClient) {
+      const { id } = await enqueueExecution(__httpClient, {
+        name: fnName,
+        arguments: functionArguments,
+        scheduleFor: new Date(),
+      });
+
+      const response = await waitExecutionResult(__httpClient, { id: id });
+
+      if (response.state === "failed") {
+        let error = new Error("Defer execution failed");
+        if (response.result?.message) {
+          error = new Error(response.result.message);
+          error.stack = response.result.stack;
+        } else if (response.result) {
+          error = response.result;
+        }
+
+        throw error;
+      }
+
+      return response.result;
+    }
+
+    try {
+      return Promise.resolve(await fn(...functionArguments));
+    } catch (error) {
+      // const e = error as Error;
+      let deferError: any = new Error("Defer execution failed");
+      if (error instanceof Error) {
+        deferError = new Error(error.message);
+        deferError.stack = error.stack || "";
+      } else {
+        deferError = error;
+      }
+
+      throw error;
+    }
+  };
+
 // EXAMPLES:
 
 // interface Contact {
@@ -329,14 +354,15 @@ export const delay: DeferDelay =
 //   return 1;
 // }
 
-// defer.schedule(myFunction, "every day");
+// defer.cron(myFunction, "every day");
 
 // async function test() {
 //   await importContactsD("1", []); // fire and forget
 
-//   await importContactsD.await("1", []); // wait for execution result
+//   const r = await importContactsD.await("1", []); // wait for execution result
 
-//   await importContactsD.delayed("1", [], { delay: "2 days" }); // scheduled
+//   const awaitImportContact = awaitResult(importContactsD);
+//   const result = await awaitImportContact("1", []);
 // }
 
 // // Delayed
