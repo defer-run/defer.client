@@ -77,8 +77,6 @@ export interface DeferRetFn<
 > extends HasDeferMetadata {
   (...args: Parameters<F>): Promise<EnqueueExecutionResponse>;
   __fn: F;
-  /** @deprecated use `waitResult(deferFn)` instead */
-  await: DeferAwaitRetFn<F>;
 }
 export interface DeferScheduledFn<F extends (...args: never) => Promise<any>>
   extends HasDeferMetadata {
@@ -147,54 +145,6 @@ export const defer: Defer = (fn, options) => {
     retryPolicy = options.retry;
   }
   ret.__metadata = { version: INTERNAL_VERSION, retry: retryPolicy };
-  ret.await = async (...args: Parameters<typeof fn>) => {
-    let functionArguments: any;
-    try {
-      functionArguments = JSON.parse(JSON.stringify(args));
-    } catch (error) {
-      const e = error as Error;
-      throw new DeferError(`cannot serialize argument: ${e.message}`);
-    }
-
-    if (__httpClient) {
-      const { id } = await enqueueExecution(__httpClient, {
-        name: fn.name,
-        arguments: functionArguments,
-        scheduleFor: new Date(),
-      });
-
-      const response = await waitExecutionResult(__httpClient, { id: id });
-
-      if (response.state === "failed") {
-        let error = new Error("Defer execution failed");
-        if (response.result?.message) {
-          error = new Error(response.result.message);
-          error.stack = response.result.stack;
-        } else if (response.result) {
-          error = response.result;
-        }
-
-        throw error;
-      }
-
-      return response.result;
-    }
-
-    try {
-      return Promise.resolve(await fn(...functionArguments));
-    } catch (error) {
-      // const e = error as Error;
-      let deferError: any = new Error("Defer execution failed");
-      if (error instanceof Error) {
-        deferError = new Error(error.message);
-        deferError.stack = error.stack || "";
-      } else {
-        deferError = error;
-      }
-
-      throw error;
-    }
-  };
 
   return ret;
 };
@@ -300,9 +250,9 @@ export const awaitResult: DeferAwaitResult =
       const response = await waitExecutionResult(__httpClient, { id: id });
 
       if (response.state === "failed") {
-        let error = new Error("Defer execution failed");
+        let error = new DeferError("Defer execution failed");
         if (response.result?.message) {
-          error = new Error(response.result.message);
+          error = new DeferError(response.result.message);
           error.stack = response.result.stack;
         } else if (response.result) {
           error = response.result;
