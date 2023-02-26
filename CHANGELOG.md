@@ -53,7 +53,7 @@
     // do something...
   }
 
-  export default defer.schedule(myDeferWorkflow, "every day at 10am");
+  export default defer.cron(myDeferWorkflow, "every day at 10am");
   ```
 
   **Notes**

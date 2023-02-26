@@ -13,7 +13,7 @@ const weeklyBrief = async () => {
   // ...
 }
   
-export default defer.schedule(
+export default defer.cron(
   weeklyBrief,
   '5 0 * * *'
 )
