@@ -7,6 +7,7 @@ const FakeID = "00000000000000000000000000000000";
 import {
   enqueueExecution,
   EnqueueExecutionResponse,
+  fetchExecution,
   waitExecutionResult,
 } from "./client.js";
 import { DeferError } from "./errors.js";
@@ -36,6 +37,11 @@ export function configure(opts = {} as Options): void {
 
   return;
 }
+
+export const getExecution = (id: string, client?: HTTPClient) => {
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  return fetchExecution(client || __httpClient!, { id });
+};
 
 export type UnPromise<F> = F extends Promise<infer R> ? R : F;
 
