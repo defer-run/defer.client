@@ -1,5 +1,29 @@
 # @defer/client
 
+## 1.1.0
+
+### Minor Changes
+
+- [#36](https://github.com/defer-run/defer.client/pull/36) [`ccc39dd`](https://github.com/defer-run/defer.client/commit/ccc39dd151d9201a7205ed0785933aae8e5eb2ce) Thanks [@charlypoly](https://github.com/charlypoly)! - expose `getExecution(id)` to poll for an execution status and result:
+
+  ```ts
+  import { type FetchExecutionResponse, getExecution } from "@defer/client";
+  import type { NextApiRequest, NextApiResponse } from "next";
+
+  type Response = {
+    res: FetchExecutionResponse;
+  };
+
+  export default async function handler(
+    req: NextApiRequest,
+    res: NextApiResponse<Response>
+  ) {
+    const executionId = req.query.id;
+    const ret = await getExecution(executionId as string);
+    res.status(200).json({ res: ret });
+  }
+  ```
+
 ## 1.0.0
 
 ### Major Changes
