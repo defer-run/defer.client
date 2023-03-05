@@ -13,6 +13,8 @@ import {
 import { DeferError } from "./errors.js";
 import { HTTPClient, makeHTTPClient } from "./httpClient.js";
 
+export type { FetchExecutionResponse } from "./client";
+
 interface Options {
   accessToken?: string;
   endpoint?: string;
