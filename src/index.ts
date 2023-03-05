@@ -38,9 +38,15 @@ export function configure(opts = {} as Options): void {
   return;
 }
 
-export const getExecution = (id: string, client?: HTTPClient) => {
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  return fetchExecution(client || __httpClient!, { id });
+export const deferEnabled = () => !!__accessToken;
+
+export const getExecution = (id: string) => {
+  if (!__httpClient) {
+    throw new DeferError(
+      "getExecution() is not yet supported in development mode; Please rely on deferEnabled() to conditionally use it."
+    );
+  }
+  return fetchExecution(__httpClient, { id });
 };
 
 export type UnPromise<F> = F extends Promise<infer R> ? R : F;
