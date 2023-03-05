@@ -7,10 +7,13 @@ const FakeID = "00000000000000000000000000000000";
 import {
   enqueueExecution,
   EnqueueExecutionResponse,
+  fetchExecution,
   waitExecutionResult,
 } from "./client.js";
 import { DeferError } from "./errors.js";
 import { HTTPClient, makeHTTPClient } from "./httpClient.js";
+
+export type { FetchExecutionResponse } from "./client";
 
 interface Options {
   accessToken?: string;
@@ -36,6 +39,17 @@ export function configure(opts = {} as Options): void {
 
   return;
 }
+
+export const deferEnabled = () => !!__accessToken;
+
+export const getExecution = (id: string) => {
+  if (!__httpClient) {
+    throw new DeferError(
+      "getExecution() is not yet supported in development mode; Please rely on deferEnabled() to conditionally use it."
+    );
+  }
+  return fetchExecution(__httpClient, { id });
+};
 
 export type UnPromise<F> = F extends Promise<infer R> ? R : F;
 
