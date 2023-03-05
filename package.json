@@ -1,6 +1,6 @@
 {
   "name": "@defer/client",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Zero infrastructure NodeJS background jobs",
   "main": "dist/cjs/index.js",
   "repository": "git@github.com:defer-run/defer.client.git",
