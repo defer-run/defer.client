@@ -184,6 +184,7 @@ export const defer: Defer = (fn, options) => {
       console.log(`[defer.run][${fn.name}] defer ignore, no token found.`);
 
     const id = randomUUID();
+    __database.set(id, { id: id, state: "running" });
     execLocalhost(id, fn, functionArguments);
     return { id };
   };
@@ -263,6 +264,7 @@ export const delay: DeferDelay =
       console.log(`[defer.run][${fn.name}] defer ignore, no token found.`);
 
     const id = randomUUID();
+    __database.set(id, { id: id, state: "running" });
     execLocalhost(id, fn, functionArguments);
     return { id };
   };
@@ -302,7 +304,9 @@ export const awaitResult: DeferAwaitResult =
 
       response = await waitExecutionResult(__httpClient, { id: id });
     } else {
-      response = await execLocalhost(randomUUID(), fn, functionArguments);
+      const id = randomUUID();
+      __database.set(id, { id: id, state: "running" });
+      response = await execLocalhost(id, fn, functionArguments);
     }
 
     if (response.state === "failed") {
