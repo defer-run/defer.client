@@ -80,14 +80,16 @@ async function execLocalhost(
   return response;
 }
 
-export const getExecution = (id: string) => {
+export async function getExecution(
+  id: string
+): Promise<FetchExecutionResponse> {
   if (__httpClient) return fetchExecution(__httpClient, { id });
 
   const response = __database.get(id);
-  if (response) return response;
+  if (response) return Promise.resolve(response);
 
   throw new APIError("execution not found", "");
-};
+}
 
 export type UnPromise<F> = F extends Promise<infer R> ? R : F;
 
