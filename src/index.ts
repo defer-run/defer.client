@@ -68,7 +68,7 @@ async function execLocalhost(
 
   let result: any;
   try {
-    result = JSON.parse(JSON.stringify(originalResult));
+    result = JSON.parse(JSON.stringify(originalResult || ""));
   } catch (error) {
     const e = error as Error;
     throw new DeferError(`cannot serialize function return: ${e.message}`);
