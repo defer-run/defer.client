@@ -28,7 +28,7 @@ const __database = new Map<
   { id: string; state: ExecutionState; result?: any }
 >();
 let __accessToken: string | undefined = process.env["DEFER_TOKEN"];
-let __endpoint = "https://api.defer.run";
+let __endpoint = process.env["DEFER_ENDPOINT"] || "https://api.defer.run";
 let __verbose = false;
 let __httpClient: HTTPClient | undefined;
 if (__accessToken) __httpClient = makeHTTPClient(__endpoint, __accessToken);
