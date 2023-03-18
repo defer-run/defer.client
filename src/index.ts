@@ -1,19 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { randomUUID } from "crypto";
 import parseDuration, { Units } from "parse-duration";
 import { INTERNAL_VERSION } from "./constants.js";
-
-const FakeID = "00000000000000000000000000000000";
 
 import {
   enqueueExecution,
   EnqueueExecutionResponse,
+  ExecutionState,
   fetchExecution,
+  FetchExecutionResponse,
   waitExecutionResult,
 } from "./client.js";
-import { DeferError } from "./errors.js";
+import { APIError, DeferError } from "./errors.js";
 import { HTTPClient, makeHTTPClient } from "./httpClient.js";
-
-export type { FetchExecutionResponse } from "./client";
 
 interface Options {
   accessToken?: string;
@@ -24,6 +23,10 @@ interface Options {
 const withDelay = (dt: Date, delay: DelayString): Date =>
   new Date(dt.getTime() + parseDuration(delay));
 
+const __database = new Map<
+  string,
+  { id: string; state: ExecutionState; result?: any }
+>();
 let __accessToken: string | undefined = process.env["DEFER_TOKEN"];
 let __endpoint = "https://api.defer.run";
 let __verbose = false;
@@ -42,14 +45,51 @@ export function configure(opts = {} as Options): void {
 
 export const deferEnabled = () => !!__accessToken;
 
-export const getExecution = (id: string) => {
-  if (!__httpClient) {
-    throw new DeferError(
-      "getExecution() is not yet supported in development mode; Please rely on deferEnabled() to conditionally use it."
-    );
+async function execLocally(
+  id: string,
+  fn: any,
+  args: any
+): Promise<FetchExecutionResponse> {
+  let state: ExecutionState = "succeed";
+  let originalResult: any;
+  try {
+    originalResult = await fn(...args);
+  } catch (error) {
+    const e = error as Error;
+    state = "failed";
+    originalResult = {
+      name: e.name,
+      message: e.message,
+      // @ts-expect-error cause field is typed
+      cause: e.cause,
+      stack: e.stack,
+    };
   }
-  return fetchExecution(__httpClient, { id });
-};
+
+  let result: any;
+  try {
+    result = JSON.parse(JSON.stringify(originalResult || ""));
+  } catch (error) {
+    const e = error as Error;
+    throw new DeferError(`cannot serialize function return: ${e.message}`);
+  }
+
+  const response = { id, state, result };
+  __database.set(id, response);
+
+  return response;
+}
+
+export async function getExecution(
+  id: string
+): Promise<FetchExecutionResponse> {
+  if (__httpClient) return fetchExecution(__httpClient, { id });
+
+  const response = __database.get(id);
+  if (response) return Promise.resolve(response);
+
+  throw new APIError("execution not found", "");
+}
 
 export type UnPromise<F> = F extends Promise<infer R> ? R : F;
 
@@ -145,9 +185,10 @@ export const defer: Defer = (fn, options) => {
     if (__verbose)
       console.log(`[defer.run][${fn.name}] defer ignore, no token found.`);
 
-    await fn(...functionArguments);
-
-    return { id: FakeID };
+    const id = randomUUID();
+    __database.set(id, { id: id, state: "running" });
+    execLocally(id, fn, functionArguments);
+    return { id };
   };
 
   ret.__fn = fn;
@@ -224,9 +265,10 @@ export const delay: DeferDelay =
     if (__verbose)
       console.log(`[defer.run][${fn.name}] defer ignore, no token found.`);
 
-    await fn(...functionArguments);
-
-    return { id: FakeID };
+    const id = randomUUID();
+    __database.set(id, { id: id, state: "running" });
+    execLocally(id, fn, functionArguments);
+    return { id };
   };
 
 interface DeferAwaitResult {
@@ -254,6 +296,7 @@ export const awaitResult: DeferAwaitResult =
       throw new DeferError(`cannot serialize argument: ${e.message}`);
     }
 
+    let response: FetchExecutionResponse;
     if (__httpClient) {
       const { id } = await enqueueExecution(__httpClient, {
         name: fnName,
@@ -261,37 +304,26 @@ export const awaitResult: DeferAwaitResult =
         scheduleFor: new Date(),
       });
 
-      const response = await waitExecutionResult(__httpClient, { id: id });
-
-      if (response.state === "failed") {
-        let error = new DeferError("Defer execution failed");
-        if (response.result?.message) {
-          error = new DeferError(response.result.message);
-          error.stack = response.result.stack;
-        } else if (response.result) {
-          error = response.result;
-        }
-
-        throw error;
-      }
-
-      return response.result;
+      response = await waitExecutionResult(__httpClient, { id: id });
+    } else {
+      const id = randomUUID();
+      __database.set(id, { id: id, state: "running" });
+      response = await execLocally(id, fn, functionArguments);
     }
 
-    try {
-      return Promise.resolve(await fn(...functionArguments));
-    } catch (error) {
-      // const e = error as Error;
-      let deferError: any = new Error("Defer execution failed");
-      if (error instanceof Error) {
-        deferError = new Error(error.message);
-        deferError.stack = error.stack || "";
-      } else {
-        deferError = error;
+    if (response.state === "failed") {
+      let error = new DeferError("Defer execution failed");
+      if (response.result?.message) {
+        error = new DeferError(response.result.message);
+        error.stack = response.result.stack;
+      } else if (response.result) {
+        error = response.result;
       }
 
       throw error;
     }
+
+    return response.result;
   };
 
 // EXAMPLES:
