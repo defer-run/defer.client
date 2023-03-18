@@ -45,7 +45,7 @@ export function configure(opts = {} as Options): void {
 
 export const deferEnabled = () => !!__accessToken;
 
-async function execLocalhost(
+async function execLocally(
   id: string,
   fn: any,
   args: any
@@ -187,7 +187,7 @@ export const defer: Defer = (fn, options) => {
 
     const id = randomUUID();
     __database.set(id, { id: id, state: "running" });
-    execLocalhost(id, fn, functionArguments);
+    execLocally(id, fn, functionArguments);
     return { id };
   };
 
@@ -267,7 +267,7 @@ export const delay: DeferDelay =
 
     const id = randomUUID();
     __database.set(id, { id: id, state: "running" });
-    execLocalhost(id, fn, functionArguments);
+    execLocally(id, fn, functionArguments);
     return { id };
   };
 
@@ -308,7 +308,7 @@ export const awaitResult: DeferAwaitResult =
     } else {
       const id = randomUUID();
       __database.set(id, { id: id, state: "running" });
-      response = await execLocalhost(id, fn, functionArguments);
+      response = await execLocally(id, fn, functionArguments);
     }
 
     if (response.state === "failed") {
