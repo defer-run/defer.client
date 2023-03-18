@@ -2,7 +2,7 @@ import { fetch } from "@whatwg-node/fetch";
 import { URL } from "node:url";
 
 import { APIError, ClientError, HTTPRequestError } from "./errors.js";
-import { version } from "../package.json";
+import { version, repository } from "../package.json";
 
 export type HTTPClient = ReturnType<typeof makeHTTPClient>;
 
@@ -47,7 +47,7 @@ export function makeHTTPClient(
       headers: {
         ...customHeaderFields,
         "Content-type": "application/json",
-        "User-Agent": `defer/${version} (source: https://github.com/defer-run/defer.client)`,
+        "User-Agent": `defer/${version} (source: ${repository})`,
         Authorization: basicAuth("", accessToken),
       },
     };
