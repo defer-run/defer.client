@@ -132,6 +132,7 @@ export interface DeferRetFn<
   (...args: Parameters<F>): Promise<EnqueueExecutionResponse>;
   __fn: F;
 }
+
 export interface DeferScheduledFn<F extends (...args: never) => Promise<any>>
   extends HasDeferMetadata {
   (...args: Parameters<F>): void;
