@@ -1,5 +1,19 @@
 # @defer/client
 
+## 1.2.0
+
+### Minor Changes
+
+- [#44](https://github.com/defer-run/defer.client/pull/44) [`d9dcfae`](https://github.com/defer-run/defer.client/commit/d9dcfaef99f2856f4b55481edefcf32d52bfe8f4) Thanks [@gearnode](https://github.com/gearnode)! - Execution defer function without blocking
+
+* [#45](https://github.com/defer-run/defer.client/pull/45) [`7bfd219`](https://github.com/defer-run/defer.client/commit/7bfd219210f2b3ee90e49754934f394fe29478bc) Thanks [@gearnode](https://github.com/gearnode)! - Add user-agent header field
+
+- [#44](https://github.com/defer-run/defer.client/pull/44) [`d9dcfae`](https://github.com/defer-run/defer.client/commit/d9dcfaef99f2856f4b55481edefcf32d52bfe8f4) Thanks [@gearnode](https://github.com/gearnode)! - Add support of getExecution locally
+
+### Patch Changes
+
+- [#44](https://github.com/defer-run/defer.client/pull/44) [`d9dcfae`](https://github.com/defer-run/defer.client/commit/d9dcfaef99f2856f4b55481edefcf32d52bfe8f4) Thanks [@gearnode](https://github.com/gearnode)! - Fix function return not serialized
+
 ## 1.1.0
 
 ### Minor Changes
