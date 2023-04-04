@@ -114,14 +114,26 @@ type Range<F extends number, T extends number> = Exclude<
   Enumerate<F>
 >;
 
-export type RetryNumber = Range<0, 13>;
 export type Concurrency = Range<0, 51>;
+
+export interface RetryBackoffPolicy {
+  initialInterval: number;
+  randomizationFactor: number;
+  multiplier: number;
+  maxInterval: number;
+  maxElapsedTime: number;
+}
+
+export interface RetryPolicy {
+  maxAttempts: number;
+  backoff: RetryBackoffPolicy;
+}
 
 export interface HasDeferMetadata {
   __metadata: {
     version: number;
     cron?: string;
-    retry?: RetryNumber;
+    retry?: RetryPolicy;
     concurrency?: Concurrency;
   };
 }
@@ -156,9 +168,27 @@ export interface Defer {
   ) => DeferScheduledFn<F>;
 }
 
+export interface RetryPolicyOption {
+  maxAttempts?: number;
+  backoff?: Partial<RetryBackoffPolicy>;
+}
+
 export interface DeferOptions {
-  retry?: boolean | RetryNumber;
+  retry?: boolean | number | RetryPolicyOption;
   concurrency?: Concurrency;
+}
+
+function defaultRetryPolicy(): RetryPolicy {
+  return {
+    maxAttempts: 13,
+    backoff: {
+      initialInterval: 0.5,
+      randomizationFactor: 0.5,
+      multiplier: 1.5,
+      maxInterval: 60,
+      maxElapsedTime: 15 * 60,
+    },
+  };
 }
 
 export const defer: Defer = (fn, options) => {
@@ -193,13 +223,50 @@ export const defer: Defer = (fn, options) => {
   };
 
   ret.__fn = fn;
-  let retryPolicy: RetryNumber = 0;
-  if (options?.retry === true) {
-    retryPolicy = 12;
+
+  let retryPolicy: RetryPolicy = defaultRetryPolicy();
+  switch (typeof options?.retry) {
+    case "boolean": {
+      if (options.retry) retryPolicy = defaultRetryPolicy();
+      break;
+    }
+    case "number": {
+      retryPolicy.maxAttempts = options.retry;
+      break;
+    }
+    case "object": {
+      if (options.retry.maxAttempts)
+        retryPolicy.maxAttempts = options.retry.maxAttempts;
+
+      if (options.retry.backoff?.initialInterval)
+        retryPolicy.backoff.initialInterval =
+          options.retry.backoff.initialInterval;
+
+      if (options.retry.backoff?.randomizationFactor)
+        retryPolicy.backoff.randomizationFactor =
+          options.retry.backoff.randomizationFactor;
+
+      if (options.retry.backoff?.multiplier)
+        retryPolicy.backoff.multiplier = options.retry.backoff.multiplier;
+
+      if (options.retry.backoff?.maxInterval)
+        retryPolicy.backoff.maxInterval = options.retry.backoff.maxInterval;
+
+      if (options.retry.backoff?.maxElapsedTime)
+        retryPolicy.backoff.maxElapsedTime =
+          options.retry.backoff.maxElapsedTime;
+
+      break;
+    }
+    case "undefined": {
+      retryPolicy.maxAttempts = 0;
+      break;
+    }
+    default: {
+      throw new Error("invalid retry options");
+    }
   }
-  if (typeof options?.retry === "number") {
-    retryPolicy = options.retry;
-  }
+
   ret.__metadata = { version: INTERNAL_VERSION, retry: retryPolicy };
 
   return ret;
