@@ -49,15 +49,15 @@
   "exports": {
     ".": {
       "require": {
-        "types": "./dist/typings/index.d.cts",
+        "types": "./src/index.ts",
         "default": "./dist/cjs/index.js"
       },
       "import": {
-        "types": "./dist/typings/index.d.ts",
+        "types": "./src/index.ts",
         "default": "./dist/esm/index.js"
       },
       "default": {
-        "types": "./dist/typings/index.d.ts",
+        "types": "./src/index.ts",
         "default": "./dist/esm/index.js"
       }
     },
