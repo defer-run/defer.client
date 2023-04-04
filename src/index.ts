@@ -121,7 +121,6 @@ export interface RetryBackoffPolicy {
   randomizationFactor: number;
   multiplier: number;
   maxInterval: number;
-  maxElapsedTime: number;
 }
 
 export interface RetryPolicy {
@@ -186,7 +185,6 @@ function defaultRetryPolicy(): RetryPolicy {
       randomizationFactor: 0.5,
       multiplier: 1.5,
       maxInterval: 60,
-      maxElapsedTime: 15 * 60,
     },
   };
 }
@@ -251,10 +249,6 @@ export const defer: Defer = (fn, options) => {
 
       if (options.retry.backoff?.maxInterval)
         retryPolicy.backoff.maxInterval = options.retry.backoff.maxInterval;
-
-      if (options.retry.backoff?.maxElapsedTime)
-        retryPolicy.backoff.maxElapsedTime =
-          options.retry.backoff.maxElapsedTime;
 
       break;
     }
