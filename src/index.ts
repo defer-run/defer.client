@@ -94,8 +94,13 @@ export async function getExecution(
 export type UnPromise<F> = F extends Promise<infer R> ? R : F;
 
 export type DelayString = `${string}${Units}`;
+export interface Metadata {
+  key: string;
+  value: string;
+}
 export interface DeferExecutionOptions {
-  delay: DelayString | Date;
+  delay?: DelayString | Date;
+  metadatas?: Metadata[];
 }
 
 export type DeferRetFnParameters<
@@ -131,6 +136,7 @@ export interface DeferRetFn<
 > extends HasDeferMetadata {
   (...args: Parameters<F>): Promise<EnqueueExecutionResponse>;
   __fn: F;
+  __execOptions?: DeferExecutionOptions;
 }
 
 export interface DeferScheduledFn<F extends (...args: never) => Promise<any>>
@@ -180,6 +186,7 @@ export const defer: Defer = (fn, options) => {
         name: fn.name,
         arguments: functionArguments,
         scheduleFor: new Date(),
+        metadatas: [],
       });
     }
 
@@ -233,9 +240,10 @@ interface DeferDelay {
  * @param {string|Date} delay - The delay (ex: "1h" or a Date object)
  * @returns Function
  */
-export const delay: DeferDelay =
-  (deferFn, delay) =>
-  async (...args) => {
+export const delay: DeferDelay = (deferFn, delay) => {
+  const delayedDeferFn = async (
+    ...args: Parameters<typeof deferFn>
+  ): Promise<UnPromise<ReturnType<DeferRetFn<typeof fn>>>> => {
     const fn = deferFn.__fn;
     let functionArguments: any;
     try {
@@ -259,7 +267,8 @@ export const delay: DeferDelay =
       return enqueueExecution(__httpClient, {
         name: fn.name,
         arguments: functionArguments,
-        scheduleFor: scheduleFor,
+        scheduleFor,
+        metadatas: deferFn.__execOptions?.metadatas || [],
       });
     }
 
@@ -271,6 +280,80 @@ export const delay: DeferDelay =
     execLocally(id, fn, functionArguments);
     return { id };
   };
+
+  delayedDeferFn.__execOptions = {
+    ...deferFn.__execOptions,
+    delay,
+  };
+
+  return delayedDeferFn;
+};
+
+interface DeferAddMetadata {
+  <F extends (...args: any | undefined) => Promise<any>>(
+    deferFn: DeferRetFn<F>,
+    metadatas: Metadata[]
+  ): (...args: Parameters<F>) => Promise<EnqueueExecutionResponse>;
+}
+
+/**
+ * Add metadatas to the the execution of a background function
+ * @constructor
+ * @param {Function} deferFn - A background function (`defer(...)` result)
+ * @param {Metadata[]} metadatas - The metadatas (ex: `[{ key: "foo", value: "bar" }]`)
+ * @returns Function
+ */
+export const addMetadata: DeferAddMetadata = (deferFn, metadatas) => {
+  const deferFnWithMetadata = async (
+    ...args: Parameters<typeof deferFn>
+  ): Promise<UnPromise<ReturnType<DeferRetFn<typeof fn>>>> => {
+    const fn = deferFn.__fn;
+    let functionArguments: any;
+    try {
+      functionArguments = JSON.parse(JSON.stringify(args));
+    } catch (error) {
+      const e = error as Error;
+      throw new DeferError(`cannot serialize argument: ${e.message}`);
+    }
+
+    if (__verbose) console.log(`[defer.run][${fn.name}] invoked.`);
+
+    if (__httpClient) {
+      let scheduleFor: Date;
+      const delay = deferFn.__execOptions?.delay;
+      if (delay instanceof Date) {
+        scheduleFor = delay;
+      } else if (delay) {
+        const now = new Date();
+        scheduleFor = withDelay(now, delay);
+      } else {
+        scheduleFor = new Date();
+      }
+
+      return enqueueExecution(__httpClient, {
+        name: fn.name,
+        arguments: functionArguments,
+        scheduleFor,
+        metadatas,
+      });
+    }
+
+    if (__verbose)
+      console.log(`[defer.run][${fn.name}] defer ignore, no token found.`);
+
+    const id = randomUUID();
+    __database.set(id, { id: id, state: "running" });
+    execLocally(id, fn, functionArguments);
+    return { id };
+  };
+
+  deferFnWithMetadata.__execOptions = {
+    ...deferFn.__execOptions,
+    metadatas,
+  };
+
+  return deferFnWithMetadata;
+};
 
 interface DeferAwaitResult {
   <F extends (...args: any | undefined) => Promise<any>>(
@@ -303,6 +386,7 @@ export const awaitResult: DeferAwaitResult =
         name: fnName,
         arguments: functionArguments,
         scheduleFor: new Date(),
+        metadatas: [],
       });
 
       response = await waitExecutionResult(__httpClient, { id: id });
