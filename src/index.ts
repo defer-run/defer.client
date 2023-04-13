@@ -95,12 +95,11 @@ export type UnPromise<F> = F extends Promise<infer R> ? R : F;
 
 export type DelayString = `${string}${Units}`;
 export interface Metadata {
-  key: string;
-  value: string;
+  [key: string]: string;
 }
 export interface DeferExecutionOptions {
   delay?: DelayString | Date;
-  metadatas?: Metadata[];
+  metadata?: Metadata;
 }
 
 export type DeferRetFnParameters<
@@ -186,7 +185,7 @@ export const defer: Defer = (fn, options) => {
         name: fn.name,
         arguments: functionArguments,
         scheduleFor: new Date(),
-        metadatas: [],
+        metadata: {},
       });
     }
 
@@ -268,7 +267,7 @@ export const delay: DeferDelay = (deferFn, delay) => {
         name: fn.name,
         arguments: functionArguments,
         scheduleFor,
-        metadatas: deferFn.__execOptions?.metadatas || [],
+        metadata: deferFn.__execOptions?.metadata || {},
       });
     }
 
@@ -294,18 +293,19 @@ export const delay: DeferDelay = (deferFn, delay) => {
 interface DeferAddMetadata {
   <F extends (...args: any | undefined) => Promise<any>>(
     deferFn: DeferRetFn<F>,
-    metadatas: Metadata[]
+    metadata: Metadata
   ): DeferRetFn<F>;
 }
 
 /**
- * Add metadatas to the the execution of a background function
+ * Add metadata to the the execution of a background function
  * @constructor
  * @param {Function} deferFn - A background function (`defer(...)` result)
- * @param {Metadata[]} metadatas - The metadatas (ex: `[{ key: "foo", value: "bar" }]`)
+ * @param {Metadata} metadata - The metadata (ex: `{ foo: "bar" }`)
  * @returns Function
  */
-export const addMetadata: DeferAddMetadata = (deferFn, metadatas) => {
+export const addMetadata: DeferAddMetadata = (deferFn, metadata) => {
+  const newMetadata = { ...deferFn.__execOptions?.metadata, ...metadata };
   const deferFnWithMetadata = async (
     ...args: Parameters<typeof deferFn>
   ): Promise<UnPromise<ReturnType<DeferRetFn<typeof fn>>>> => {
@@ -336,7 +336,7 @@ export const addMetadata: DeferAddMetadata = (deferFn, metadatas) => {
         name: fn.name,
         arguments: functionArguments,
         scheduleFor,
-        metadatas,
+        metadata: newMetadata,
       });
     }
 
@@ -353,7 +353,7 @@ export const addMetadata: DeferAddMetadata = (deferFn, metadatas) => {
   deferFnWithMetadata.__metadata = deferFn.__metadata;
   deferFnWithMetadata.__execOptions = {
     ...deferFn.__execOptions,
-    metadatas,
+    metadata: newMetadata,
   };
 
   return deferFnWithMetadata;
@@ -390,7 +390,7 @@ export const awaitResult: DeferAwaitResult =
         name: fnName,
         arguments: functionArguments,
         scheduleFor: new Date(),
-        metadatas: [],
+        metadata: {},
       });
 
       response = await waitExecutionResult(__httpClient, { id: id });
