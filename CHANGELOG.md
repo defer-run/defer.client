@@ -1,5 +1,11 @@
 # @defer/client
 
+## 1.3.0
+
+### Minor Changes
+
+- [#50](https://github.com/defer-run/defer.client/pull/50) [`44ca317`](https://github.com/defer-run/defer.client/commit/44ca317c29bc58f618f030eca3f29ecceb4e13f2) Thanks [@gearnode](https://github.com/gearnode)! - Add option to configure retry behaviour
+
 ## 1.2.0
 
 ### Minor Changes
