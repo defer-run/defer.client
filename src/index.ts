@@ -171,10 +171,10 @@ export interface DeferOptions {
 function defaultRetryPolicy(): RetryPolicy {
   return {
     maxAttempts: 13,
-    initialInterval: 0.5,
+    initialInterval: 30,
     randomizationFactor: 0.5,
     multiplier: 1.5,
-    maxInterval: 60,
+    maxInterval: 60 * 10,
   };
 }
 
