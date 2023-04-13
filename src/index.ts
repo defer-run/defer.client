@@ -230,7 +230,7 @@ interface DeferDelay {
   <F extends (...args: any | undefined) => Promise<any>>(
     deferFn: DeferRetFn<F>,
     delay: DelayString | Date
-  ): (...args: Parameters<F>) => Promise<EnqueueExecutionResponse>;
+  ): DeferRetFn<F>;
 }
 
 /**
@@ -281,6 +281,8 @@ export const delay: DeferDelay = (deferFn, delay) => {
     return { id };
   };
 
+  delayedDeferFn.__fn = deferFn.__fn;
+  delayedDeferFn.__metadata = deferFn.__metadata;
   delayedDeferFn.__execOptions = {
     ...deferFn.__execOptions,
     delay,
@@ -293,7 +295,7 @@ interface DeferAddMetadata {
   <F extends (...args: any | undefined) => Promise<any>>(
     deferFn: DeferRetFn<F>,
     metadatas: Metadata[]
-  ): (...args: Parameters<F>) => Promise<EnqueueExecutionResponse>;
+  ): DeferRetFn<F>;
 }
 
 /**
@@ -347,6 +349,8 @@ export const addMetadata: DeferAddMetadata = (deferFn, metadatas) => {
     return { id };
   };
 
+  deferFnWithMetadata.__fn = deferFn.__fn;
+  deferFnWithMetadata.__metadata = deferFn.__metadata;
   deferFnWithMetadata.__execOptions = {
     ...deferFn.__execOptions,
     metadatas,
