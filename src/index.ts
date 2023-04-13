@@ -114,14 +114,13 @@ type Range<F extends number, T extends number> = Exclude<
   Enumerate<F>
 >;
 
-export type RetryNumber = Range<0, 13>;
 export type Concurrency = Range<0, 51>;
 
 export interface HasDeferMetadata {
   __metadata: {
     version: number;
     cron?: string;
-    retry?: RetryNumber;
+    retry?: RetryPolicy;
     concurrency?: Concurrency;
   };
 }
@@ -156,9 +155,27 @@ export interface Defer {
   ) => DeferScheduledFn<F>;
 }
 
+export interface RetryPolicy {
+  maxAttempts: number;
+  initialInterval: number;
+  randomizationFactor: number;
+  multiplier: number;
+  maxInterval: number;
+}
+
 export interface DeferOptions {
-  retry?: boolean | RetryNumber;
+  retry?: boolean | number | Partial<RetryPolicy>;
   concurrency?: Concurrency;
+}
+
+function defaultRetryPolicy(): RetryPolicy {
+  return {
+    maxAttempts: 13,
+    initialInterval: 30,
+    randomizationFactor: 0.5,
+    multiplier: 1.5,
+    maxInterval: 60 * 10,
+  };
 }
 
 export const defer: Defer = (fn, options) => {
@@ -193,13 +210,44 @@ export const defer: Defer = (fn, options) => {
   };
 
   ret.__fn = fn;
-  let retryPolicy: RetryNumber = 0;
-  if (options?.retry === true) {
-    retryPolicy = 12;
+
+  let retryPolicy: RetryPolicy = defaultRetryPolicy();
+  switch (typeof options?.retry) {
+    case "boolean": {
+      if (options.retry) retryPolicy = defaultRetryPolicy();
+      break;
+    }
+    case "number": {
+      retryPolicy.maxAttempts = options.retry;
+      break;
+    }
+    case "object": {
+      if (options.retry.maxAttempts)
+        retryPolicy.maxAttempts = options.retry.maxAttempts;
+
+      if (options.retry.initialInterval)
+        retryPolicy.initialInterval = options.retry.initialInterval;
+
+      if (options.retry.randomizationFactor)
+        retryPolicy.randomizationFactor = options.retry.randomizationFactor;
+
+      if (options.retry.multiplier)
+        retryPolicy.multiplier = options.retry.multiplier;
+
+      if (options.retry.maxInterval)
+        retryPolicy.maxInterval = options.retry.maxInterval;
+
+      break;
+    }
+    case "undefined": {
+      retryPolicy.maxAttempts = 0;
+      break;
+    }
+    default: {
+      throw new Error("invalid retry options");
+    }
   }
-  if (typeof options?.retry === "number") {
-    retryPolicy = options.retry;
-  }
+
   ret.__metadata = { version: INTERNAL_VERSION, retry: retryPolicy };
 
   return ret;

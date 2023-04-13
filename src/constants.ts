@@ -1,1 +1,1 @@
-export const INTERNAL_VERSION = 3;
+export const INTERNAL_VERSION = 4;
