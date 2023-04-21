@@ -166,6 +166,7 @@ export interface RetryPolicy {
 export interface DeferOptions {
   retry?: boolean | number | Partial<RetryPolicy>;
   concurrency?: Concurrency;
+  executionTimeout?: number;
 }
 
 function defaultRetryPolicy(): RetryPolicy {
