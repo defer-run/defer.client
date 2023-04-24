@@ -38,7 +38,7 @@ describe("delay()", () => {
         expect(httpClient).toHaveBeenCalledWith(
           "POST",
           "/api/v1/enqueue",
-          '{"name":"mockConstructor","arguments":[""],"schedule_for":"2023-01-01T00:00:00.000Z"}'
+          '{"name":"mockConstructor","arguments":[""],"schedule_for":"2023-01-01T00:00:00.000Z","metadata":{}}'
         );
       });
     });
