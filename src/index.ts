@@ -121,7 +121,7 @@ export interface HasDeferMetadata {
     version: number;
     cron?: string;
     retry?: RetryPolicy;
-    concurrency?: Concurrency;
+    concurrency?: Concurrency | undefined;
   };
 }
 
@@ -248,7 +248,11 @@ export const defer: Defer = (fn, options) => {
     }
   }
 
-  ret.__metadata = { version: INTERNAL_VERSION, retry: retryPolicy };
+  ret.__metadata = {
+    version: INTERNAL_VERSION,
+    retry: retryPolicy,
+    concurrency: options?.concurrency,
+  };
 
   return ret;
 };
