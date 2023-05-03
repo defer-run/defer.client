@@ -1,5 +1,11 @@
 # @defer/client
 
+## 1.3.1
+
+### Patch Changes
+
+- [#54](https://github.com/defer-run/defer.client/pull/54) [`6964331`](https://github.com/defer-run/defer.client/commit/6964331eefd3cedf72a1de2789d95e035cb41eaf) Thanks [@gearnode](https://github.com/gearnode)! - Concurrency options is ignored
+
 ## 1.3.0
 
 ### Minor Changes
