@@ -1,4 +1,5 @@
 import type { HTTPClient } from "./httpClient.js";
+import type { Metadata } from "./index.js";
 import { jitter } from "./jitter.js";
 
 export interface EnqueueExecutionRequest {
@@ -6,6 +7,7 @@ export interface EnqueueExecutionRequest {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   arguments: any[];
   scheduleFor: Date;
+  metadata: Metadata;
 }
 
 export interface EnqueueExecutionResponse {
@@ -37,6 +39,7 @@ export function enqueueExecution(
     name: request.name,
     arguments: request.arguments,
     schedule_for: request.scheduleFor,
+    metadata: request.metadata,
   });
   return client<EnqueueExecutionResponse>("POST", "/api/v1/enqueue", data);
 }
