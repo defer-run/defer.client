@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { randomUUID } from "crypto";
 import parseDuration, { Units } from "parse-duration";
-import { INTERNAL_VERSION, RETRY_MAX_ATTEMPTS_PLACEHOLDER } from "./constants.js";
+import {
+  INTERNAL_VERSION,
+  RETRY_MAX_ATTEMPTS_PLACEHOLDER,
+} from "./constants.js";
 
 import {
   enqueueExecution,
