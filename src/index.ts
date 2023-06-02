@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { randomUUID } from "crypto";
 import parseDuration, { Units } from "parse-duration";
-import { INTERNAL_VERSION } from "./constants.js";
+import {
+  INTERNAL_VERSION,
+  RETRY_MAX_ATTEMPTS_PLACEHOLDER,
+} from "./constants.js";
 
 import {
   enqueueExecution,
@@ -175,7 +178,7 @@ export interface DeferOptions {
 
 function defaultRetryPolicy(): RetryPolicy {
   return {
-    maxAttempts: 13,
+    maxAttempts: 0,
     initialInterval: 30,
     randomizationFactor: 0.5,
     multiplier: 1.5,
@@ -217,10 +220,12 @@ export const defer: Defer = (fn, options) => {
 
   ret.__fn = fn;
 
-  let retryPolicy: RetryPolicy = defaultRetryPolicy();
+  const retryPolicy: RetryPolicy = defaultRetryPolicy();
   switch (typeof options?.retry) {
     case "boolean": {
-      if (options.retry) retryPolicy = defaultRetryPolicy();
+      if (options.retry) {
+        retryPolicy.maxAttempts = RETRY_MAX_ATTEMPTS_PLACEHOLDER;
+      }
       break;
     }
     case "number": {
@@ -228,8 +233,11 @@ export const defer: Defer = (fn, options) => {
       break;
     }
     case "object": {
-      if (options.retry.maxAttempts)
+      if (options.retry.maxAttempts) {
         retryPolicy.maxAttempts = options.retry.maxAttempts;
+      } else {
+        options.retry.maxAttempts = RETRY_MAX_ATTEMPTS_PLACEHOLDER;
+      }
 
       if (options.retry.initialInterval)
         retryPolicy.initialInterval = options.retry.initialInterval;
