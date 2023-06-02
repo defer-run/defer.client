@@ -175,7 +175,7 @@ export interface DeferOptions {
 
 function defaultRetryPolicy(): RetryPolicy {
   return {
-    maxAttempts: 13,
+    maxAttempts: 0,
     initialInterval: 30,
     randomizationFactor: 0.5,
     multiplier: 1.5,
@@ -217,10 +217,12 @@ export const defer: Defer = (fn, options) => {
 
   ret.__fn = fn;
 
-  let retryPolicy: RetryPolicy = defaultRetryPolicy();
+  const retryPolicy: RetryPolicy = defaultRetryPolicy();
   switch (typeof options?.retry) {
     case "boolean": {
-      if (options.retry) retryPolicy = defaultRetryPolicy();
+      if (options.retry) {
+        retryPolicy.maxAttempts = 13
+      }
       break;
     }
     case "number": {
