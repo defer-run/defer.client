@@ -1,5 +1,13 @@
 # @defer/client
 
+## 1.4.0
+
+### Minor Changes
+
+- [#59](https://github.com/defer-run/defer.client/pull/59) [`0333c50`](https://github.com/defer-run/defer.client/commit/0333c501d36fde0259906f364b0ad7d2a59bd720) Thanks [@charlypoly](https://github.com/charlypoly)! - Fix `retry` default value
+
+* [#51](https://github.com/defer-run/defer.client/pull/51) [`8c97893`](https://github.com/defer-run/defer.client/commit/8c97893e1b34dc4d5dd3102164c400c28f59ec79) Thanks [@codenem](https://github.com/codenem)! - Add support for execution metadata
+
 ## 1.3.1
 
 ### Patch Changes
