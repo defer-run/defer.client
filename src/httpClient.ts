@@ -1,7 +1,12 @@
 import { fetch } from "@whatwg-node/fetch";
 import { URL } from "node:url";
 
-import { APIError, ClientError, HTTPRequestError } from "./errors.js";
+import {
+  APIError,
+  ClientError,
+  HTTPRequestError,
+  errorMessage,
+} from "./errors.js";
 import VERSION from "./version.js";
 
 export type HTTPClient = ReturnType<typeof makeHTTPClient>;
@@ -34,7 +39,7 @@ export function makeHTTPClient(
       let message;
 
       if (error instanceof Error)
-        message = `invalid endpoint url: ${error.message}`;
+        message = `invalid endpoint url: ${errorMessage(error)}`;
       else message = `unknown error: ${String(error)}`;
 
       throw new ClientError(message);
@@ -61,7 +66,7 @@ export function makeHTTPClient(
       let message;
 
       if (error instanceof Error)
-        message = `cannot execute http request: ${error.message}`;
+        message = `cannot execute http request: ${errorMessage(error)}`;
       else message = `unknown error: ${String(error)}`;
 
       throw new ClientError(message);
@@ -73,7 +78,7 @@ export function makeHTTPClient(
       let message;
 
       if (error instanceof Error)
-        message = `cannot decode http response: ${error.message}`;
+        message = `cannot decode http response: ${errorMessage(error)}`;
       else message = `unknown error: ${String(error)}`;
 
       throw new Error(message);
@@ -87,7 +92,9 @@ export function makeHTTPClient(
         return JSON.parse(data) as T;
       } catch (error) {
         const e = error as Error;
-        throw new ClientError(`cannot decode http response body: ${e.message}`);
+        throw new ClientError(
+          `cannot decode http response body: ${errorMessage(e)}`
+        );
       }
     } else if (status >= 300 && status < 400) {
       throw new ClientError("unexpected 3xx response code");
@@ -97,7 +104,9 @@ export function makeHTTPClient(
         decodedData = JSON.parse(data);
       } catch (error) {
         const e = error as Error;
-        throw new ClientError(`cannot decode http response body: ${e.message}`);
+        throw new ClientError(
+          `cannot decode http response body: ${errorMessage(e)}`
+        );
       }
 
       throw new APIError(decodedData.message, decodedData.code);
