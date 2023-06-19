@@ -3,6 +3,8 @@ export const errorMessage = (error: Error) => {
 
   if (error.cause instanceof Error) {
     message = `${message}: ${errorMessage(error.cause)}`;
+  } else {
+    message = `${message}: ${String(error.cause)}`;
   }
 
   return message;
