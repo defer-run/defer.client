@@ -1,3 +1,15 @@
+export const errorMessage = (error: Error) => {
+  let message = error.message;
+
+  if (error.cause instanceof Error) {
+    message = `${message}: ${errorMessage(error.cause)}`;
+  } else {
+    message = `${message}: ${String(error.cause)}`;
+  }
+
+  return message;
+};
+
 export class DeferError extends Error {
   constructor(msg: string) {
     super(msg);

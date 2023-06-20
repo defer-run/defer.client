@@ -41,7 +41,7 @@ export function enqueueExecution(
     schedule_for: request.scheduleFor,
     metadata: request.metadata,
   });
-  return client<EnqueueExecutionResponse>("POST", "/api/v1/enqueue", data);
+  return client<EnqueueExecutionResponse>("POST", "/public/v1/enqueue", data);
 }
 
 export function fetchExecution(
@@ -50,7 +50,7 @@ export function fetchExecution(
 ): Promise<FetchExecutionResponse> {
   return client<FetchExecutionResponse>(
     "GET",
-    `/api/v1/executions/${request.id}`
+    `/public/v1/executions/${request.id}`
   );
 }
 
