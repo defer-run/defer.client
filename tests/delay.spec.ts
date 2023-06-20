@@ -37,7 +37,7 @@ describe("delay()", () => {
         expect(myFunction).not.toHaveBeenCalled();
         expect(httpClient).toHaveBeenCalledWith(
           "POST",
-          "/api/v1/enqueue",
+          "/public/v1/enqueue",
           '{"name":"mockConstructor","arguments":[""],"schedule_for":"2023-01-01T00:00:00.000Z","metadata":{}}'
         );
       });
