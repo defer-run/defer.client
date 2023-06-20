@@ -62,7 +62,6 @@ async function execLocally(
     originalResult = {
       name: e.name,
       message: e.message,
-      // @ts-expect-error cause field is typed
       cause: e.cause,
       stack: e.stack,
     };
