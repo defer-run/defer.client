@@ -1,5 +1,13 @@
 # @defer/client
 
+## 1.5.0
+
+### Minor Changes
+
+- [#61](https://github.com/defer-run/defer.client/pull/61) [`44b91f9`](https://github.com/defer-run/defer.client/commit/44b91f9fafa4282579dc4fbb458b2e363d0649af) Thanks [@gearnode](https://github.com/gearnode)! - Fix remix build by not using native crypto module
+
+* [#64](https://github.com/defer-run/defer.client/pull/64) [`20f8d66`](https://github.com/defer-run/defer.client/commit/20f8d661177b6afc1098447eb348e0734f9417cd) Thanks [@codenem](https://github.com/codenem)! - Update public api paths and improve error messages
+
 ## 1.4.0
 
 ### Minor Changes
