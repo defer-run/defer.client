@@ -12,8 +12,8 @@ const importContacts = (companyId: string, contacts: Contact[]) => {
 };
 
 export default defer(importContacts, {
-  timeout: 10000, // timeout after 10secs
+  timeout: 10, // timeout after 10secs
 });
 ```
 
-BREAKING CHANGE: `timeout` has a default value to 30min. Users having executions going over this limit can override it with `{ timeout: false }`
+BREAKING CHANGE: `timeout` has a default value to 30min. Users having executions going over this limit can override it with a higher value `{ timeout: 3600 }`

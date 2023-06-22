@@ -220,10 +220,7 @@ export const defer: Defer = (fn, options) => {
     return { id };
   };
 
-  ret.__fn =
-    typeof options?.timeout === "boolean" && options?.timeout === false
-      ? fn
-      : timeoutable(fn, options?.timeout || EXECUTION_DEFAULT_TIMEMOUT);
+  ret.__fn = timeoutable(fn, options?.timeout || EXECUTION_DEFAULT_TIMEMOUT);
 
   const retryPolicy: RetryPolicy = defaultRetryPolicy();
   switch (typeof options?.retry) {
