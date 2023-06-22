@@ -45,3 +45,10 @@ export class APIError extends ClientError {
     Object.setPrototypeOf(this, APIError.prototype);
   }
 }
+
+export class DeferExecutionTimeoutError extends ClientError {
+  constructor(msg: string) {
+    super(msg);
+    Object.setPrototypeOf(this, APIError.prototype);
+  }
+}

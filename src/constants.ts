@@ -1,2 +1,3 @@
-export const INTERNAL_VERSION = 4;
+export const INTERNAL_VERSION = 5;
 export const RETRY_MAX_ATTEMPTS_PLACEHOLDER = 13;
+export const EXECUTION_DEFAULT_TIMEMOUT = 1800;
