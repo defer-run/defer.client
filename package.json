@@ -22,7 +22,7 @@
     "lint": "eslint src/**/*.ts",
     "prerelease": "yarn build",
     "release": "changeset publish",
-    "test": "jest --passWithNoTests --config ./tests/jest.ts --runInBand",
+    "test": "jest --passWithNoTests --config ./tests/jest.ts --runInBand --filter=./tests/filter-tests-node-18.cjs",
     "test:dev": "jest --passWithNoTests --config ./tests/jest.ts --runInBand --watch"
   },
   "buildOptions": {
