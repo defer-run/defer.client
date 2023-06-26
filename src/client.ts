@@ -20,11 +20,12 @@ export interface FetchExecutionRequest {
 
 export type ExecutionState = "running" | "created" | "failed" | "succeed";
 
-export interface FetchExecutionResponse {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface FetchExecutionResponse<R = any> {
   id: string;
   state: ExecutionState;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  result?: any;
+  result?: R;
 }
 
 export type PoolExecutionRequest = FetchExecutionRequest;
