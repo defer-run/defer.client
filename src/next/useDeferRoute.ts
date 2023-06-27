@@ -78,7 +78,7 @@ export const useDeferRoute = <
   };
 
   const execute = useCallback(
-    async (args: any) => {
+    async (...args: any[]) => {
       if (!routePath) {
         console.error(NOTICE);
         return;
