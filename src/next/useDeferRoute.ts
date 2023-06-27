@@ -1,13 +1,13 @@
 import { useCallback, useRef, useState } from "react";
-import { DeferRetFn } from "..";
-import { ExecutionState, FetchExecutionResponse } from "../client";
+import type { DeferRetFn } from "..";
+import type { ExecutionState, FetchExecutionResponse } from "../client";
 
 export type UseDeferRoute<ARA extends boolean, A extends any[], R> = [
   execute: (...args: ARA extends true ? any : A) => void,
   state: {
     loading: boolean;
     result: R;
-    error?: Error;
+    error?: Error | undefined;
   }
 ];
 
@@ -28,7 +28,7 @@ export const useDeferRoute = <
   const routePath = deferFn.__metadata.nextRoute;
   const [status, setStatus] = useState<ExecutionState>();
   const [result, setResult] = useState<any>();
-  const [error, setError] = useState<Error>();
+  const [error, setError] = useState<Error | undefined>();
   const intervalRef = useRef<number | null>();
 
   const NOTICE = `
