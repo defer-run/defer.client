@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest, NextResponse } from "next/server";
 import { getExecution } from "../getExecution";
 import type { DeferRetFn } from "..";
 import { APIError } from "../errors";
@@ -15,6 +15,9 @@ interface Options<
   proxy?: (request: NextRequest) => Promise<Parameters<F>>;
 }
 
+// @ts-expect-error https://github.com/microsoft/TypeScript/issues/52841#issuecomment-1574002759
+const ResponseJSON = Response.json;
+
 export function asNextRoute<F extends (...args: any) => Promise<any>>(
   deferFn: DeferRetFn<F>,
   options?: Options<F>
@@ -25,17 +28,17 @@ export function asNextRoute<F extends (...args: any) => Promise<any>>(
       if (id) {
         try {
           const { state, result } = await getExecution(id);
-          return NextResponse.json({ id, state, result });
+          return ResponseJSON({ id, state, result });
         } catch (e: unknown) {
           if (e instanceof APIError) {
-            return NextResponse.json(
+            return ResponseJSON(
               { id, error: e.toString() },
               {
                 status: 500,
               }
             );
           } else {
-            return NextResponse.json(
+            return ResponseJSON(
               { id, error: "Unexpected error." },
               {
                 status: 500,
@@ -44,7 +47,7 @@ export function asNextRoute<F extends (...args: any) => Promise<any>>(
           }
         }
       } else {
-        return NextResponse.json(
+        return ResponseJSON(
           { error: "missing `id` query parameter from `useDeferRoute()`" },
           { status: 400 }
         );
@@ -58,9 +61,9 @@ export function asNextRoute<F extends (...args: any) => Promise<any>>(
       if (Array.isArray(args)) {
         // @ts-expect-error Charly: need to be refined
         const execution = await deferFn(...args);
-        return NextResponse.json(execution);
+        return ResponseJSON(execution);
       } else {
-        return NextResponse.json(
+        return ResponseJSON(
           {
             error: `\`args\` should be an array ${
               options?.proxy ? "- check your `proxy()`" : ""
