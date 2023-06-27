@@ -107,7 +107,7 @@ export const useDeferRoute = <
   return [
     execute,
     {
-      loading: !!status && status === "running",
+      loading: !!status && ["started", "created", "running"].includes(status),
       result,
       error,
     },
