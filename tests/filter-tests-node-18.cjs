@@ -5,7 +5,7 @@ module.exports = (testPaths) => {
     .filter((path) =>
       nodeVersionMajor > 16 ? true : !path.match("asNextRoute")
     ) // filter out NextJS 13 tests
-    .map((test) => ({ test })); // [{ test: "path1.spec.js" }, { test: "path2.spec.js" }, etc]
+    .map((test) => ({ test }));
 
   return {
     filtered: allowedPaths,
