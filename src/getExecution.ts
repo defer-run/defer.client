@@ -10,7 +10,11 @@ export async function getExecution(
   console.log("getExecution", id);
 
   const response = __database.get(id);
-  if (response) return Promise.resolve(response);
+  if (response)
+    return Promise.resolve({
+      ...response,
+      state: response.state === "started" ? "running" : response.state,
+    });
 
   throw new APIError("execution not found", "");
 }
