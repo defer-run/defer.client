@@ -111,6 +111,7 @@ type Range<F extends number, T extends number> = Exclude<
 >;
 
 export type Concurrency = Range<0, 51>;
+export type NextRouteString = `/api/${string}`;
 
 export interface HasDeferMetadata {
   __metadata: {
@@ -118,7 +119,11 @@ export interface HasDeferMetadata {
     cron?: string;
     retry?: RetryPolicy;
     concurrency?: Concurrency | undefined;
+<<<<<<< HEAD
     maxDuration?: number | undefined;
+=======
+    nextRoute?: NextRouteString;
+>>>>>>> 53e9be6 (fix(next): typings)
   };
 }
 
