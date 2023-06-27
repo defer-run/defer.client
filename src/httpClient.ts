@@ -17,7 +17,7 @@ const basicAuth = (username: string, password: string) => {
 };
 
 interface APIErrorResponse {
-  code: string;
+  error: string;
   message: string;
 }
 
@@ -109,7 +109,7 @@ export function makeHTTPClient(
         );
       }
 
-      throw new APIError(decodedData.message, decodedData.code);
+      throw new APIError(decodedData.message, decodedData.error);
     } else if (status >= 500 && status < 600) {
       throw new HTTPRequestError("internal server error", status, data);
     } else {
