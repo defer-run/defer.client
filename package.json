@@ -33,7 +33,7 @@
     "react": "^18.2.0"
   },
   "engines": {
-    "node": ">16"
+    "node": ">16.0.0"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.4.7",
