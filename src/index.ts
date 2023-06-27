@@ -119,11 +119,7 @@ export interface HasDeferMetadata {
     cron?: string;
     retry?: RetryPolicy;
     concurrency?: Concurrency | undefined;
-<<<<<<< HEAD
     maxDuration?: number | undefined;
-=======
-    nextRoute?: NextRouteString;
->>>>>>> 53e9be6 (fix(next): typings)
   };
 }
 

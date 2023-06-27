@@ -12,5 +12,4 @@ async function helloWorld(name: string = "") {
 export default defer(helloWorld, {
   concurrency: 10,
   retry: 5,
-  nextRoute: "/api/uploadProfilePicture",
 });
