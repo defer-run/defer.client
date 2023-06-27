@@ -109,6 +109,8 @@ export function makeHTTPClient(
         );
       }
 
+	console.log("XXX", decodedData)
+
       throw new APIError(decodedData.message, decodedData.error);
     } else if (status >= 500 && status < 600) {
       throw new HTTPRequestError("internal server error", status, data);
