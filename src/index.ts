@@ -15,6 +15,9 @@ import {
 import { DeferError } from "./errors.js";
 import { HTTPClient, makeHTTPClient } from "./httpClient.js";
 
+export { DeferNextRoute, asNextRoute } from "./next/asNextRoute";
+export { UseDeferRoute, useDeferRoute } from "./next/useDeferRoute";
+
 interface Options {
   accessToken?: string;
   endpoint?: string;

@@ -75,20 +75,6 @@
         "default": "./dist/esm/index.js"
       }
     },
-    "./next": {
-      "require": {
-        "types": "./dist/typings/next.d.cts",
-        "default": "./dist/cjs/next.js"
-      },
-      "import": {
-        "types": "./dist/typings/next.d.ts",
-        "default": "./dist/esm/next.js"
-      },
-      "default": {
-        "types": "./dist/typings/next.d.ts",
-        "default": "./dist/esm/next.js"
-      }
-    },
     "./package.json": "./package.json"
   },
   "publishConfig": {

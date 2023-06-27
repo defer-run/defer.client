@@ -1,4 +1,4 @@
-import { asNextRoute } from "../../../src/next";
+import { asNextRoute } from "../../../src";
 import helloWorld from "./helloWorld";
 
 const { GetHandler, PostHandler } = asNextRoute(helloWorld, {
