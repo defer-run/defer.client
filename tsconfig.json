@@ -21,7 +21,6 @@
     "noUncheckedIndexedAccess": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "importsNotUsedAsValues": "error",
     "checkJs": true,
     "resolveJsonModule": true
   },
