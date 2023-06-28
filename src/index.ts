@@ -1,5 +1,5 @@
-import { v4 as randomUUID } from "uuid";
 import parseDuration, { Units } from "parse-duration";
+import { v4 as randomUUID } from "uuid";
 import {
   INTERNAL_VERSION,
   RETRY_MAX_ATTEMPTS_PLACEHOLDER,
@@ -127,6 +127,7 @@ export interface HasDeferMetadata {
     cron?: string;
     retry?: RetryPolicy;
     concurrency?: Concurrency | undefined;
+    maxDuration?: number | undefined;
   };
 }
 
