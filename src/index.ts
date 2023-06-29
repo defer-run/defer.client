@@ -1,5 +1,5 @@
-import { v4 as randomUUID } from "uuid";
 import parseDuration, { Units } from "parse-duration";
+import { v4 as randomUUID } from "uuid";
 import {
   INTERNAL_VERSION,
   RETRY_MAX_ATTEMPTS_PLACEHOLDER,
@@ -127,6 +127,7 @@ export interface HasDeferMetadata {
     cron?: string;
     retry?: RetryPolicy;
     concurrency?: Concurrency | undefined;
+    maxDuration?: number | undefined;
   };
 }
 
@@ -157,7 +158,8 @@ export interface Defer {
   ): DeferRetFn<F>;
   cron: <F extends (args: never[]) => Promise<any>>(
     fn: F,
-    schedule: string
+    schedule: string,
+    options?: DeferOptions
   ) => DeferScheduledFn<F>;
 }
 
@@ -172,6 +174,7 @@ export interface RetryPolicy {
 export interface DeferOptions {
   retry?: boolean | number | Partial<RetryPolicy>;
   concurrency?: Concurrency;
+  maxDuration?: number;
 }
 
 function defaultRetryPolicy(): RetryPolicy {
@@ -184,40 +187,7 @@ function defaultRetryPolicy(): RetryPolicy {
   };
 }
 
-export const defer: Defer = (fn, options) => {
-  const ret = async (
-    ...args: Parameters<typeof fn>
-  ): Promise<UnPromise<ReturnType<DeferRetFn<typeof fn>>>> => {
-    if (__verbose) console.log(`[defer.run][${fn.name}] invoked.`);
-
-    let functionArguments: any;
-    try {
-      functionArguments = JSON.parse(JSON.stringify(args));
-    } catch (error) {
-      const e = error as Error;
-      throw new DeferError(`cannot serialize argument: ${e.message}`);
-    }
-
-    if (__httpClient) {
-      return enqueueExecution(__httpClient, {
-        name: fn.name,
-        arguments: functionArguments,
-        scheduleFor: new Date(),
-        metadata: {},
-      });
-    }
-
-    if (__verbose)
-      console.log(`[defer.run][${fn.name}] defer ignore, no token found.`);
-
-    const id = randomUUID();
-    __database.set(id, { id: id, state: "running" });
-    execLocally(id, fn, functionArguments);
-    return { id };
-  };
-
-  ret.__fn = fn;
-
+function parseRetryPolicy(options?: DeferOptions): RetryPolicy {
   const retryPolicy: RetryPolicy = defaultRetryPolicy();
   switch (typeof options?.retry) {
     case "boolean": {
@@ -260,16 +230,53 @@ export const defer: Defer = (fn, options) => {
     }
   }
 
+  return retryPolicy;
+}
+
+export const defer: Defer = (fn, options) => {
+  const ret = async (
+    ...args: Parameters<typeof fn>
+  ): Promise<UnPromise<ReturnType<DeferRetFn<typeof fn>>>> => {
+    if (__verbose) console.log(`[defer.run][${fn.name}] invoked.`);
+
+    let functionArguments: any;
+    try {
+      functionArguments = JSON.parse(JSON.stringify(args));
+    } catch (error) {
+      const e = error as Error;
+      throw new DeferError(`cannot serialize argument: ${e.message}`);
+    }
+
+    if (__httpClient) {
+      return enqueueExecution(__httpClient, {
+        name: fn.name,
+        arguments: functionArguments,
+        scheduleFor: new Date(),
+        metadata: {},
+      });
+    }
+
+    if (__verbose)
+      console.log(`[defer.run][${fn.name}] defer ignore, no token found.`);
+
+    const id = randomUUID();
+    __database.set(id, { id: id, state: "running" });
+    execLocally(id, fn, functionArguments);
+    return { id };
+  };
+
+  ret.__fn = fn;
   ret.__metadata = {
     version: INTERNAL_VERSION,
-    retry: retryPolicy,
+    retry: parseRetryPolicy(options),
     concurrency: options?.concurrency,
+    maxDuration: options?.maxDuration,
   };
 
   return ret;
 };
 
-defer.cron = (fn, schedule) => {
+defer.cron = (fn, schedule, options) => {
   const ret: DeferScheduledFn<typeof fn> = () => {
     throw new Error("`defer.cron()` functions should not be invoked.");
   };
@@ -278,6 +285,9 @@ defer.cron = (fn, schedule) => {
   ret.__metadata = {
     version: INTERNAL_VERSION,
     cron: schedule,
+    retry: parseRetryPolicy(options),
+    concurrency: options?.concurrency,
+    maxDuration: options?.maxDuration,
   };
 
   return ret;
