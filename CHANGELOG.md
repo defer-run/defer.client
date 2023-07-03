@@ -1,5 +1,31 @@
 # @defer/client
 
+## 1.6.0
+
+### Minor Changes
+
+- [#70](https://github.com/defer-run/defer.client/pull/70) [`4646cd0`](https://github.com/defer-run/defer.client/commit/4646cd0daaa8c88664f564756a5d93d6dc6ef6e3) Thanks [@gearnode](https://github.com/gearnode)! - Introducing `maxDuration` support
+
+  `defer()` exposes a new `maxDuration` configuration:
+
+  ```ts
+  const importContacts = (companyId: string, contacts: Contact[]) => {
+    //  ...
+  };
+
+  export default defer(importContacts, {
+    maxDuration: 10 // timeout after 10secs
+  });
+  ```
+
+  BREAKING CHANGE: `maxDuration` has a default value to 30min. Users having executions going over this limit can override it with a higher value `{ maxDuration: 3600 }`
+
+* [#70](https://github.com/defer-run/defer.client/pull/70) [`c92bb44`](https://github.com/defer-run/defer.client/commit/c92bb445b1559406c45aa8a985b6d63ceabbadd8) Thanks [@gearnode](https://github.com/gearnode)! - Allow options for CRON function
+
+### Patch Changes
+
+- [#68](https://github.com/defer-run/defer.client/pull/68) [`74ab12b`](https://github.com/defer-run/defer.client/commit/74ab12bfbefbf9a16eaa487efc27ebe8681e751b) Thanks [@gearnode](https://github.com/gearnode)! - Fix error code field name
+
 ## 1.5.0
 
 ### Minor Changes
