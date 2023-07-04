@@ -3,9 +3,15 @@
   "version": "1.6.0",
   "description": "Zero infrastructure NodeJS background jobs",
   "main": "dist/cjs/index.js",
-  "repository": "git@github.com:defer-run/defer.client.git",
   "author": "Defer Inc <support@defer.run>",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/defer-run/defer.client.git"
+  },
+  "engines": {
+    "node": ">=16"
+  },
   "dependencies": {
     "@whatwg-node/fetch": "^0.2.9",
     "parse-duration": "^1.0.2",
