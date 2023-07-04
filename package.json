@@ -2,13 +2,12 @@
   "name": "@defer/client",
   "version": "1.6.0",
   "description": "Zero infrastructure NodeJS background jobs",
+  "type": "module",
   "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "repository": "git@github.com:defer-run/defer.client.git",
   "author": "Defer Inc <support@defer.run>",
   "license": "ISC",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/defer-run/defer.client.git"
-  },
   "engines": {
     "node": ">=16"
   },
@@ -25,15 +24,9 @@
     "test": "jest --passWithNoTests --config ./tests/jest.ts --runInBand --filter=./tests/filter-tests-node-18.cjs",
     "test:dev": "jest --passWithNoTests --config ./tests/jest.ts --runInBand --watch"
   },
-  "buildOptions": {
-    "input": "./src/index.ts"
-  },
   "peerDependencies": {
     "next": "^13.4.7",
     "react": "^18.2.0"
-  },
-  "engines": {
-    "node": ">16.0.0"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.4.7",
@@ -54,8 +47,6 @@
     "ts-node": "^10.9.1",
     "typescript": "^5.1"
   },
-  "type": "module",
-  "module": "dist/esm/index.js",
   "typings": "dist/typings/index.d.ts",
   "typescript": {
     "definition": "dist/typings/index.d.ts"
@@ -73,6 +64,20 @@
       "default": {
         "types": "./dist/typings/index.d.ts",
         "default": "./dist/esm/index.js"
+      }
+    },
+    "./next": {
+      "require": {
+        "types": "./dist/typings/next/index.d.cts",
+        "default": "./dist/cjs/next/index.js"
+      },
+      "import": {
+        "types": "./dist/typings/next/index.d.ts",
+        "default": "./dist/esm/next/index.js"
+      },
+      "default": {
+        "types": "./dist/typings/next/index.d.ts",
+        "default": "./dist/esm/next/index.js"
       }
     },
     "./package.json": "./package.json"
