@@ -1,56 +1,26 @@
-name: CI
+name: "test"
 
 on:
   pull_request:
-    branches: [master]
+    branches: ["master"]
   push:
-    branches: [master]
+    branches: ["master"]
 
 jobs:
   test:
-    name: Node ${{matrix.node_version}} on ${{matrix.os}}
-    runs-on: ${{matrix.os}}
+    name: "Node ${{matrix.node_version}}"
+    runs-on: "ubuntu-latest"
     strategy:
       matrix:
-        os: [ubuntu-latest]
-        node_version: [14, 16, 18]
+        node-version: [16, 18, 20]
     steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js ${{matrix.node_version}}
-        uses: actions/setup-node@v3
+      - uses: "actions/checkout@v3"
+      - uses: "actions/setup-node@v3"
         with:
-          node-version: ${{matrix.node_version}}
-
-      - uses: actions/cache@v3
-        id: yarn-cache
-        with:
-          path: node_modules
-          key: ${{runner.os}}-${{matrix.node_version}}-yarn-${{hashFiles('yarn.lock')}}
-
-      - name: Install Dependencies
-        run: yarn
-        if: steps.yarn-cache.outputs.cache-hit != 'true'
-
-      - name: Test
-        run: yarn test
-
-      - name: Build
-        run: yarn build
-  lint:
-    name: Lint source files
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 16
-          cache: yarn
-
-      - name: Install Dependencies
-        run: yarn
-
-      - name: Lint ESLint
-        run: yarn lint
-
-      - name: Lint Prettier
-        run: yarn prettier -c src/
+          node-version: "${{matrix.node-version}}"
+          cache: "yarn"
+      - run: "yarn install --frozen-lockfile"
+      - run: "yarn lint"
+      - run: "yarn prettier -c src/"
+      - run: "yarn test"
+      - run: "yarn build"
