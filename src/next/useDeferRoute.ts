@@ -12,7 +12,7 @@ export type UseDeferRoute<ARA extends boolean, A extends any[], R> = [
   }
 ];
 
-// const [uploadFile, { loading, result: fileName, error }] = useDeferRoute(createThumbnails, { refreshInterval: 1000 });
+// const [uploadFile, { loading, result: fileName, error }] = useDeferRoute<typeof createThumbnails>("/api/upload", { refreshInterval: 1000 });
 export const useDeferRoute = <
   DFR extends DeferRetFn<any> = any,
   F extends (...args: any[]) => Promise<any> = DFR extends DeferRetFn<infer RR>
