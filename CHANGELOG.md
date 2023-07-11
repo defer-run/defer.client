@@ -1,5 +1,46 @@
 # @defer/client
 
+## 1.7.0
+
+### Minor Changes
+
+- [#66](https://github.com/defer-run/defer.client/pull/66) [`b9973d5`](https://github.com/defer-run/defer.client/commit/b9973d5cda217738008c202e82829112a00d7998) Thanks [@charlypoly](https://github.com/charlypoly)! - Introducing `@defer/client/next` integration
+
+  This release introduces two new helpers that makes Defer deeply integrated with NextJS:
+
+  - `asNextRoute()`: used in combination of `useDeferRoute()` to trigger background functions from Client-side Components
+  - `useDeferRoute()`: trigger and wait for the result of a background functions from Client-side Components
+
+  ## Next API Routes
+
+  ```tsx
+  import { asNextRoute } from "@defer/client/next";
+  import createThumbnails from "../../defer/createThumbnails";
+
+  const { GetHandler, PostHandler } = asNextRoute(createThumbnails);
+
+  export const GET = GetHandler;
+  export const POST = PostHandler;
+  ```
+
+  ## React client-side component
+
+  ```tsx
+  import { useDeferRoute } from "@defer/client/next";
+  import createThumbnails from "../../defer/createThumbnails";
+
+  export function MyComp() {
+    const { request, loading, result } = useDeferRoute(createThumbnails);
+    return (
+      <div>
+        <span>Loading: {loading ? "Yes" : "No"}</span>
+        <span>Result: {result ? JSON.stringify(result) : "--"}</span>
+        <button onClick={() => request("")}>Call</button>
+      </div>
+    );
+  }
+  ```
+
 ## 1.6.0
 
 ### Minor Changes
