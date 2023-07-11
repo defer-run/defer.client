@@ -15,6 +15,8 @@ import {
 import { DeferError } from "./errors.js";
 import { HTTPClient, makeHTTPClient } from "./httpClient.js";
 
+export { getExecution } from "./getExecution";
+
 interface Options {
   accessToken?: string;
   endpoint?: string;
