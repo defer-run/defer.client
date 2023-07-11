@@ -1,0 +1,50 @@
+title: "[RFC] <Feature name>"
+labels: ["RFC"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## RFC format
+
+        The technical spec **should contain the motivation, code examples, and use cases** with various design proposals:
+
+        Once published, the RFC will be sent to broadcast to our customers and the community for review.
+
+        ## RFC lifecycle
+
+        Each RFC will go through the following lifecycle:
+
+        ```mermaid
+        flowchart TD
+            a["RFC submission"]--few days-->b["review by the Defer team"]
+            b-->cid1
+            cid1{{Valid RFC format?}}
+            cid1--yes-->e["The RFC is discussed"]
+            cid1--no-->d["The RFC is archived"]
+
+            e--few weeks-->f["The RFC is transformed into an issue"]
+        ```
+
+        An RFC discussion is transformed into an issue that describes the release schedule, as a feature is often split into multiple releases and phases (opt-in alpha, beta, etc).
+
+  - type: textarea
+    id: rfc
+    attributes:
+      label: RFC proposal
+      value: ""
+    validations:
+      required: true
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Product scope
+      multiple: true
+      options:
+        - Defer Console
+        - "@defer/client"
+        - Defer Scheduler
+        - Defer Builder
+        - Misc
+    validations:
+      required: true
