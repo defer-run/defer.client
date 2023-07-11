@@ -82,6 +82,16 @@
     },
     "./package.json": "./package.json"
   },
+  "typesVersions": {
+    "*": {
+      "index": [
+        "typings/index.d.ts"
+      ],
+      "next": [
+        "typings/next/index.d.ts"
+      ]
+    }
+  },
   "publishConfig": {
     "directory": "dist",
     "access": "public"
