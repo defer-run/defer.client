@@ -1,5 +1,11 @@
 # @defer/client
 
+## 1.7.1
+
+### Patch Changes
+
+- [#76](https://github.com/defer-run/defer.client/pull/76) [`54ec6f7`](https://github.com/defer-run/defer.client/commit/54ec6f75bec3a0f88e720028c3f12591c21af774) Thanks [@charlypoly](https://github.com/charlypoly)! - Typings fixes on 1.7.0
+
 ## 1.7.0
 
 ### Minor Changes
