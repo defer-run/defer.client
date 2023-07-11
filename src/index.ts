@@ -9,11 +9,10 @@ import {
   enqueueExecution,
   EnqueueExecutionResponse,
   ExecutionState,
-  fetchExecution,
   FetchExecutionResponse,
   waitExecutionResult,
 } from "./client.js";
-import { APIError, DeferError } from "./errors.js";
+import { DeferError } from "./errors.js";
 import { HTTPClient, makeHTTPClient } from "./httpClient.js";
 
 interface Options {
@@ -25,14 +24,14 @@ interface Options {
 const withDelay = (dt: Date, delay: DelayString): Date =>
   new Date(dt.getTime() + parseDuration(delay));
 
-const __database = new Map<
+export const __database = new Map<
   string,
   { id: string; state: ExecutionState; result?: any }
 >();
 let __accessToken: string | undefined = process.env["DEFER_TOKEN"];
 let __endpoint = process.env["DEFER_ENDPOINT"] || "https://api.defer.run";
 let __verbose = false;
-let __httpClient: HTTPClient | undefined;
+export let __httpClient: HTTPClient | undefined;
 if (__accessToken) __httpClient = makeHTTPClient(__endpoint, __accessToken);
 
 export function configure(opts = {} as Options): void {
@@ -81,17 +80,6 @@ async function execLocally(
   return response;
 }
 
-export async function getExecution(
-  id: string
-): Promise<FetchExecutionResponse> {
-  if (__httpClient) return fetchExecution(__httpClient, { id });
-
-  const response = __database.get(id);
-  if (response) return Promise.resolve(response);
-
-  throw new APIError("execution not found", "");
-}
-
 export type UnPromise<F> = F extends Promise<infer R> ? R : F;
 
 export type DelayString = `${string}${Units}`;
@@ -120,6 +108,7 @@ type Range<F extends number, T extends number> = Exclude<
 >;
 
 export type Concurrency = Range<0, 51>;
+export type NextRouteString = `/api/${string}`;
 
 export interface HasDeferMetadata {
   __metadata: {

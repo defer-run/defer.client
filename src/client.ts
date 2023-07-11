@@ -18,13 +18,19 @@ export interface FetchExecutionRequest {
   id: string;
 }
 
-export type ExecutionState = "running" | "created" | "failed" | "succeed";
+export type ExecutionState =
+  | "running"
+  | "created"
+  | "failed"
+  | "succeed"
+  | "started";
 
-export interface FetchExecutionResponse {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface FetchExecutionResponse<R = any> {
   id: string;
   state: ExecutionState;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  result?: any;
+  result?: R;
 }
 
 export type PoolExecutionRequest = FetchExecutionRequest;

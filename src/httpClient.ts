@@ -1,5 +1,5 @@
 import { fetch } from "@whatwg-node/fetch";
-import { URL } from "node:url";
+import { URL } from "url";
 
 import {
   APIError,
