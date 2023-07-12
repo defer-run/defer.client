@@ -1,7 +1,7 @@
 import type { NextRequest, NextResponse } from "next/server";
-import { getExecution } from "../getExecution";
-import type { DeferRetFn } from "..";
-import { APIError } from "../errors";
+import { getExecution } from "../getExecution.js";
+import type { DeferRetFn } from "../index.js";
+import { APIError } from "../errors.js";
 
 export interface DeferNextRoute {
   GetHandler: (request: NextRequest) => Promise<NextResponse | Response>;

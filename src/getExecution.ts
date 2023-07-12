@@ -1,6 +1,6 @@
 import { fetchExecution, FetchExecutionResponse } from "./client.js";
 import { APIError } from "./errors.js";
-import { __httpClient, __database } from "./index";
+import { __httpClient, __database } from "./index.js";
 
 export async function getExecution(
   id: string

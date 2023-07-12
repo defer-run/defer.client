@@ -24,3 +24,6 @@ jobs:
       - run: "yarn prettier -c src/"
       - run: "yarn test"
       - run: "yarn build"
+      - name: "ESM integrity"
+        if: matrix.node-version > 16
+        run: "yarn bob check"
