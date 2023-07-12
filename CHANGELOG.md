@@ -1,5 +1,11 @@
 # @defer/client
 
+## 1.7.2
+
+### Patch Changes
+
+- [#78](https://github.com/defer-run/defer.client/pull/78) [`8477826`](https://github.com/defer-run/defer.client/commit/84778269a3232aff584bc42985ed1ddddfb4db83) Thanks [@charlypoly](https://github.com/charlypoly)! - fix ESM compat
+
 ## 1.7.1
 
 ### Patch Changes
