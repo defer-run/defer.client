@@ -24,3 +24,4 @@ jobs:
       - run: "yarn prettier -c src/"
       - run: "yarn test"
       - run: "yarn build"
+      - run: "yarn bob check"
