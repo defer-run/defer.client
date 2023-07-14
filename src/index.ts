@@ -252,7 +252,7 @@ export const defer: Defer = (fn, options) => {
       console.log(`[defer.run][${fn.name}] defer ignore, no token found.`);
 
     const id = randomUUID();
-    __database.set(id, { id: id, state: "running" });
+    __database.set(id, { id: id, state: "started" });
     execLocally(id, fn, functionArguments);
     return { id };
   };
@@ -335,7 +335,7 @@ export const delay: DeferDelay = (deferFn, delay) => {
       console.log(`[defer.run][${fn.name}] defer ignore, no token found.`);
 
     const id = randomUUID();
-    __database.set(id, { id: id, state: "running" });
+    __database.set(id, { id: id, state: "started" });
     execLocally(id, fn, functionArguments);
     return { id };
   };
@@ -404,7 +404,7 @@ export const addMetadata: DeferAddMetadata = (deferFn, metadata) => {
       console.log(`[defer.run][${fn.name}] defer ignore, no token found.`);
 
     const id = randomUUID();
-    __database.set(id, { id: id, state: "running" });
+    __database.set(id, { id: id, state: "started" });
     execLocally(id, fn, functionArguments);
     return { id };
   };
@@ -456,7 +456,7 @@ export const awaitResult: DeferAwaitResult =
       response = await waitExecutionResult(__httpClient, { id: id });
     } else {
       const id = randomUUID();
-      __database.set(id, { id: id, state: "running" });
+      __database.set(id, { id: id, state: "started" });
       response = await execLocally(id, fn, functionArguments);
     }
 

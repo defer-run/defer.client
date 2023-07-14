@@ -19,7 +19,6 @@ export interface FetchExecutionRequest {
 }
 
 export type ExecutionState =
-  | "running"
   | "created"
   | "failed"
   | "succeed"

@@ -31,7 +31,7 @@ describe("awaitResult(deferFn)", () => {
           })
           // second `/runs/:id` call
           .mockImplementationOnce(() => {
-            return { id: "1", state: "running" };
+            return { id: "1", state: "started" };
           })
           // third `/runs/:id` call
           .mockImplementationOnce(() => {

@@ -13,9 +13,8 @@ export async function getExecution(
   if (response)
     return Promise.resolve({
       ...response,
-      // TODO: bump a major and drop `running` state (invalid API state)
-      state: response.state === "started" ? "running" : response.state,
+      state: response.state,
     });
 
-  throw new APIError("execution not found", "");
+  throw new APIError("execution not found", "not found");
 }
