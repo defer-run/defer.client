@@ -1,5 +1,23 @@
 # @defer/client
 
+## 1.8.0
+
+### Minor Changes
+
+- [#80](https://github.com/defer-run/defer.client/pull/80) [`27a1d46`](https://github.com/defer-run/defer.client/commit/27a1d46d2773fcc0d15440ad81f238c51630827e) Thanks [@gearnode](https://github.com/gearnode)! - Remove running state
+
+* [#80](https://github.com/defer-run/defer.client/pull/80) [`27a1d46`](https://github.com/defer-run/defer.client/commit/27a1d46d2773fcc0d15440ad81f238c51630827e) Thanks [@gearnode](https://github.com/gearnode)! - Add cancel execution:
+
+  ```ts
+  import { cancelExecution } from "@defer/client";
+
+  // ...
+
+  const { id } = await cancelExecution(executionId);
+
+  // ...
+  ```
+
 ## 1.7.2
 
 ### Patch Changes
