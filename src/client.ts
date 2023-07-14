@@ -37,6 +37,20 @@ export type PoolExecutionRequest = FetchExecutionRequest;
 
 export type PoolExecutionResponse = FetchExecutionResponse;
 
+export type CancelExecutionRequest = FetchExecutionRequest
+
+export interface CancelExecutionResponse {}
+
+export function cancelExecution(
+    client: HTTPClient,
+    request: CancelExecutionRequest
+): Promise<CancelExecutionResponse> {
+    return client<CancelExecutionResponse>(
+	"POST",
+	`/public/v1/executions/${request.id}/cancel`
+    );
+}
+
 export function enqueueExecution(
   client: HTTPClient,
   request: EnqueueExecutionRequest
