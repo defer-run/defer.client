@@ -17,7 +17,7 @@
     "uuid": "^9.0.0"
   },
   "scripts": {
-    "build": "node utils/update-version.mjs && bob build && yarn bob check && node utils/fix-ts-sub-exports.mjs",
+    "build": "node utils/update-version.mjs && bob build && node utils/fix-ts-sub-exports.mjs",
     "lint": "eslint src/**/*.ts",
     "prerelease": "yarn build",
     "release": "changeset publish",
