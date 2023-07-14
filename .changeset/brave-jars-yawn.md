@@ -2,4 +2,14 @@
 "@defer/client": minor
 ---
 
-Add cancel execution
+Add cancel execution:
+
+```ts
+import { cancelExecution } from "@defer/client";
+
+// ...
+
+const { id } = await cancelExecution(executionId);
+
+// ...
+```
