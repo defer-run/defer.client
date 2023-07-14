@@ -18,11 +18,7 @@ export interface FetchExecutionRequest {
   id: string;
 }
 
-export type ExecutionState =
-  | "created"
-  | "failed"
-  | "succeed"
-  | "started";
+export type ExecutionState = "created" | "failed" | "succeed" | "started";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface FetchExecutionResponse<R = any> {
@@ -36,18 +32,18 @@ export type PoolExecutionRequest = FetchExecutionRequest;
 
 export type PoolExecutionResponse = FetchExecutionResponse;
 
-export type CancelExecutionRequest = FetchExecutionRequest
+export type CancelExecutionRequest = FetchExecutionRequest;
 
 export interface CancelExecutionResponse {}
 
 export function cancelExecution(
-    client: HTTPClient,
-    request: CancelExecutionRequest
+  client: HTTPClient,
+  request: CancelExecutionRequest
 ): Promise<CancelExecutionResponse> {
-    return client<CancelExecutionResponse>(
-	"POST",
-	`/public/v1/executions/${request.id}/cancel`
-    );
+  return client<CancelExecutionResponse>(
+    "POST",
+    `/public/v1/executions/${request.id}/cancel`
+  );
 }
 
 export function enqueueExecution(
