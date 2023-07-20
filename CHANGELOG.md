@@ -1,5 +1,11 @@
 # @defer/client
 
+## 1.8.1
+
+### Patch Changes
+
+- [#82](https://github.com/defer-run/defer.client/pull/82) [`73a96d9`](https://github.com/defer-run/defer.client/commit/73a96d9497510f1069525e67aaef752eadff24eb) Thanks [@charlypoly](https://github.com/charlypoly)! - Remove unnecessary `peerDependencies` on `next` and `react`
+
 ## 1.8.0
 
 ### Minor Changes
