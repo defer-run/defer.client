@@ -1,4 +1,4 @@
-import { defer, delay, configure } from "../src";
+import { defer, delay } from "../src";
 import { HTTPClient, makeHTTPClient } from "../src/httpClient";
 
 jest.mock("../src/httpClient");
@@ -13,7 +13,7 @@ describe("delay()", () => {
           return { id: "1" } as any;
         });
         jest.mocked(makeHTTPClient).mockImplementationOnce(() => httpClient!);
-        configure({ accessToken: "test" });
+        process.env["DEFER_TOKEN"] = "test";
       });
 
       it("should throw if arguments are not serializable", async () => {

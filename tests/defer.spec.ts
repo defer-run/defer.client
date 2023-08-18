@@ -1,4 +1,4 @@
-import { configure, defer } from "../src";
+import { defer } from "../src";
 import { APIError } from "../src/errors";
 import { makeHTTPClient } from "../src/httpClient";
 
@@ -36,7 +36,7 @@ describe("defer()", () => {
             return { id: "1" } as any;
           };
         });
-        configure({ accessToken: "test" });
+        process.env["DEFER_TOKEN"] = "test";
       });
 
       it("should throw if arguments are not serializable", async () => {
@@ -68,7 +68,8 @@ describe("defer()", () => {
             throw new APIError("cannot enqueue execution: reason", "E42");
           };
         });
-        configure({ accessToken: "test" });
+
+        process.env["DEFER_TOKEN"] = "test";
       });
 
       it("should NOT call the wrapped function and throw the error", async () => {
@@ -85,7 +86,7 @@ describe("defer()", () => {
 
   describe("when Defer is inactive (`DEFER_TOKEN` is unset)", () => {
     beforeAll(() => {
-      configure({ accessToken: "" });
+      process.env["DEFER_TOKEN"] = "";
     });
     it("should call the wrapped function", async () => {
       const myFunction = jest.fn(async (_str: string) => {});

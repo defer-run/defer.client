@@ -1,4 +1,4 @@
-import { awaitResult, configure, defer } from "../src";
+import { awaitResult, defer } from "../src";
 import { makeHTTPClient } from "../src/httpClient";
 import { jitter } from "../src/jitter";
 
@@ -46,7 +46,8 @@ describe("awaitResult(deferFn)", () => {
             return responseFn();
           });
 
-        configure({ accessToken: "test", verbose: true });
+        process.env["DEFER_TOKEN"] = "test";
+        process.env["DEFER_DEBUG"] = "1";
       });
 
       it("should NOT call the wrapped function and return the function execution result", async () => {
