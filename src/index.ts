@@ -18,16 +18,22 @@ export const __database = new Map<
 >();
 
 function debug(...args: any) {
-  if (process?.env["DEFER_DEBUG"]) {
+  if (getEnv("DEFER_DEBUG")) {
     console.debug(...args);
   }
 }
 
-function getHTTPClient(): HTTPClient | undefined {
-  const accessToken = process?.env["DEFER_TOKEN"];
-  const endpoint = process?.env["DEFER_ENDPOINT"] || "https://api.defer.run";
+function getEnv(key: string): string | undefined {
+  if (typeof process !== "undefined") return process.env[key];
+  if (typeof globalThis !== "undefined") return (globalThis as any)[key];
+  return;
+}
 
-  if (accessToken) return makeHTTPClient(accessToken, endpoint);
+function getHTTPClient(): HTTPClient | undefined {
+  const accessToken = getEnv("DEFER_TOKEN");
+  const endpoint = getEnv("DEFER_ENDPOINT") || "https://api.defer.run";
+
+  if (accessToken) return makeHTTPClient(endpoint, accessToken);
   return;
 }
 
