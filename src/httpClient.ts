@@ -27,11 +27,9 @@ interface APIErrorResponse {
 
 export function makeHTTPClient(
   apiEndpoint: string,
-  accessToken: string | undefined,
+  accessToken: string,
   clientOptions?: RequestInit
-): HTTPClient | undefined {
-  if (!accessToken) return;
-
+): HTTPClient {
   return async <T>(
     method: string,
     path: string,

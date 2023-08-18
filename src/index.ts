@@ -5,63 +5,40 @@ import {
   RETRY_MAX_ATTEMPTS_PLACEHOLDER,
 } from "./constants.js";
 
-import {
-  enqueueExecution,
-  EnqueueExecutionResponse,
-  ExecutionState,
-  FetchExecutionResponse,
-  waitExecutionResult,
-} from "./client.js";
-import { DeferError } from "./errors.js";
-import { makeHTTPClient } from "./httpClient.js";
-
-export { getExecution } from "./getExecution.js";
-export { cancelExecution } from "./cancelExecution.js";
-
-interface Options {
-  accessToken?: string;
-  endpoint?: string;
-  verbose?: boolean;
-}
+import * as client from "./client.js";
+import { APIError, DeferError } from "./errors.js";
+import { HTTPClient, makeHTTPClient } from "./httpClient.js";
 
 const withDelay = (dt: Date, delay: DelayString): Date =>
   new Date(dt.getTime() + parseDuration(delay));
 
 export const __database = new Map<
   string,
-  { id: string; state: ExecutionState; result?: any }
+  { id: string; state: client.ExecutionState; result?: any }
 >();
 
-let __accessToken: string | undefined;
-let __endpoint: string | undefined;
-let __verbose = false;
-
-export function getAccessToken(): string | undefined {
-  return __accessToken || process?.env["DEFER_TOKEN"];
+function debug(...args: any) {
+  if (process?.env["DEFER_DEBUG"]) {
+    console.debug(...args);
+  }
 }
 
-export function getEndpoint(): string {
-  return (
-    __endpoint || process?.env["DEFER_ENDPOINT"] || "https://api.defer.run"
-  );
-}
+function getHTTPClient(): HTTPClient | undefined {
+  const accessToken = process?.env["DEFER_TOKEN"];
+  const endpoint = process?.env["DEFER_ENDPOINT"] || "https://api.defer.run";
 
-export function configure(opts = {} as Options): void {
-  if (opts.accessToken) __accessToken = opts.accessToken;
-  if (opts.endpoint) __endpoint = opts.endpoint;
-  if (opts.verbose) __verbose = opts.verbose;
-
+  if (accessToken) return makeHTTPClient(accessToken, endpoint);
   return;
 }
 
-export const deferEnabled = () => !!getAccessToken();
+export const deferEnabled = () => !!process?.env["DEFER_TOKEN"];
 
 async function execLocally(
   id: string,
   fn: any,
   args: any
-): Promise<FetchExecutionResponse> {
-  let state: ExecutionState = "succeed";
+): Promise<client.FetchExecutionResponse> {
+  let state: client.ExecutionState = "succeed";
   let originalResult: any;
   try {
     originalResult = await fn(...args);
@@ -133,7 +110,7 @@ export interface HasDeferMetadata {
 export interface DeferRetFn<
   F extends (...args: any | undefined) => Promise<any>
 > extends HasDeferMetadata {
-  (...args: Parameters<F>): Promise<EnqueueExecutionResponse>;
+  (...args: Parameters<F>): Promise<client.EnqueueExecutionResponse>;
   __fn: F;
   __execOptions?: DeferExecutionOptions;
 }
@@ -236,7 +213,7 @@ export const defer: Defer = (fn, options) => {
   const ret = async (
     ...args: Parameters<typeof fn>
   ): Promise<UnPromise<ReturnType<DeferRetFn<typeof fn>>>> => {
-    if (__verbose) console.log(`[defer.run][${fn.name}] invoked.`);
+    debug(`[defer.run][${fn.name}] invoked.`);
 
     let functionArguments: any;
     try {
@@ -246,9 +223,9 @@ export const defer: Defer = (fn, options) => {
       throw new DeferError(`cannot serialize argument: ${e.message}`);
     }
 
-    const httpClient = makeHTTPClient(getEndpoint(), getAccessToken());
+    const httpClient = getHTTPClient();
     if (httpClient) {
-      return enqueueExecution(httpClient, {
+      return client.enqueueExecution(httpClient, {
         name: fn.name,
         arguments: functionArguments,
         scheduleFor: new Date(),
@@ -256,8 +233,7 @@ export const defer: Defer = (fn, options) => {
       });
     }
 
-    if (__verbose)
-      console.log(`[defer.run][${fn.name}] defer ignore, no token found.`);
+    debug(`[defer.run][${fn.name}] defer ignore, no token found.`);
 
     const id = randomUUID();
     __database.set(id, { id: id, state: "started" });
@@ -320,9 +296,9 @@ export const delay: DeferDelay = (deferFn, delay) => {
       throw new DeferError(`cannot serialize argument: ${e.message}`);
     }
 
-    if (__verbose) console.log(`[defer.run][${fn.name}] invoked.`);
+    debug(`[defer.run][${fn.name}] invoked.`);
 
-    const httpClient = makeHTTPClient(getEndpoint(), getAccessToken());
+    const httpClient = getHTTPClient();
     if (httpClient) {
       let scheduleFor: Date;
       if (delay instanceof Date) {
@@ -332,7 +308,7 @@ export const delay: DeferDelay = (deferFn, delay) => {
         scheduleFor = withDelay(now, delay);
       }
 
-      return enqueueExecution(httpClient, {
+      return client.enqueueExecution(httpClient, {
         name: fn.name,
         arguments: functionArguments,
         scheduleFor,
@@ -340,8 +316,7 @@ export const delay: DeferDelay = (deferFn, delay) => {
       });
     }
 
-    if (__verbose)
-      console.log(`[defer.run][${fn.name}] defer ignore, no token found.`);
+    debug(`[defer.run][${fn.name}] defer ignore, no token found.`);
 
     const id = randomUUID();
     __database.set(id, { id: id, state: "started" });
@@ -387,9 +362,9 @@ export const addMetadata: DeferAddMetadata = (deferFn, metadata) => {
       throw new DeferError(`cannot serialize argument: ${e.message}`);
     }
 
-    if (__verbose) console.log(`[defer.run][${fn.name}] invoked.`);
+    debug(`[defer.run][${fn.name}] invoked.`);
 
-    const httpClient = makeHTTPClient(getEndpoint(), getAccessToken());
+    const httpClient = getHTTPClient();
     if (httpClient) {
       let scheduleFor: Date;
       const delay = deferFn.__execOptions?.delay;
@@ -402,7 +377,7 @@ export const addMetadata: DeferAddMetadata = (deferFn, metadata) => {
         scheduleFor = new Date();
       }
 
-      return enqueueExecution(httpClient, {
+      return client.enqueueExecution(httpClient, {
         name: fn.name,
         arguments: functionArguments,
         scheduleFor,
@@ -410,8 +385,7 @@ export const addMetadata: DeferAddMetadata = (deferFn, metadata) => {
       });
     }
 
-    if (__verbose)
-      console.log(`[defer.run][${fn.name}] defer ignore, no token found.`);
+    debug(`[defer.run][${fn.name}] defer ignore, no token found.`);
 
     const id = randomUUID();
     __database.set(id, { id: id, state: "started" });
@@ -454,17 +428,17 @@ export const awaitResult: DeferAwaitResult =
       throw new DeferError(`cannot serialize argument: ${e.message}`);
     }
 
-    let response: FetchExecutionResponse;
-    const httpClient = makeHTTPClient(getEndpoint(), getAccessToken());
+    let response: client.FetchExecutionResponse;
+    const httpClient = getHTTPClient();
     if (httpClient) {
-      const { id } = await enqueueExecution(httpClient, {
+      const { id } = await client.enqueueExecution(httpClient, {
         name: fnName,
         arguments: functionArguments,
         scheduleFor: new Date(),
         metadata: {},
       });
 
-      response = await waitExecutionResult(httpClient, { id: id });
+      response = await client.waitExecutionResult(httpClient, { id: id });
     } else {
       const id = randomUUID();
       __database.set(id, { id: id, state: "started" });
@@ -486,46 +460,30 @@ export const awaitResult: DeferAwaitResult =
     return response.result;
   };
 
-// EXAMPLES:
+export async function getExecution(
+  id: string
+): Promise<client.FetchExecutionResponse> {
+  const httpClient = getHTTPClient();
+  if (httpClient) return client.fetchExecution(httpClient, { id });
 
-// interface Contact {
-//   id: string;
-//   name: string;
-// }
+  console.log("getExecution", id);
 
-// const importContacts = (companyId: string, contacts: Contact[]) => {
-//   return new Promise<{ imported: number; companyId: string }>((resolve) => {
-//     console.log(`Start importing contacts for company#${companyId}`);
-//     setTimeout(() => {
-//       console.log(contacts);
-//       console.log("Done.");
-//       resolve({ imported: 10000, companyId });
-//     }, 5000);
-//   });
-// };
+  const response = __database.get(id);
+  if (response)
+    return Promise.resolve({
+      ...response,
+      state: response.state,
+    });
 
-// const importContactsD = defer(importContacts);
+  throw new APIError("execution not found", "not found");
+}
 
-// async function myFunction() {
-//   return 1;
-// }
+export async function cancelExecution(
+  id: string,
+  force = false
+): Promise<client.CancelExecutionResponse> {
+  const httpClient = getHTTPClient();
+  if (httpClient) return client.cancelExecution(httpClient, { id, force });
 
-// defer.cron(myFunction, "every day");
-
-// async function test() {
-//   await importContactsD("1", []); // fire and forget
-
-//   const r = await importContactsD.await("1", []); // wait for execution result
-
-//   const awaitImportContact = awaitResult(importContactsD);
-//   const result = await awaitImportContact("1", []);
-// }
-
-// // Delayed
-
-// const delayed = delay(importContactsD, "1h");
-// delayed("", []);
-
-// // Retry options
-
-// const importContactsRetried = defer(importContacts, { retry: 3 });
+  return {};
+}
