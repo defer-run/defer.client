@@ -1,5 +1,17 @@
 # @defer/client
 
+## 1.9.0
+
+### Minor Changes
+
+- [#86](https://github.com/defer-run/defer.client/pull/86) [`01d1aae`](https://github.com/defer-run/defer.client/commit/01d1aaeae78c0a6b38dafa049ef217d719f55ee3) Thanks [@gearnode](https://github.com/gearnode)! - Add force cancel execution support
+
+* [#89](https://github.com/defer-run/defer.client/pull/89) [`16dcf96`](https://github.com/defer-run/defer.client/commit/16dcf960bd5c49f88cd9ef1bd88f186e500fa9a5) Thanks [@gearnode](https://github.com/gearnode)! - Cloudflare Worker compatibility
+
+### Patch Changes
+
+- [#87](https://github.com/defer-run/defer.client/pull/87) [`bfdad40`](https://github.com/defer-run/defer.client/commit/bfdad40a4cd33650c4d5e4482d30349d01656862) Thanks [@codenem](https://github.com/codenem)! - Better compatibility with engines without process.env
+
 ## 1.8.1
 
 ### Patch Changes
