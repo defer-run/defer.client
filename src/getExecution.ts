@@ -1,11 +1,13 @@
 import { fetchExecution, FetchExecutionResponse } from "./client.js";
 import { APIError } from "./errors.js";
-import { __httpClient, __database } from "./index.js";
+import { makeHTTPClient } from "./httpClient.js";
+import { __database, getAccessToken, getEndpoint } from "./index.js";
 
 export async function getExecution(
   id: string
 ): Promise<FetchExecutionResponse> {
-  if (__httpClient) return fetchExecution(__httpClient, { id });
+  const httpClient = makeHTTPClient(getEndpoint(), getAccessToken());
+  if (httpClient) return fetchExecution(httpClient, { id });
 
   console.log("getExecution", id);
 

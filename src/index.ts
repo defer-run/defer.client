@@ -13,7 +13,7 @@ import {
   waitExecutionResult,
 } from "./client.js";
 import { DeferError } from "./errors.js";
-import { HTTPClient, makeHTTPClient } from "./httpClient.js";
+import { makeHTTPClient } from "./httpClient.js";
 
 export { getExecution } from "./getExecution.js";
 export { cancelExecution } from "./cancelExecution.js";
@@ -31,23 +31,30 @@ export const __database = new Map<
   string,
   { id: string; state: ExecutionState; result?: any }
 >();
-let __accessToken: string | undefined = process.env["DEFER_TOKEN"];
-let __endpoint = process.env["DEFER_ENDPOINT"] || "https://api.defer.run";
+
+let __accessToken: string | undefined;
+let __endpoint: string | undefined;
 let __verbose = false;
-export let __httpClient: HTTPClient | undefined;
-if (__accessToken) __httpClient = makeHTTPClient(__endpoint, __accessToken);
+
+export function getAccessToken(): string | undefined {
+  return __accessToken || process?.env["DEFER_TOKEN"];
+}
+
+export function getEndpoint(): string {
+  return (
+    __endpoint || process?.env["DEFER_ENDPOINT"] || "https://api.defer.run"
+  );
+}
 
 export function configure(opts = {} as Options): void {
   if (opts.accessToken) __accessToken = opts.accessToken;
   if (opts.endpoint) __endpoint = opts.endpoint;
   if (opts.verbose) __verbose = opts.verbose;
 
-  if (__accessToken) __httpClient = makeHTTPClient(__endpoint, __accessToken);
-
   return;
 }
 
-export const deferEnabled = () => !!__accessToken;
+export const deferEnabled = () => !!getAccessToken();
 
 async function execLocally(
   id: string,
@@ -239,8 +246,9 @@ export const defer: Defer = (fn, options) => {
       throw new DeferError(`cannot serialize argument: ${e.message}`);
     }
 
-    if (__httpClient) {
-      return enqueueExecution(__httpClient, {
+    const httpClient = makeHTTPClient(getEndpoint(), getAccessToken());
+    if (httpClient) {
+      return enqueueExecution(httpClient, {
         name: fn.name,
         arguments: functionArguments,
         scheduleFor: new Date(),
@@ -314,7 +322,8 @@ export const delay: DeferDelay = (deferFn, delay) => {
 
     if (__verbose) console.log(`[defer.run][${fn.name}] invoked.`);
 
-    if (__httpClient) {
+    const httpClient = makeHTTPClient(getEndpoint(), getAccessToken());
+    if (httpClient) {
       let scheduleFor: Date;
       if (delay instanceof Date) {
         scheduleFor = delay;
@@ -323,7 +332,7 @@ export const delay: DeferDelay = (deferFn, delay) => {
         scheduleFor = withDelay(now, delay);
       }
 
-      return enqueueExecution(__httpClient, {
+      return enqueueExecution(httpClient, {
         name: fn.name,
         arguments: functionArguments,
         scheduleFor,
@@ -380,7 +389,8 @@ export const addMetadata: DeferAddMetadata = (deferFn, metadata) => {
 
     if (__verbose) console.log(`[defer.run][${fn.name}] invoked.`);
 
-    if (__httpClient) {
+    const httpClient = makeHTTPClient(getEndpoint(), getAccessToken());
+    if (httpClient) {
       let scheduleFor: Date;
       const delay = deferFn.__execOptions?.delay;
       if (delay instanceof Date) {
@@ -392,7 +402,7 @@ export const addMetadata: DeferAddMetadata = (deferFn, metadata) => {
         scheduleFor = new Date();
       }
 
-      return enqueueExecution(__httpClient, {
+      return enqueueExecution(httpClient, {
         name: fn.name,
         arguments: functionArguments,
         scheduleFor,
@@ -445,15 +455,16 @@ export const awaitResult: DeferAwaitResult =
     }
 
     let response: FetchExecutionResponse;
-    if (__httpClient) {
-      const { id } = await enqueueExecution(__httpClient, {
+    const httpClient = makeHTTPClient(getEndpoint(), getAccessToken());
+    if (httpClient) {
+      const { id } = await enqueueExecution(httpClient, {
         name: fnName,
         arguments: functionArguments,
         scheduleFor: new Date(),
         metadata: {},
       });
 
-      response = await waitExecutionResult(__httpClient, { id: id });
+      response = await waitExecutionResult(httpClient, { id: id });
     } else {
       const id = randomUUID();
       __database.set(id, { id: id, state: "started" });
