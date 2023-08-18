@@ -1,4 +1,4 @@
-import { defer, delay, addMetadata, configure } from "../src";
+import { defer, delay, addMetadata } from "../src";
 import { HTTPClient, makeHTTPClient } from "../src/httpClient";
 
 jest.mock("../src/httpClient");
@@ -13,7 +13,7 @@ describe("addMetadata()", () => {
           return { id: "1" } as any;
         });
         jest.mocked(makeHTTPClient).mockImplementationOnce(() => httpClient!);
-        configure({ accessToken: "test" });
+        process.env["DEFER_TOKEN"] = "test";
       });
 
       it("should throw if arguments are not serializable", async () => {

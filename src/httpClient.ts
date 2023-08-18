@@ -9,7 +9,11 @@ import {
 } from "./errors.js";
 import VERSION from "./version.js";
 
-export type HTTPClient = ReturnType<typeof makeHTTPClient>;
+export type HTTPClient = <T>(
+  method: string,
+  path: string,
+  body?: string | null
+) => Promise<T>;
 
 const basicAuth = (username: string, password: string) => {
   const credentials = Buffer.from(`${username}:${password}`).toString("base64");
@@ -25,7 +29,7 @@ export function makeHTTPClient(
   apiEndpoint: string,
   accessToken: string,
   clientOptions?: RequestInit
-) {
+): HTTPClient {
   return async <T>(
     method: string,
     path: string,
