@@ -1,7 +1,7 @@
 import { defer } from "../../dist/esm/index";
 
 async function helloWorld() {
-    console.log("hello!")
+  console.log("hello!");
 }
 
 export default defer(helloWorld);
