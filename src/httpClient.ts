@@ -1,5 +1,4 @@
 import { fetch } from "@whatwg-node/fetch";
-import { URL } from "url";
 
 import {
   APIError,
@@ -16,7 +15,7 @@ export type HTTPClient = <T>(
 ) => Promise<T>;
 
 const basicAuth = (username: string, password: string) => {
-  const credentials = Buffer.from(`${username}:${password}`).toString("base64");
+  const credentials = btoa(`${username}:${password}`);
   return `Basic ${credentials}`;
 };
 
