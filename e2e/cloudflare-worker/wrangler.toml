@@ -1,0 +1,4 @@
+name = "my-worker-dev"
+
+[vars]
+DEFER_TOKEN = "fake-access-token"
