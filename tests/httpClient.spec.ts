@@ -1,7 +1,6 @@
 import { fetch } from "@whatwg-node/fetch";
 import { makeHTTPClient } from "../src/httpClient";
 const { Response } = jest.requireActual("@whatwg-node/fetch");
-g;
 
 jest.mock("@whatwg-node/fetch");
 const mockedFetch = fetch as jest.MockedFunction<typeof fetch>;
