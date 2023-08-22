@@ -51,6 +51,27 @@ export function cancelExecution(
   );
 }
 
+export interface GetExecutionTriesRequest {
+  id: string;
+}
+
+export type GetExecutionTriesResponse = [
+  {
+    id: string;
+    state: string;
+  }
+];
+
+export function getExecutionTries(
+  client: HTTPClient,
+  request: GetExecutionTriesRequest
+): Promise<GetExecutionTriesResponse> {
+  return client<GetExecutionTriesResponse>(
+    "POST",
+    `/public/v1/executions/${request.id}/tries`
+  );
+}
+
 export function enqueueExecution(
   client: HTTPClient,
   request: EnqueueExecutionRequest
