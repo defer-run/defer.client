@@ -67,7 +67,7 @@ export function getExecutionTries(
   request: GetExecutionTriesRequest
 ): Promise<GetExecutionTriesResponse> {
   return client<GetExecutionTriesResponse>(
-    "POST",
+    "GET",
     `/public/v1/executions/${request.id}/tries`
   );
 }
