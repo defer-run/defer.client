@@ -493,3 +493,16 @@ export async function cancelExecution(
 
   return {};
 }
+
+export async function getExecutionTries(
+  id: string
+): Promise<client.GetExecutionTriesResponse> {
+  const httpClient = getHTTPClient();
+  if (httpClient) return client.getExecutionTries(httpClient, { id });
+
+  const response = __database.get(id);
+  if (response)
+    return Promise.resolve([{ id: response.id, state: response.state }]);
+
+  throw new APIError("execution not found", "not found");
+}
