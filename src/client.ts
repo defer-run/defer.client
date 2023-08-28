@@ -18,7 +18,15 @@ export interface FetchExecutionRequest {
   id: string;
 }
 
-export type ExecutionState = "created" | "failed" | "succeed" | "started";
+export type ExecutionState =
+  | "created"
+  | "started"
+  | "succeed"
+  | "failed"
+  | "cancelled"
+  | "cancelling"
+  | "aborting"
+  | "aborted";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface FetchExecutionResponse<R = any> {
