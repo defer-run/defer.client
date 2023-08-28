@@ -1,4 +1,4 @@
-import { fetch } from "@whatwg-node/fetch";
+import { fetch, URL, btoa } from "@whatwg-node/fetch";
 
 import {
   APIError,
