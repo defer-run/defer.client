@@ -1,5 +1,11 @@
 # @defer/client
 
+## 1.10.0
+
+### Minor Changes
+
+- [#90](https://github.com/defer-run/defer.client/pull/90) [`d84ec22`](https://github.com/defer-run/defer.client/commit/d84ec22793c1747189f41b31182558b31f7a0a5f) Thanks [@gearnode](https://github.com/gearnode)! - Add list execution tries
+
 ## 1.9.0
 
 ### Minor Changes
