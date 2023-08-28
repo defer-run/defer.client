@@ -2,7 +2,14 @@ import { fetch } from "@whatwg-node/fetch";
 import { makeHTTPClient } from "../src/httpClient";
 const { Response } = jest.requireActual("@whatwg-node/fetch");
 
-jest.mock("@whatwg-node/fetch");
+jest.mock("@whatwg-node/fetch", () => {
+  const originalModule = jest.requireActual("@whatwg-node/fetch");
+  return {
+    __esModule: true,
+    ...originalModule,
+    fetch: jest.fn(),
+  };
+});
 const mockedFetch = fetch as jest.MockedFunction<typeof fetch>;
 
 const fakeEndpoint = "http://example.com";
