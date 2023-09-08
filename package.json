@@ -28,7 +28,6 @@
     "@changesets/cli": "^2.24.2",
     "@types/jest": "^29.2.3",
     "@types/react": "^18.2.13",
-    "@types/uuid": "^9.0.2",
     "@typescript-eslint/eslint-plugin": "5.45.0",
     "@typescript-eslint/parser": "5.45.0",
     "bob-the-bundler": "^4.0.0",
