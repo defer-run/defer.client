@@ -10,7 +10,15 @@ import { HTTPClient, makeHTTPClient } from "./httpClient.js";
 
 // Although the function implementation may not be completely secure,
 // it is suitable for local use.
-const randomUUID = () => URL.createObjectURL(new Blob([])).slice(-36);
+const randomUUID = () => {
+  // The `globalThis` variable in Node 16.x does not provide access to `Blob`.
+  if (typeof Blob === "undefined") {
+    const { Blob } = require("node:buffer");
+    return URL.createObjectURL(new Blob([])).slice(-36);
+  }
+
+  return URL.createObjectURL(new Blob([])).slice(-36);
+};
 
 const withDelay = (dt: Date, delay: DelayString): Date =>
   new Date(dt.getTime() + parseDuration(delay));
