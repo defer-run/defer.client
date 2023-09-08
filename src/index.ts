@@ -8,6 +8,8 @@ import * as client from "./client.js";
 import { APIError, DeferError } from "./errors.js";
 import { HTTPClient, makeHTTPClient } from "./httpClient.js";
 
+// Although the function implementation may not be completely secure,
+// it is suitable for local use.
 const randomUUID = () => URL.createObjectURL(new Blob([])).slice(-36);
 
 const withDelay = (dt: Date, delay: DelayString): Date =>
