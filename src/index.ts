@@ -1,5 +1,4 @@
 import parseDuration, { Units } from "parse-duration";
-import { v4 as randomUUID } from "uuid";
 import {
   INTERNAL_VERSION,
   RETRY_MAX_ATTEMPTS_PLACEHOLDER,
@@ -8,6 +7,8 @@ import {
 import * as client from "./client.js";
 import { APIError, DeferError } from "./errors.js";
 import { HTTPClient, makeHTTPClient } from "./httpClient.js";
+
+const randomUUID = () => URL.createObjectURL(new Blob([])).slice(-36);
 
 const withDelay = (dt: Date, delay: DelayString): Date =>
   new Date(dt.getTime() + parseDuration(delay));

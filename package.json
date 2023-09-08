@@ -13,8 +13,7 @@
   },
   "dependencies": {
     "@whatwg-node/fetch": "^0.9.7",
-    "parse-duration": "^1.0.2",
-    "uuid": "^9.0.0"
+    "parse-duration": "^1.0.2"
   },
   "scripts": {
     "build": "node utils/update-version.mjs && bob build && node utils/fix-ts-sub-exports.mjs",
