@@ -21,7 +21,7 @@ const randomUUID = () => {
 };
 
 const withDelay = (dt: Date, delay: DelayString): Date =>
-  new Date(dt.getTime() + parseDuration(delay));
+  new Date(dt.getTime() + parseDuration(delay)!);
 
 export const __database = new Map<
   string,

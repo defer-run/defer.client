@@ -11,35 +11,34 @@
   "engines": {
     "node": ">=16"
   },
-  "dependencies": {
-    "@whatwg-node/fetch": "^0.9.7",
-    "parse-duration": "^1.0.2"
-  },
   "scripts": {
-    "build": "node utils/update-version.mjs && bob build && node utils/fix-ts-sub-exports.mjs",
+    "build": "node utils/update-version.mjs && npx bob build && node utils/fix-ts-sub-exports.mjs",
     "lint": "eslint src/**/*.ts",
-    "prerelease": "yarn build",
+    "prerelease": "npm run build",
     "release": "changeset publish",
-    "test": "jest --passWithNoTests --config ./tests/jest.ts --runInBand --filter=./tests/filter-tests-node-18.cjs",
-    "test:dev": "jest --passWithNoTests --config ./tests/jest.ts --runInBand --watch"
+    "test": "npx jest --passWithNoTests --config ./tests/jest.ts --runInBand --filter=./tests/filter-tests-node-18.cjs",
+    "test:dev": "npx jest --passWithNoTests --config ./tests/jest.ts --runInBand --watch"
+  },
+  "dependencies": {
+    "@whatwg-node/fetch": "^0.9.12",
+    "parse-duration": "^1.1.0"
   },
   "devDependencies": {
-    "@changesets/changelog-github": "^0.4.7",
-    "@changesets/cli": "^2.24.2",
+    "@changesets/changelog-github": "^0.4.8",
+    "@changesets/cli": "^2.26.2",
     "@types/jest": "^29.2.3",
     "@types/react": "^18.2.13",
     "@typescript-eslint/eslint-plugin": "5.45.0",
     "@typescript-eslint/parser": "5.45.0",
-    "bob-the-bundler": "^4.0.0",
-    "eslint": "8.16.0",
-    "eslint-config-prettier": "8.5.0",
-    "jest": "^29.3.1",
-    "next": "^13.4.7",
+    "bob-the-bundler": "^7.0.1",
+    "eslint": "8.49.0",
+    "eslint-config-prettier": "9.0.0",
+    "jest": "^29.6",
     "prettier": "^2.8.0",
+    "next": "^13.4.7",
     "react": "^18.2.0",
-    "ts-jest": "^29.0.3",
-    "ts-node": "^10.9.1",
-    "typescript": "^5.1"
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.2"
   },
   "typings": "dist/typings/index.d.ts",
   "typescript": {
@@ -89,5 +88,34 @@
   "publishConfig": {
     "directory": "dist",
     "access": "public"
+  },
+  "eslintConfig": {
+    "root": true,
+    "reportUnusedDisableDirectives": true,
+    "env": {
+      "node": true
+    },
+    "ignorePatterns": [
+      "/tests/",
+      "node_modules/",
+      "coverage/",
+      "dist/",
+      "package-lock.json"
+    ],
+    "overrides": [
+      {
+        "files": "*.{js,ts,jsx,tsx,cjs,cts,mjs,mts,cjsx,ctsx,mjsx,mtsx}",
+        "parser": "@typescript-eslint/parser",
+        "extends": [
+          "eslint:recommended",
+          "plugin:@typescript-eslint/recommended",
+          "prettier"
+        ],
+        "rules": {
+          "@typescript-eslint/ban-types": 1,
+          "@typescript-eslint/no-explicit-any": 0
+        }
+      }
+    ]
   }
 }
