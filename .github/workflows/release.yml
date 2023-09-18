@@ -1,14 +1,15 @@
-name: release
+name: "release"
 on:
   push:
     branches:
-      - master
+      - "master"
 
 jobs:
   stable:
-    uses: the-guild-org/shared-config/.github/workflows/release-stable.yml@main
+    uses: "the-guild-org/shared-config/.github/workflows/release-stable.yml@main"
     with:
-      releaseScript: release
+      packageManager: "npm"
+      releaseScript: "release"
       nodeVersion: 18
     secrets:
       githubToken: ${{ secrets.GITHUB_TOKEN }}

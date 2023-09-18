@@ -1,15 +1,16 @@
-name: pr
+name: "pr"
 on:
   pull_request:
     branches:
-      - master
+      - "master"
 
 jobs:
   release:
-    uses: the-guild-org/shared-config/.github/workflows/release-snapshot.yml@main
+    uses: "the-guild-org/shared-config/.github/workflows/release-snapshot.yml@main"
     with:
-      npmTag: alpha
-      buildScript: build
+      packageManager: "npm"
+      npmTag: "alpha"
+      buildScript: "build"
       nodeVersion: 18
     secrets:
       githubToken: ${{ secrets.GITHUB_TOKEN }}
