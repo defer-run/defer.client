@@ -9,7 +9,7 @@
   "author": "Defer Inc <support@defer.run>",
   "license": "ISC",
   "engines": {
-    "node": ">=16"
+      "node": ">=18"
   },
   "scripts": {
     "build": "node utils/update-version.mjs && npx bob build && node utils/fix-ts-sub-exports.mjs",

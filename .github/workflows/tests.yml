@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [16, 18, 20]
+        node-version: [18, 20]
     steps:
       - uses: "actions/checkout@v3"
       - uses: "actions/setup-node@v3"
@@ -26,5 +26,4 @@ jobs:
       - run: "yarn test"
       - run: "yarn build"
       - name: "ESM integrity"
-        if: matrix.node-version > 16
         run: "yarn bob check"
