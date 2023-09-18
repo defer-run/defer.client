@@ -1,16 +1,6 @@
-import { fetch } from "@whatwg-node/fetch";
 import { makeHTTPClient } from "../src/httpClient";
-const { Response } = jest.requireActual("@whatwg-node/fetch");
 
-jest.mock("@whatwg-node/fetch", () => {
-  const originalModule = jest.requireActual("@whatwg-node/fetch");
-  return {
-    __esModule: true,
-    ...originalModule,
-    fetch: jest.fn(),
-  };
-});
-const mockedFetch = fetch as jest.MockedFunction<typeof fetch>;
+global.fetch = jest.fn();
 
 const fakeEndpoint = "http://example.com";
 const fakeAccessToken = "foobar";
@@ -25,10 +15,8 @@ const expectedHeaderFields = {
 
 describe("makeHTTPClient/3", () => {
   it("should not throw with 200", async () => {
-    const mockedResponse = new Response("{}", {
-      status: 200,
-    });
-    mockedFetch.mockResolvedValue(mockedResponse);
+    const mockResponse = new Response("{}", { status: 200 });
+    (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
     const response = await httpClient("GET", "/hello");
 
     expect(fetch).toHaveBeenCalledTimes(1);

@@ -20,7 +20,6 @@
     "test:dev": "npx jest --passWithNoTests --config ./tests/jest.ts --runInBand --watch"
   },
   "dependencies": {
-    "@whatwg-node/fetch": "^0.9.12",
     "parse-duration": "^1.1.0"
   },
   "devDependencies": {
