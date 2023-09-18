@@ -3,15 +3,33 @@ on:
   pull_request:
     branches:
       - "master"
+    paths:
+      - ".changeset/**/*.md"
 
 jobs:
   release:
-    uses: "the-guild-org/shared-config/.github/workflows/release-snapshot.yml@main"
-    with:
-      packageManager: "npm"
-      npmTag: "alpha"
-      buildScript: "build"
-      nodeVersion: 18
-    secrets:
-      githubToken: ${{ secrets.GITHUB_TOKEN }}
-      npmToken: ${{ secrets.NPM_TOKEN }}
+    runs-on: "ubuntu-22.04"
+    if: github.event.pull_request.head.repo.full_name == github.repository # run only for original, non-fork PRs
+    steps:
+      - uses: "actions/checkout@v3"
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: "actions/setup-node@v3"
+        with:
+          node-version: 18
+          cache: "npm"
+      - name: "Cancel previous runs"
+        uses: "styfle/cancel-workflow-action@0.11.0"
+        continue-on-error: true
+        with:
+          access_token: ${{ secrets.GITHUB_TOKEN }}
+      - run: "npm ci --no-audit"
+      - uses: "the-guild-org/changesets-snapshot-action@v0.0.1"
+        with:
+          tag: "alpha"
+          prepareScript: "npm run build"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
