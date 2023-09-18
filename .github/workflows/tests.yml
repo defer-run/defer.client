@@ -22,7 +22,7 @@ jobs:
           cache: "npm"
       - run: "npm install --frozen-lockfile"
       - run: "npm run lint"
-      - run: "npm run prettier -c src/"
+      - run: "npx prettier -c src/"
       - run: "npm run test"
       - run: "npm run build"
       - run: "npx bob check"
