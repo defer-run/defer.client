@@ -92,7 +92,7 @@ export type Concurrency = Range<0, 51>;
 
 export type NextRouteString = `/api/${string}`;
 
-export interface HasDeferMetadata {
+export interface Manifest {
   __metadata: {
     version: number;
     cron?: string;
@@ -111,7 +111,7 @@ export interface DeferRetFn<
 }
 
 export interface DeferScheduledFn<F extends (...args: never) => Promise<any>>
-  extends HasDeferMetadata {
+  extends Manifest {
   (...args: Parameters<F>): void;
   __fn: F;
 }
