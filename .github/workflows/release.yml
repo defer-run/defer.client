@@ -21,6 +21,8 @@ jobs:
         with:
           access_token: ${{ secrets.GITHUB_TOKEN }}
       - run: "npm ci --no-audit"
+      - run: "npm run build"
+      - run: "npx bob check"
       - name: "release / pull_request"
         id: "changesets"
         uses: "dotansimha/changesets-action@v1.5.2"
