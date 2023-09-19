@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useRef, useState } from "react";
-import type { DeferRetFn } from "../index.js";
 import type { ExecutionState, FetchExecutionResponse } from "../client.js";
+import type { DeferredFunction } from "../index.js";
 
 export type UseDeferRoute<ARA extends boolean, A extends any[], R> = [
   execute: (...args: ARA extends true ? any : A) => void,
@@ -14,8 +14,10 @@ export type UseDeferRoute<ARA extends boolean, A extends any[], R> = [
 
 // const [uploadFile, { loading, result: fileName, error }] = useDeferRoute<typeof createThumbnails>("/api/upload", { refreshInterval: 1000 });
 export const useDeferRoute = <
-  DFR extends DeferRetFn<any> = any,
-  F extends (...args: any[]) => Promise<any> = DFR extends DeferRetFn<infer RR>
+  DFR extends DeferredFunction<any> = any,
+  F extends (...args: any[]) => Promise<any> = DFR extends DeferredFunction<
+    infer RR
+  >
     ? RR
     : any,
   HP extends boolean = false,
