@@ -13,18 +13,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [16, 18, 20]
+        node-version: [18, 20]
     steps:
       - uses: "actions/checkout@v3"
       - uses: "actions/setup-node@v3"
         with:
           node-version: "${{matrix.node-version}}"
-          cache: "yarn"
-      - run: "yarn install --frozen-lockfile"
-      - run: "yarn lint"
-      - run: "yarn prettier -c src/"
-      - run: "yarn test"
-      - run: "yarn build"
-      - name: "ESM integrity"
-        if: matrix.node-version > 16
-        run: "yarn bob check"
+          cache: "npm"
+      - run: "npm install --frozen-lockfile"
+      - run: "npm run lint"
+      - run: "npx prettier -c src/"
+      - run: "npm run test"
+      - run: "npm run build"
+      - run: "npx bob check"

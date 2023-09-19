@@ -50,6 +50,6 @@ Make sure to follow our [Code of Conduct](./CODE_OF_CONDUCT.md) and the followin
 ### Local setup
 
 1. Clone the repository: `git clone git@github.com:defer-run/defer.client.git`
-1. Install the dependencies: `yarn`
-1. Run the test after introducing changes: `yarn test`
-1. Bump a patch or minor by running `yarn changelog` (please provide a brief description of the changes)
+1. Install the dependencies: `npm ci`
+1. Run the test after introducing changes: `npm run test`
+1. Bump a patch or minor by running `npx changelog` (please provide a brief description of the changes)

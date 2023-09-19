@@ -14,7 +14,6 @@ interface Options<
   proxy?: (request: NextRequest) => Promise<Parameters<F>>;
 }
 
-// @ts-expect-error https://github.com/microsoft/TypeScript/issues/52841#issuecomment-1574002759
 const ResponseJSON = Response.json;
 
 export function asNextRoute<F extends (...args: any) => Promise<any>>(

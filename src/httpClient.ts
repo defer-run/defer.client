@@ -1,5 +1,3 @@
-import { URL, btoa, fetch } from "@whatwg-node/fetch";
-
 import {
   APIError,
   ClientError,
