@@ -13,7 +13,7 @@ import {
   sanitizeFunctionArguments,
 } from "./utils.js";
 
-const withDelay = (dt: Date, delay: DelayString): Date =>
+const withDelay = (dt: Date, delay: Duration): Date =>
   new Date(dt.getTime() + parseDuration(delay)!);
 
 export const __database = new Map<
@@ -65,7 +65,7 @@ async function execLocally(
   return response;
 }
 
-export type DelayString = `${string}${Units}`;
+export type Duration = `${string}${Units}`;
 
 export interface Metadata {
   [key: string]: string;
