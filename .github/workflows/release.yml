@@ -5,12 +5,43 @@ on:
       - "master"
 
 jobs:
-  stable:
-    uses: "the-guild-org/shared-config/.github/workflows/release-stable.yml@main"
-    with:
-      packageManager: "npm"
-      releaseScript: "release"
-      nodeVersion: 18
-    secrets:
-      githubToken: ${{ secrets.GITHUB_TOKEN }}
-      npmToken: ${{ secrets.NPM_TOKEN }}
+  publish:
+    runs-on: "ubuntu-22.04"
+    if: github.event.pull_request.head.repo.full_name == github.repository # run only for original
+    outputs:
+      published: ${{ steps.changesets.outputs.published }}
+      publishedPackages: ${{ steps.changesets.outputs.publishedPackages }}
+    steps:
+      - uses: "actions/checkout@v3"
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: "actions/setup-node@v3"
+        with:
+          node-version: 18
+          cache: "npm"
+      - name: "Cancel previous runs"
+        uses: "styfle/cancel-workflow-action@0.11.0"
+        continue-on-error: true
+        with:
+          access_token: ${{ secrets.GITHUB_TOKEN }}
+      - run: "npm ci --no-audit"
+      - name: set version variables
+        id: vars
+        shell: bash
+        run: |
+          echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "date=$(date +"%B %d, %Y")" >> $GITHUB_OUTPUT
+      - name: "release / pull_request"
+        id: "changesets"
+        uses: "dotansimha/changesets-action@v1.5.2"
+        with:
+          publish: '${{inputs.packageManager}} ${{ inputs.releaseScript }}'
+          version: "npx changeset version"
+          commit: 'Update defer client version'
+          title: "Upcoming Release Changes"
+          createGithubReleases: "aggregate"
+          githubReleaseName: ${{ steps.vars.outputs.date }}
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
