@@ -238,16 +238,16 @@ function parseRetryPolicy(options?: DeferOptions): RetryPolicy {
 }
 
 export function defer<F extends DeferableFunction>(
-  func: F,
+  fn: F,
   config?: DeferredFunctionConfiguration
 ): DeferredFunction<F> {
   const wrapped = async function (
-    ...args: Parameters<typeof func>
+    ...args: Parameters<typeof fn>
   ): Promise<client.EnqueueExecutionResponse> {
     return enqueue(wrapped, ...args);
   };
 
-  wrapped.__fn = func;
+  wrapped.__fn = fn;
   wrapped.__metadata = {
     version: INTERNAL_VERSION,
     retry: parseRetryPolicy(config),
@@ -259,17 +259,17 @@ export function defer<F extends DeferableFunction>(
 }
 
 defer.cron = function (
-  func: DeferableFunction,
+  fn: DeferableFunction,
   cronExpr: string,
   config?: DeferredFunctionConfiguration
-): DeferredFunction<typeof func> {
+): DeferredFunction<typeof fn> {
   const wrapped = async function (
-    ...args: Parameters<typeof func>
+    ...args: Parameters<typeof fn>
   ): Promise<client.EnqueueExecutionResponse> {
     return enqueue(wrapped, ...args);
   };
 
-  wrapped.__fn = func;
+  wrapped.__fn = fn;
   wrapped.__metadata = {
     version: INTERNAL_VERSION,
     retry: parseRetryPolicy(config),
@@ -282,60 +282,60 @@ defer.cron = function (
 };
 
 export function delay<F extends DeferableFunction>(
-  func: DeferredFunction<F>,
+  fn: DeferredFunction<F>,
   delay: Duration | Date
 ): DeferredFunction<F> {
   const wrapped = async function (
-    ...args: Parameters<typeof func>
+    ...args: Parameters<typeof fn>
   ): Promise<client.EnqueueExecutionResponse> {
     return enqueue(wrapped, ...args);
   };
 
-  wrapped.__fn = func.__fn;
-  wrapped.__metadata = func.__metadata;
-  wrapped.__execOptions = { ...func.__execOptions, delay };
+  wrapped.__fn = fn.__fn;
+  wrapped.__metadata = fn.__metadata;
+  wrapped.__execOptions = { ...fn.__execOptions, delay };
   return wrapped;
 }
 
 export function addMetadata<F extends DeferableFunction>(
-  func: DeferredFunction<F>,
+  fn: DeferredFunction<F>,
   metadata: ExecutionMetadata
 ): DeferredFunction<F> {
-  const gatheredMetadata = { ...func.__execOptions?.metadata, ...metadata };
+  const gatheredMetadata = { ...fn.__execOptions?.metadata, ...metadata };
   const wrapped = async function (
-    ...args: Parameters<typeof func>
+    ...args: Parameters<typeof fn>
   ): Promise<client.EnqueueExecutionResponse> {
     return enqueue(wrapped, ...args);
   };
-  wrapped.__fn = func.__fn;
-  wrapped.__metadata = func.__metadata;
-  wrapped.__execOptions = { ...func.__execOptions, metadata: gatheredMetadata };
+  wrapped.__fn = fn.__fn;
+  wrapped.__metadata = fn.__metadata;
+  wrapped.__execOptions = { ...fn.__execOptions, metadata: gatheredMetadata };
   return wrapped;
 }
 
 export function discardAfter<F extends DeferableFunction>(
-  func: DeferredFunction<F>,
+  fn: DeferredFunction<F>,
   value: Duration | Date
 ): DeferredFunction<F> {
   const wrapped = async function (
-    ...args: Parameters<typeof func>
+    ...args: Parameters<typeof fn>
   ): Promise<client.EnqueueExecutionResponse> {
     return enqueue(wrapped, ...args);
   };
 
-  wrapped.__fn = func.__fn;
-  wrapped.__metadata = func.__metadata;
-  wrapped.__execOptions = { ...func.__execOptions, discardAfter: value };
+  wrapped.__fn = fn.__fn;
+  wrapped.__metadata = fn.__metadata;
+  wrapped.__execOptions = { ...fn.__execOptions, discardAfter: value };
   return wrapped;
 }
 
 export function awaitResult<F extends DeferableFunction>(
-  func: DeferredFunction<F>
+  fn: DeferredFunction<F>
 ): (...args: Parameters<F>) => Promise<Awaited<ReturnType<F>>> {
   return async function (
     ...args: Parameters<F>
   ): Promise<Awaited<ReturnType<F>>> {
-    const originalFunction = func.__fn;
+    const originalFunction = fn.__fn;
     const functionArguments = sanitizeFunctionArguments(args);
     const httpClient = getHTTPClient();
 
