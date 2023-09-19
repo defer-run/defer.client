@@ -78,12 +78,12 @@ async function execLocally(
   return response;
 }
 
-export type UnPromise<F> = F extends Promise<infer R> ? R : F;
-
 export type DelayString = `${string}${Units}`;
+
 export interface Metadata {
   [key: string]: string;
 }
+
 export interface DeferExecutionOptions {
   delay?: DelayString | Date;
   metadata?: Metadata;
@@ -100,12 +100,14 @@ type Enumerate<
 > = Acc["length"] extends N
   ? Acc[number]
   : Enumerate<N, [...Acc, Acc["length"]]>;
+
 type Range<F extends number, T extends number> = Exclude<
   Enumerate<T>,
   Enumerate<F>
 >;
 
 export type Concurrency = Range<0, 51>;
+
 export type NextRouteString = `/api/${string}`;
 
 export interface HasDeferMetadata {
@@ -135,7 +137,7 @@ export interface DeferScheduledFn<F extends (...args: never) => Promise<any>>
 export interface DeferAwaitRetFn<
   F extends (...args: any | undefined) => Promise<any>
 > {
-  (...args: Parameters<F>): Promise<UnPromise<ReturnType<F>>>;
+  (...args: Parameters<F>): Promise<Awaited<ReturnType<F>>>;
 }
 
 export interface Defer {
@@ -223,7 +225,7 @@ function parseRetryPolicy(options?: DeferOptions): RetryPolicy {
 export const defer: Defer = (fn, options) => {
   const ret = async (
     ...args: Parameters<typeof fn>
-  ): Promise<UnPromise<ReturnType<DeferRetFn<typeof fn>>>> => {
+  ): Promise<Awaited<ReturnType<DeferRetFn<typeof fn>>>> => {
     debug(`[defer.run][${fn.name}] invoked.`);
 
     let functionArguments: any;
@@ -297,7 +299,7 @@ interface DeferDelay {
 export const delay: DeferDelay = (deferFn, delay) => {
   const delayedDeferFn = async (
     ...args: Parameters<typeof deferFn>
-  ): Promise<UnPromise<ReturnType<DeferRetFn<typeof fn>>>> => {
+  ): Promise<Awaited<ReturnType<DeferRetFn<typeof fn>>>> => {
     const fn = deferFn.__fn;
     let functionArguments: any;
     try {
@@ -363,7 +365,7 @@ export const addMetadata: DeferAddMetadata = (deferFn, metadata) => {
   const newMetadata = { ...deferFn.__execOptions?.metadata, ...metadata };
   const deferFnWithMetadata = async (
     ...args: Parameters<typeof deferFn>
-  ): Promise<UnPromise<ReturnType<DeferRetFn<typeof fn>>>> => {
+  ): Promise<Awaited<ReturnType<DeferRetFn<typeof fn>>>> => {
     const fn = deferFn.__fn;
     let functionArguments: any;
     try {
