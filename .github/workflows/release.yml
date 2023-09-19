@@ -8,9 +8,6 @@ jobs:
   publish:
     runs-on: "ubuntu-22.04"
     if: github.event.pull_request.head.repo.full_name == github.repository # run only for original
-    outputs:
-      published: ${{ steps.changesets.outputs.published }}
-      publishedPackages: ${{ steps.changesets.outputs.publishedPackages }}
     steps:
       - uses: "actions/checkout@v3"
         with:
@@ -25,12 +22,6 @@ jobs:
         with:
           access_token: ${{ secrets.GITHUB_TOKEN }}
       - run: "npm ci --no-audit"
-      - name: set version variables
-        id: vars
-        shell: bash
-        run: |
-          echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "date=$(date +"%B %d, %Y")" >> $GITHUB_OUTPUT
       - name: "release / pull_request"
         id: "changesets"
         uses: "dotansimha/changesets-action@v1.5.2"
@@ -40,7 +31,6 @@ jobs:
           commit: 'Update defer client version'
           title: "Upcoming Release Changes"
           createGithubReleases: "aggregate"
-          githubReleaseName: ${{ steps.vars.outputs.date }}
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
