@@ -65,6 +65,50 @@ async function execLocally(
   return response;
 }
 
+async function enqueue<F extends DeferableFunction>(
+  func: DeferredFunction<F>,
+  ...args: Parameters<F>
+): Promise<client.EnqueueExecutionResponse> {
+  const originalFunction = func.__fn;
+  const functionArguments = sanitizeFunctionArguments(args);
+  debug(`[defer.run][${originalFunction.name}] invoked.`);
+
+  const httpClient = getHTTPClient();
+  if (httpClient) {
+    const request: client.EnqueueExecutionRequest = {
+      name: originalFunction.name,
+      arguments: functionArguments,
+      scheduleFor: new Date(),
+      metadata: func.__execOptions?.metadata || {},
+    };
+
+    const delay = func.__execOptions?.delay;
+    if (delay instanceof Date) {
+      request.scheduleFor = delay;
+    } else if (delay) {
+      const now = new Date();
+      request.scheduleFor = withDelay(now, delay);
+    }
+
+    const after = func.__execOptions?.discardAfter;
+    if (after instanceof Date) {
+      request.discardAfter = after;
+    } else if (after) {
+      const now = new Date();
+      request.discardAfter = withDelay(now, after);
+    }
+
+    return client.enqueueExecution(httpClient, request);
+  }
+
+  debug(`[defer.run][${originalFunction.name}] defer ignore, no token found.`);
+
+  const id = randomUUID();
+  __database.set(id, { id: id, state: "started" });
+  execLocally(id, originalFunction, functionArguments);
+  return { id };
+}
+
 export type Duration = `${string}${Units}`;
 
 export interface ExecutionMetadata {
@@ -200,24 +244,7 @@ export function defer<F extends DeferableFunction>(
   const wrapped = async function (
     ...args: Parameters<typeof func>
   ): Promise<client.EnqueueExecutionResponse> {
-    debug(`[defer.run][${func.name}] invoked.`);
-    const functionArguments = sanitizeFunctionArguments(args);
-    const httpClient = getHTTPClient();
-    if (httpClient) {
-      return client.enqueueExecution(httpClient, {
-        name: func.name,
-        arguments: functionArguments,
-        scheduleFor: new Date(),
-        metadata: {},
-      });
-    }
-
-    debug(`[defer.run][${func.name}] defer ignore, no token found.`);
-
-    const id = randomUUID();
-    __database.set(id, { id: id, state: "started" });
-    execLocally(id, func, functionArguments);
-    return { id };
+    return enqueue(wrapped, ...args);
   };
 
   wrapped.__fn = func;
@@ -239,24 +266,7 @@ defer.cron = function (
   const wrapped = async function (
     ...args: Parameters<typeof func>
   ): Promise<client.EnqueueExecutionResponse> {
-    debug(`[defer.run][${func.name}] invoked.`);
-    const functionArguments = sanitizeFunctionArguments(args);
-    const httpClient = getHTTPClient();
-    if (httpClient) {
-      return client.enqueueExecution(httpClient, {
-        name: func.name,
-        arguments: functionArguments,
-        scheduleFor: new Date(),
-        metadata: {},
-      });
-    }
-
-    debug(`[defer.run][${func.name}] defer ignore, no token found.`);
-
-    const id = randomUUID();
-    __database.set(id, { id: id, state: "started" });
-    execLocally(id, func, functionArguments);
-    return { id };
+    return enqueue(wrapped, ...args);
   };
 
   wrapped.__fn = func;
@@ -275,7 +285,14 @@ export function delay<F extends DeferableFunction>(
   func: DeferredFunction<F>,
   delay: Duration | Date
 ): DeferredFunction<F> {
-  const wrapped = wrap(func);
+  const wrapped = async function (
+    ...args: Parameters<typeof func>
+  ): Promise<client.EnqueueExecutionResponse> {
+    return enqueue(wrapped, ...args);
+  };
+
+  wrapped.__fn = func.__fn;
+  wrapped.__metadata = func.__metadata;
   wrapped.__execOptions = { ...func.__execOptions, delay };
   return wrapped;
 }
@@ -285,63 +302,14 @@ export function addMetadata<F extends DeferableFunction>(
   metadata: ExecutionMetadata
 ): DeferredFunction<F> {
   const gatheredMetadata = { ...func.__execOptions?.metadata, ...metadata };
-  const wrapped = wrap(func);
-  wrapped.__execOptions = { ...func.__execOptions, metadata: gatheredMetadata };
-  return wrapped;
-}
-
-function wrap<F extends DeferableFunction>(
-  func: DeferredFunction<F>
-): DeferredFunction<F> {
   const wrapped = async function (
     ...args: Parameters<typeof func>
   ): Promise<client.EnqueueExecutionResponse> {
-    const originalFunction = func.__fn;
-    const functionArguments = sanitizeFunctionArguments(args);
-    debug(`[defer.run][${originalFunction.name}] invoked.`);
-
-    const httpClient = getHTTPClient();
-    if (httpClient) {
-      const request: client.EnqueueExecutionRequest = {
-        name: originalFunction.name,
-        arguments: functionArguments,
-        scheduleFor: new Date(),
-        metadata: func.__execOptions?.metadata || {},
-      };
-
-      const delay = func.__execOptions?.delay;
-      if (delay instanceof Date) {
-        request.scheduleFor = delay;
-      } else if (delay) {
-        const now = new Date();
-        request.scheduleFor = withDelay(now, delay);
-      }
-
-      const after = func.__execOptions?.discardAfter;
-      if (after instanceof Date) {
-        request.discardAfter = after;
-      } else if (after) {
-        const now = new Date();
-        request.discardAfter = withDelay(now, after);
-      }
-
-      return client.enqueueExecution(httpClient, request);
-    }
-
-    debug(
-      `[defer.run][${originalFunction.name}] defer ignore, no token found.`
-    );
-
-    const id = randomUUID();
-    __database.set(id, { id: id, state: "started" });
-    execLocally(id, originalFunction, functionArguments);
-    return { id };
+    return enqueue(wrapped, ...args);
   };
-
   wrapped.__fn = func.__fn;
-  wrapped.__metadata = { ...func.__metadata };
-  wrapped.__execOptions = { ...func.__execOptions };
-
+  wrapped.__metadata = func.__metadata;
+  wrapped.__execOptions = { ...func.__execOptions, metadata: gatheredMetadata };
   return wrapped;
 }
 
@@ -349,7 +317,14 @@ export function discardAfter<F extends DeferableFunction>(
   func: DeferredFunction<F>,
   value: Duration | Date
 ): DeferredFunction<F> {
-  const wrapped = wrap(func);
+  const wrapped = async function (
+    ...args: Parameters<typeof func>
+  ): Promise<client.EnqueueExecutionResponse> {
+    return enqueue(wrapped, ...args);
+  };
+
+  wrapped.__fn = func.__fn;
+  wrapped.__metadata = func.__metadata;
   wrapped.__execOptions = { ...func.__execOptions, discardAfter: value };
   return wrapped;
 }
