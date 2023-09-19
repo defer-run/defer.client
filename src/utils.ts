@@ -23,6 +23,6 @@ export function sanitizeFunctionArguments(values: any): any {
     return sanitized;
   } catch (e) {
     const error = e as Error;
-    throw new Error(`cannot sanitize argument: ${error.message}`);
+    throw new Error(`cannot serialize argument: ${error.message}`);
   }
 }
