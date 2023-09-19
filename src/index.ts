@@ -1,18 +1,12 @@
 import parseDuration, { Units } from "parse-duration";
+import * as client from "./client.js";
 import {
   INTERNAL_VERSION,
   RETRY_MAX_ATTEMPTS_PLACEHOLDER,
 } from "./constants.js";
-
-import * as client from "./client.js";
 import { APIError, DeferError } from "./errors.js";
 import { HTTPClient, makeHTTPClient } from "./httpClient.js";
-
-// Although the function implementation may not be completely secure,
-// it is suitable for local use.
-const randomUUID = () => {
-  return URL.createObjectURL(new Blob([])).slice(-36);
-};
+import { debug, getEnv, randomUUID } from "./utils.js";
 
 const withDelay = (dt: Date, delay: DelayString): Date =>
   new Date(dt.getTime() + parseDuration(delay)!);
@@ -21,18 +15,6 @@ export const __database = new Map<
   string,
   { id: string; state: client.ExecutionState; result?: any }
 >();
-
-function debug(...args: any) {
-  if (getEnv("DEFER_DEBUG")) {
-    console.debug(...args);
-  }
-}
-
-function getEnv(key: string): string | undefined {
-  if (typeof process !== "undefined") return process.env[key];
-  if (typeof globalThis !== "undefined") return (globalThis as any)[key];
-  return;
-}
 
 function getHTTPClient(): HTTPClient | undefined {
   const accessToken = getEnv("DEFER_TOKEN");
