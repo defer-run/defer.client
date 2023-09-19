@@ -6,7 +6,12 @@ import {
 } from "./constants.js";
 import { APIError, DeferError } from "./errors.js";
 import { HTTPClient, makeHTTPClient } from "./httpClient.js";
-import { debug, getEnv, randomUUID } from "./utils.js";
+import {
+  debug,
+  getEnv,
+  randomUUID,
+  sanitizeFunctionArguments,
+} from "./utils.js";
 
 const withDelay = (dt: Date, delay: DelayString): Date =>
   new Date(dt.getTime() + parseDuration(delay)!);
@@ -210,13 +215,7 @@ export const defer: Defer = (fn, options) => {
   ): Promise<Awaited<ReturnType<DeferRetFn<typeof fn>>>> => {
     debug(`[defer.run][${fn.name}] invoked.`);
 
-    let functionArguments: any;
-    try {
-      functionArguments = JSON.parse(JSON.stringify(args));
-    } catch (error) {
-      const e = error as Error;
-      throw new DeferError(`cannot serialize argument: ${e.message}`);
-    }
+    const functionArguments = sanitizeFunctionArguments(args);
 
     const httpClient = getHTTPClient();
     if (httpClient) {
@@ -283,13 +282,7 @@ export const delay: DeferDelay = (deferFn, delay) => {
     ...args: Parameters<typeof deferFn>
   ): Promise<Awaited<ReturnType<DeferRetFn<typeof fn>>>> => {
     const fn = deferFn.__fn;
-    let functionArguments: any;
-    try {
-      functionArguments = JSON.parse(JSON.stringify(args));
-    } catch (error) {
-      const e = error as Error;
-      throw new DeferError(`cannot serialize argument: ${e.message}`);
-    }
+    const functionArguments = sanitizeFunctionArguments(args);
 
     debug(`[defer.run][${fn.name}] invoked.`);
 
@@ -349,13 +342,7 @@ export const addMetadata: DeferAddMetadata = (deferFn, metadata) => {
     ...args: Parameters<typeof deferFn>
   ): Promise<Awaited<ReturnType<DeferRetFn<typeof fn>>>> => {
     const fn = deferFn.__fn;
-    let functionArguments: any;
-    try {
-      functionArguments = JSON.parse(JSON.stringify(args));
-    } catch (error) {
-      const e = error as Error;
-      throw new DeferError(`cannot serialize argument: ${e.message}`);
-    }
+    const functionArguments = sanitizeFunctionArguments(args);
 
     debug(`[defer.run][${fn.name}] invoked.`);
 
@@ -415,13 +402,7 @@ export const awaitResult: DeferAwaitResult =
   async (...args: Parameters<typeof deferFn>) => {
     const fnName = deferFn.__fn.name;
     const fn = deferFn.__fn;
-    let functionArguments: any;
-    try {
-      functionArguments = JSON.parse(JSON.stringify(args));
-    } catch (error) {
-      const e = error as Error;
-      throw new DeferError(`cannot serialize argument: ${e.message}`);
-    }
+    const functionArguments = sanitizeFunctionArguments(args);
 
     let response: client.FetchExecutionResponse;
     const httpClient = getHTTPClient();

@@ -15,3 +15,13 @@ export function getEnv(key: string): string | undefined {
   if (typeof globalThis !== "undefined") return (globalThis as any)[key];
   return;
 }
+
+export function sanitizeFunctionArguments(values: any): any {
+  try {
+    const stringified = JSON.stringify(values);
+    const sanitized = JSON.parse(sanitized);
+  } catch (e) {
+    const error = e as Error;
+    throw new Error(`cannot sanitize argument: ${e.message}`);
+  }
+}
