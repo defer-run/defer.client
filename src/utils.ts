@@ -19,9 +19,10 @@ export function getEnv(key: string): string | undefined {
 export function sanitizeFunctionArguments(values: any): any {
   try {
     const stringified = JSON.stringify(values);
-    const sanitized = JSON.parse(sanitized);
+    const sanitized = JSON.parse(stringified);
+    return sanitized;
   } catch (e) {
     const error = e as Error;
-    throw new Error(`cannot sanitize argument: ${e.message}`);
+    throw new Error(`cannot sanitize argument: ${error.message}`);
   }
 }
