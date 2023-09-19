@@ -275,45 +275,8 @@ export function delay<F extends DeferableFunction>(
   func: DeferredFunction<F>,
   delay: Duration | Date
 ): DeferredFunction<F> {
-  const wrapped = async function (
-    ...args: Parameters<typeof func>
-  ): Promise<client.EnqueueExecutionResponse> {
-    const originalFunction = func.__fn;
-    const functionArguments = sanitizeFunctionArguments(args);
-    debug(`[defer.run][${originalFunction.name}] invoked.`);
-
-    const httpClient = getHTTPClient();
-    if (httpClient) {
-      let scheduleFor: Date;
-      if (delay instanceof Date) {
-        scheduleFor = delay;
-      } else {
-        const now = new Date();
-        scheduleFor = withDelay(now, delay);
-      }
-
-      return client.enqueueExecution(httpClient, {
-        name: originalFunction.name,
-        arguments: functionArguments,
-        scheduleFor,
-        metadata: func.__execOptions?.metadata || {},
-      });
-    }
-
-    debug(
-      `[defer.run][${originalFunction.name}] defer ignore, no token found.`
-    );
-
-    const id = randomUUID();
-    __database.set(id, { id: id, state: "started" });
-    execLocally(id, originalFunction, functionArguments);
-    return { id };
-  };
-
-  wrapped.__fn = func.__fn;
-  wrapped.__metadata = func.__metadata;
+  const wrapped = wrap(func);
   wrapped.__execOptions = { ...func.__execOptions, delay };
-
   return wrapped;
 }
 
@@ -322,6 +285,14 @@ export function addMetadata<F extends DeferableFunction>(
   metadata: ExecutionMetadata
 ): DeferredFunction<F> {
   const gatheredMetadata = { ...func.__execOptions?.metadata, ...metadata };
+  const wrapped = wrap(func);
+  wrapped.__execOptions = { ...func.__execOptions, metadata: gatheredMetadata };
+  return wrapped;
+}
+
+function wrap<F extends DeferableFunction>(
+  func: DeferredFunction<F>
+): DeferredFunction<F> {
   const wrapped = async function (
     ...args: Parameters<typeof func>
   ): Promise<client.EnqueueExecutionResponse> {
@@ -331,23 +302,30 @@ export function addMetadata<F extends DeferableFunction>(
 
     const httpClient = getHTTPClient();
     if (httpClient) {
-      let scheduleFor: Date;
-      const delay = func.__execOptions?.delay;
-      if (delay instanceof Date) {
-        scheduleFor = delay;
-      } else if (delay) {
-        const now = new Date();
-        scheduleFor = withDelay(now, delay);
-      } else {
-        scheduleFor = new Date();
-      }
-
-      return client.enqueueExecution(httpClient, {
+      const request: client.EnqueueExecutionRequest = {
         name: originalFunction.name,
         arguments: functionArguments,
-        scheduleFor,
-        metadata: gatheredMetadata,
-      });
+        scheduleFor: new Date(),
+        metadata: func.__execOptions?.metadata || {},
+      };
+
+      const delay = func.__execOptions?.delay;
+      if (delay instanceof Date) {
+        request.scheduleFor = delay;
+      } else if (delay) {
+        const now = new Date();
+        request.scheduleFor = withDelay(now, delay);
+      }
+
+      const after = func.__execOptions?.discardAfter;
+      if (after instanceof Date) {
+        request.discardAfter = after;
+      } else if (after) {
+        const now = new Date();
+        request.discardAfter = withDelay(now, after);
+      }
+
+      return client.enqueueExecution(httpClient, request);
     }
 
     debug(
@@ -361,9 +339,18 @@ export function addMetadata<F extends DeferableFunction>(
   };
 
   wrapped.__fn = func.__fn;
-  wrapped.__metadata = func.__metadata;
-  wrapped.__execOptions = { ...func.__execOptions, metadata: gatheredMetadata };
+  wrapped.__metadata = { ...func.__metadata };
+  wrapped.__execOptions = { ...func.__execOptions };
 
+  return wrapped;
+}
+
+export function discardAfter<F extends DeferableFunction>(
+  func: DeferredFunction<F>,
+  value: Duration | Date
+): DeferredFunction<F> {
+  const wrapped = wrap(func);
+  wrapped.__execOptions = { ...func.__execOptions, discardAfter: value };
   return wrapped;
 }
 

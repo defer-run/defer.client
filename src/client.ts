@@ -7,6 +7,7 @@ export interface EnqueueExecutionRequest {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   arguments: any[];
   scheduleFor: Date;
+  discardAfter?: Date;
   metadata: ExecutionMetadata;
 }
 
