@@ -1,5 +1,13 @@
 # @defer/client
 
+## 1.11.0
+
+### Minor Changes
+
+- [#94](https://github.com/defer-run/defer.client/pull/94) [`258c769`](https://github.com/defer-run/defer.client/commit/258c769505037a9abe6a2bff4924fae579aad99d) Thanks [@gearnode](https://github.com/gearnode)! - Add Bun runtime support
+
+- [#94](https://github.com/defer-run/defer.client/pull/94) [`258c769`](https://github.com/defer-run/defer.client/commit/258c769505037a9abe6a2bff4924fae579aad99d) Thanks [@gearnode](https://github.com/gearnode)! - Drop NodeJS 16.x support
+
 ## 1.10.0
 
 ### Minor Changes
@@ -109,7 +117,7 @@
   };
 
   export default defer(importContacts, {
-    maxDuration: 10 // timeout after 10secs
+    maxDuration: 10, // timeout after 10secs
   });
   ```
 
@@ -284,7 +292,7 @@
     const users = await prisma.user.find({
       where: {
         // ...
-      }
+      },
     });
 
     // do something...
