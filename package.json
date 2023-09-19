@@ -14,7 +14,6 @@
   "scripts": {
     "build": "node utils/update-version.mjs && npx bob build && node utils/fix-ts-sub-exports.mjs",
     "lint": "eslint src/**/*.ts",
-    "prerelease": "npm run build",
     "release": "changeset publish",
     "test": "npx jest --passWithNoTests --config ./tests/jest.ts --runInBand --filter=./tests/filter-tests-node-18.cjs",
     "test:dev": "npx jest --passWithNoTests --config ./tests/jest.ts --runInBand --watch"
