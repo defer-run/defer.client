@@ -1,5 +1,5 @@
 import type { HTTPClient } from "./httpClient.js";
-import type { Metadata } from "./index.js";
+import type { ExecutionMetadata } from "./index.js";
 import { jitter } from "./jitter.js";
 
 export interface EnqueueExecutionRequest {
@@ -7,7 +7,7 @@ export interface EnqueueExecutionRequest {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   arguments: any[];
   scheduleFor: Date;
-  metadata: Metadata;
+  metadata: ExecutionMetadata;
 }
 
 export interface EnqueueExecutionResponse {
