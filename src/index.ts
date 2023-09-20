@@ -1,38 +1,25 @@
 import parseDuration, { Units } from "parse-duration";
+import * as client from "./client.js";
 import {
   INTERNAL_VERSION,
   RETRY_MAX_ATTEMPTS_PLACEHOLDER,
 } from "./constants.js";
-
-import * as client from "./client.js";
 import { APIError, DeferError } from "./errors.js";
 import { HTTPClient, makeHTTPClient } from "./httpClient.js";
+import {
+  debug,
+  getEnv,
+  randomUUID,
+  sanitizeFunctionArguments,
+} from "./utils.js";
 
-// Although the function implementation may not be completely secure,
-// it is suitable for local use.
-const randomUUID = () => {
-  return URL.createObjectURL(new Blob([])).slice(-36);
-};
-
-const withDelay = (dt: Date, delay: DelayString): Date =>
+const withDelay = (dt: Date, delay: Duration): Date =>
   new Date(dt.getTime() + parseDuration(delay)!);
 
 export const __database = new Map<
   string,
   { id: string; state: client.ExecutionState; result?: any }
 >();
-
-function debug(...args: any) {
-  if (getEnv("DEFER_DEBUG")) {
-    console.debug(...args);
-  }
-}
-
-function getEnv(key: string): string | undefined {
-  if (typeof process !== "undefined") return process.env[key];
-  if (typeof globalThis !== "undefined") return (globalThis as any)[key];
-  return;
-}
 
 function getHTTPClient(): HTTPClient | undefined {
   const accessToken = getEnv("DEFER_TOKEN");
@@ -42,7 +29,7 @@ function getHTTPClient(): HTTPClient | undefined {
   return;
 }
 
-export const deferEnabled = () => !!process?.env["DEFER_TOKEN"];
+export const deferEnabled = () => !!getEnv("DEFER_TOKEN");
 
 async function execLocally(
   id: string,
@@ -78,20 +65,61 @@ async function execLocally(
   return response;
 }
 
-export type UnPromise<F> = F extends Promise<infer R> ? R : F;
+async function enqueue<F extends DeferableFunction>(
+  func: DeferredFunction<F>,
+  ...args: Parameters<F>
+): Promise<client.EnqueueExecutionResponse> {
+  const originalFunction = func.__fn;
+  const functionArguments = sanitizeFunctionArguments(args);
+  debug(`[defer.run][${originalFunction.name}] invoked.`);
 
-export type DelayString = `${string}${Units}`;
-export interface Metadata {
+  const httpClient = getHTTPClient();
+  if (httpClient) {
+    const request: client.EnqueueExecutionRequest = {
+      name: originalFunction.name,
+      arguments: functionArguments,
+      scheduleFor: new Date(),
+      metadata: func.__execOptions?.metadata || {},
+    };
+
+    const delay = func.__execOptions?.delay;
+    if (delay instanceof Date) {
+      request.scheduleFor = delay;
+    } else if (delay) {
+      const now = new Date();
+      request.scheduleFor = withDelay(now, delay);
+    }
+
+    const after = func.__execOptions?.discardAfter;
+    if (after instanceof Date) {
+      request.discardAfter = after;
+    } else if (after) {
+      const now = new Date();
+      request.discardAfter = withDelay(now, after);
+    }
+
+    return client.enqueueExecution(httpClient, request);
+  }
+
+  debug(`[defer.run][${originalFunction.name}] defer ignore, no token found.`);
+
+  const id = randomUUID();
+  __database.set(id, { id: id, state: "started" });
+  execLocally(id, originalFunction, functionArguments);
+  return { id };
+}
+
+export type Duration = `${string}${Units}`;
+
+export interface ExecutionMetadata {
   [key: string]: string;
 }
-export interface DeferExecutionOptions {
-  delay?: DelayString | Date;
-  metadata?: Metadata;
-}
 
-export type DeferRetFnParameters<
-  F extends (...args: any | undefined) => Promise<any>
-> = [...first: Parameters<F>, options: DeferExecutionOptions];
+export interface DeferredFunctionOptions {
+  delay?: Duration | Date;
+  metadata?: ExecutionMetadata;
+  discardAfter?: Duration | Date;
+}
 
 // https://stackoverflow.com/questions/39494689/is-it-possible-to-restrict-number-to-a-certain-range/70307091#70307091
 type Enumerate<
@@ -100,54 +128,22 @@ type Enumerate<
 > = Acc["length"] extends N
   ? Acc[number]
   : Enumerate<N, [...Acc, Acc["length"]]>;
+
 type Range<F extends number, T extends number> = Exclude<
   Enumerate<T>,
   Enumerate<F>
 >;
 
 export type Concurrency = Range<0, 51>;
+
 export type NextRouteString = `/api/${string}`;
 
-export interface HasDeferMetadata {
-  __metadata: {
-    version: number;
-    cron?: string;
-    retry?: RetryPolicy;
-    concurrency?: Concurrency | undefined;
-    maxDuration?: number | undefined;
-  };
-}
-
-export interface DeferRetFn<
-  F extends (...args: any | undefined) => Promise<any>
-> extends HasDeferMetadata {
-  (...args: Parameters<F>): Promise<client.EnqueueExecutionResponse>;
-  __fn: F;
-  __execOptions?: DeferExecutionOptions;
-}
-
-export interface DeferScheduledFn<F extends (...args: never) => Promise<any>>
-  extends HasDeferMetadata {
-  (...args: Parameters<F>): void;
-  __fn: F;
-}
-
-export interface DeferAwaitRetFn<
-  F extends (...args: any | undefined) => Promise<any>
-> {
-  (...args: Parameters<F>): Promise<UnPromise<ReturnType<F>>>;
-}
-
-export interface Defer {
-  <F extends (...args: any | undefined) => Promise<any>>(
-    fn: F,
-    options?: DeferOptions
-  ): DeferRetFn<F>;
-  cron: <F extends (args: never[]) => Promise<any>>(
-    fn: F,
-    schedule: string,
-    options?: DeferOptions
-  ) => DeferScheduledFn<F>;
+export interface Manifest {
+  version: number;
+  cron?: string;
+  retry?: RetryPolicy;
+  concurrency?: Concurrency | undefined;
+  maxDuration?: number | undefined;
 }
 
 export interface RetryPolicy {
@@ -159,6 +155,27 @@ export interface RetryPolicy {
 }
 
 export interface DeferOptions {
+  retry?: boolean | number | Partial<RetryPolicy>;
+  concurrency?: Concurrency;
+  maxDuration?: number;
+}
+
+export type DeferableFunction = (...args: any) => Promise<any>;
+
+export interface ExecutionOptions {
+  delay?: Duration | Date;
+  metadata?: ExecutionMetadata;
+  discardAfter?: Duration | Date;
+}
+
+export interface DeferredFunction<F extends DeferableFunction> {
+  (...args: Parameters<F>): Promise<client.EnqueueExecutionResponse>;
+  __metadata: Manifest;
+  __fn: F;
+  __execOptions?: ExecutionOptions;
+}
+
+export interface DeferredFunctionConfiguration {
   retry?: boolean | number | Partial<RetryPolicy>;
   concurrency?: Concurrency;
   maxDuration?: number;
@@ -220,240 +237,121 @@ function parseRetryPolicy(options?: DeferOptions): RetryPolicy {
   return retryPolicy;
 }
 
-export const defer: Defer = (fn, options) => {
-  const ret = async (
+export function defer<F extends DeferableFunction>(
+  fn: F,
+  config?: DeferredFunctionConfiguration
+): DeferredFunction<F> {
+  const wrapped = async function (
     ...args: Parameters<typeof fn>
-  ): Promise<UnPromise<ReturnType<DeferRetFn<typeof fn>>>> => {
-    debug(`[defer.run][${fn.name}] invoked.`);
-
-    let functionArguments: any;
-    try {
-      functionArguments = JSON.parse(JSON.stringify(args));
-    } catch (error) {
-      const e = error as Error;
-      throw new DeferError(`cannot serialize argument: ${e.message}`);
-    }
-
-    const httpClient = getHTTPClient();
-    if (httpClient) {
-      return client.enqueueExecution(httpClient, {
-        name: fn.name,
-        arguments: functionArguments,
-        scheduleFor: new Date(),
-        metadata: {},
-      });
-    }
-
-    debug(`[defer.run][${fn.name}] defer ignore, no token found.`);
-
-    const id = randomUUID();
-    __database.set(id, { id: id, state: "started" });
-    execLocally(id, fn, functionArguments);
-    return { id };
+  ): Promise<client.EnqueueExecutionResponse> {
+    return enqueue(wrapped, ...args);
   };
 
-  ret.__fn = fn;
-  ret.__metadata = {
+  wrapped.__fn = fn;
+  wrapped.__metadata = {
     version: INTERNAL_VERSION,
-    retry: parseRetryPolicy(options),
-    concurrency: options?.concurrency,
-    maxDuration: options?.maxDuration,
+    retry: parseRetryPolicy(config),
+    concurrency: config?.concurrency,
+    maxDuration: config?.maxDuration,
   };
 
-  return ret;
-};
+  return wrapped;
+}
 
-defer.cron = (fn, schedule, options) => {
-  const ret: DeferScheduledFn<typeof fn> = () => {
-    throw new Error("`defer.cron()` functions should not be invoked.");
+defer.cron = function (
+  fn: DeferableFunction,
+  cronExpr: string,
+  config?: DeferredFunctionConfiguration
+): DeferredFunction<typeof fn> {
+  const wrapped = async function (
+    ...args: Parameters<typeof fn>
+  ): Promise<client.EnqueueExecutionResponse> {
+    return enqueue(wrapped, ...args);
   };
 
-  ret.__fn = fn;
-  ret.__metadata = {
+  wrapped.__fn = fn;
+  wrapped.__metadata = {
     version: INTERNAL_VERSION,
-    cron: schedule,
-    retry: parseRetryPolicy(options),
-    concurrency: options?.concurrency,
-    maxDuration: options?.maxDuration,
+    retry: parseRetryPolicy(config),
+    cron: cronExpr,
+    concurrency: config?.concurrency,
+    maxDuration: config?.maxDuration,
   };
 
-  return ret;
+  return wrapped;
 };
 
-interface DeferDelay {
-  <F extends (...args: any | undefined) => Promise<any>>(
-    deferFn: DeferRetFn<F>,
-    delay: DelayString | Date
-  ): DeferRetFn<F>;
+export function delay<F extends DeferableFunction>(
+  fn: DeferredFunction<F>,
+  delay: Duration | Date
+): DeferredFunction<F> {
+  const wrapped = async function (
+    ...args: Parameters<typeof fn>
+  ): Promise<client.EnqueueExecutionResponse> {
+    return enqueue(wrapped, ...args);
+  };
+
+  wrapped.__fn = fn.__fn;
+  wrapped.__metadata = fn.__metadata;
+  wrapped.__execOptions = { ...fn.__execOptions, delay };
+  return wrapped;
 }
 
-/**
- * Delay the execution of a background function
- * @constructor
- * @param {Function} deferFn - A background function (`defer(...)` result)
- * @param {string|Date} delay - The delay (ex: "1h" or a Date object)
- * @returns Function
- */
-export const delay: DeferDelay = (deferFn, delay) => {
-  const delayedDeferFn = async (
-    ...args: Parameters<typeof deferFn>
-  ): Promise<UnPromise<ReturnType<DeferRetFn<typeof fn>>>> => {
-    const fn = deferFn.__fn;
-    let functionArguments: any;
-    try {
-      functionArguments = JSON.parse(JSON.stringify(args));
-    } catch (error) {
-      const e = error as Error;
-      throw new DeferError(`cannot serialize argument: ${e.message}`);
-    }
+export function addMetadata<F extends DeferableFunction>(
+  fn: DeferredFunction<F>,
+  metadata: ExecutionMetadata
+): DeferredFunction<F> {
+  const gatheredMetadata = { ...fn.__execOptions?.metadata, ...metadata };
+  const wrapped = async function (
+    ...args: Parameters<typeof fn>
+  ): Promise<client.EnqueueExecutionResponse> {
+    return enqueue(wrapped, ...args);
+  };
+  wrapped.__fn = fn.__fn;
+  wrapped.__metadata = fn.__metadata;
+  wrapped.__execOptions = { ...fn.__execOptions, metadata: gatheredMetadata };
+  return wrapped;
+}
 
-    debug(`[defer.run][${fn.name}] invoked.`);
+export function discardAfter<F extends DeferableFunction>(
+  fn: DeferredFunction<F>,
+  value: Duration | Date
+): DeferredFunction<F> {
+  const wrapped = async function (
+    ...args: Parameters<typeof fn>
+  ): Promise<client.EnqueueExecutionResponse> {
+    return enqueue(wrapped, ...args);
+  };
 
+  wrapped.__fn = fn.__fn;
+  wrapped.__metadata = fn.__metadata;
+  wrapped.__execOptions = { ...fn.__execOptions, discardAfter: value };
+  return wrapped;
+}
+
+export function awaitResult<F extends DeferableFunction>(
+  fn: DeferredFunction<F>
+): (...args: Parameters<F>) => Promise<Awaited<ReturnType<F>>> {
+  return async function (
+    ...args: Parameters<F>
+  ): Promise<Awaited<ReturnType<F>>> {
+    const originalFunction = fn.__fn;
+    const functionArguments = sanitizeFunctionArguments(args);
     const httpClient = getHTTPClient();
-    if (httpClient) {
-      let scheduleFor: Date;
-      if (delay instanceof Date) {
-        scheduleFor = delay;
-      } else {
-        const now = new Date();
-        scheduleFor = withDelay(now, delay);
-      }
-
-      return client.enqueueExecution(httpClient, {
-        name: fn.name,
-        arguments: functionArguments,
-        scheduleFor,
-        metadata: deferFn.__execOptions?.metadata || {},
-      });
-    }
-
-    debug(`[defer.run][${fn.name}] defer ignore, no token found.`);
-
-    const id = randomUUID();
-    __database.set(id, { id: id, state: "started" });
-    execLocally(id, fn, functionArguments);
-    return { id };
-  };
-
-  delayedDeferFn.__fn = deferFn.__fn;
-  delayedDeferFn.__metadata = deferFn.__metadata;
-  delayedDeferFn.__execOptions = {
-    ...deferFn.__execOptions,
-    delay,
-  };
-
-  return delayedDeferFn;
-};
-
-interface DeferAddMetadata {
-  <F extends (...args: any | undefined) => Promise<any>>(
-    deferFn: DeferRetFn<F>,
-    metadata: Metadata
-  ): DeferRetFn<F>;
-}
-
-/**
- * Add metadata to the the execution of a background function
- * @constructor
- * @param {Function} deferFn - A background function (`defer(...)` result)
- * @param {Metadata} metadata - The metadata (ex: `{ foo: "bar" }`)
- * @returns Function
- */
-export const addMetadata: DeferAddMetadata = (deferFn, metadata) => {
-  const newMetadata = { ...deferFn.__execOptions?.metadata, ...metadata };
-  const deferFnWithMetadata = async (
-    ...args: Parameters<typeof deferFn>
-  ): Promise<UnPromise<ReturnType<DeferRetFn<typeof fn>>>> => {
-    const fn = deferFn.__fn;
-    let functionArguments: any;
-    try {
-      functionArguments = JSON.parse(JSON.stringify(args));
-    } catch (error) {
-      const e = error as Error;
-      throw new DeferError(`cannot serialize argument: ${e.message}`);
-    }
-
-    debug(`[defer.run][${fn.name}] invoked.`);
-
-    const httpClient = getHTTPClient();
-    if (httpClient) {
-      let scheduleFor: Date;
-      const delay = deferFn.__execOptions?.delay;
-      if (delay instanceof Date) {
-        scheduleFor = delay;
-      } else if (delay) {
-        const now = new Date();
-        scheduleFor = withDelay(now, delay);
-      } else {
-        scheduleFor = new Date();
-      }
-
-      return client.enqueueExecution(httpClient, {
-        name: fn.name,
-        arguments: functionArguments,
-        scheduleFor,
-        metadata: newMetadata,
-      });
-    }
-
-    debug(`[defer.run][${fn.name}] defer ignore, no token found.`);
-
-    const id = randomUUID();
-    __database.set(id, { id: id, state: "started" });
-    execLocally(id, fn, functionArguments);
-    return { id };
-  };
-
-  deferFnWithMetadata.__fn = deferFn.__fn;
-  deferFnWithMetadata.__metadata = deferFn.__metadata;
-  deferFnWithMetadata.__execOptions = {
-    ...deferFn.__execOptions,
-    metadata: newMetadata,
-  };
-
-  return deferFnWithMetadata;
-};
-
-interface DeferAwaitResult {
-  <F extends (...args: any | undefined) => Promise<any>>(
-    deferFn: DeferRetFn<F>
-  ): DeferAwaitRetFn<F>;
-}
-
-/**
- * Trigger the execution of a background function and waits for its result
- * @constructor
- * @param {Function} deferFn - A background function (`defer(...)` result)
- * @returns Function
- */
-export const awaitResult: DeferAwaitResult =
-  (deferFn) =>
-  async (...args: Parameters<typeof deferFn>) => {
-    const fnName = deferFn.__fn.name;
-    const fn = deferFn.__fn;
-    let functionArguments: any;
-    try {
-      functionArguments = JSON.parse(JSON.stringify(args));
-    } catch (error) {
-      const e = error as Error;
-      throw new DeferError(`cannot serialize argument: ${e.message}`);
-    }
 
     let response: client.FetchExecutionResponse;
-    const httpClient = getHTTPClient();
     if (httpClient) {
       const { id } = await client.enqueueExecution(httpClient, {
-        name: fnName,
+        name: originalFunction.name,
         arguments: functionArguments,
         scheduleFor: new Date(),
         metadata: {},
       });
-
       response = await client.waitExecutionResult(httpClient, { id: id });
     } else {
       const id = randomUUID();
       __database.set(id, { id: id, state: "started" });
-      response = await execLocally(id, fn, functionArguments);
+      response = await execLocally(id, originalFunction, functionArguments);
     }
 
     if (response.state === "failed") {
@@ -464,21 +362,18 @@ export const awaitResult: DeferAwaitResult =
       } else if (response.result) {
         error = response.result;
       }
-
       throw error;
     }
 
     return response.result;
   };
+}
 
 export async function getExecution(
   id: string
 ): Promise<client.FetchExecutionResponse> {
   const httpClient = getHTTPClient();
   if (httpClient) return client.fetchExecution(httpClient, { id });
-
-  console.log("getExecution", id);
-
   const response = __database.get(id);
   if (response)
     return Promise.resolve({

@@ -1,6 +1,6 @@
 import type { NextRequest, NextResponse } from "next/server";
-import { getExecution, type DeferRetFn } from "../index.js";
 import { APIError } from "../errors.js";
+import { DeferredFunction, getExecution } from "../index.js";
 
 export interface DeferNextRoute {
   GetHandler: (request: NextRequest) => Promise<NextResponse | Response>;
@@ -17,7 +17,7 @@ interface Options<
 const ResponseJSON = Response.json;
 
 export function asNextRoute<F extends (...args: any) => Promise<any>>(
-  deferFn: DeferRetFn<F>,
+  deferFn: DeferredFunction<F>,
   options?: Options<F>
 ): DeferNextRoute {
   return {
