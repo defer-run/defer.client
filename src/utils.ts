@@ -1,7 +1,7 @@
 // Although the function implementation may not be completely secure,
 // it is suitable for local use.
 export function randomUUID() {
-  return URL.createObjectURL(new Blob([])).slice(-36);
+  return crypto.randomUUID();
 }
 
 export function debug(...args: any) {
