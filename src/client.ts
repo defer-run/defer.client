@@ -95,7 +95,7 @@ export function rescheduleExecution(
   const data = JSON.stringify({ schedule_for: request.scheduleFor });
   return client<RescheduleExecutionResponse>(
     "POST",
-    `/public/v1/executions/${request.id}/cancel`,
+    `/public/v1/executions/${request.id}/reschedule`,
     data
   );
 }
