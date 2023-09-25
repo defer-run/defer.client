@@ -1,7 +1,13 @@
 // Although the function implementation may not be completely secure,
-// it is suitable for local use.
+// it is suitable for local use. The reason we use the conditional is
+// because Bun lacks support for URL.createObjectURL, while Remix and
+// Cloudflare Workers (without NodeJS support enabled) lacks support for crypto
 export function randomUUID() {
-  return crypto.randomUUID();
+  if (typeof crypto === "undefined") {
+    URL.createObjectURL(new Blob([])).slice(-36);
+  } else {
+    crypto.randomUUID();
+  }
 }
 
 export function debug(...args: any) {
