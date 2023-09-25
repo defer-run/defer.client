@@ -81,6 +81,25 @@ export function getExecutionTries(
   );
 }
 
+export interface RescheduleExecutionRequest {
+  id: string;
+  scheduleFor: Date;
+}
+
+export interface RescheduleExecutionResponse {}
+
+export function rescheduleExecution(
+  client: HTTPClient,
+  request: RescheduleExecutionRequest
+): Promise<RescheduleExecutionResponse> {
+  const data = JSON.stringify({ schedule_for: request.scheduleFor });
+  return client<RescheduleExecutionResponse>(
+    "POST",
+    `/public/v1/executions/${request.id}/cancel`,
+    data
+  );
+}
+
 export function enqueueExecution(
   client: HTTPClient,
   request: EnqueueExecutionRequest

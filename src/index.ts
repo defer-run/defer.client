@@ -406,3 +406,24 @@ export async function getExecutionTries(
 
   throw new APIError("execution not found", "not found");
 }
+
+export async function rescheduleExecution(
+  id: string,
+  scheduleFor: Duration | Date | undefined
+): Promise<client.RescheduleExecutionResponse> {
+  const request: client.RescheduleExecutionRequest = {
+    id,
+    scheduleFor: new Date(),
+  };
+  if (scheduleFor instanceof Date) {
+    request.scheduleFor = scheduleFor;
+  } else if (scheduleFor) {
+    const now = new Date();
+    request.scheduleFor = withDelay(now, scheduleFor);
+  }
+
+  const httpClient = getHTTPClient();
+  if (httpClient) return client.rescheduleExecution(httpClient, request);
+
+  return {};
+}
