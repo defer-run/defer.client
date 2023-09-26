@@ -4,9 +4,9 @@
 // Cloudflare Workers (without NodeJS support enabled) lacks support for crypto
 export function randomUUID() {
   if (typeof crypto === "undefined") {
-    URL.createObjectURL(new Blob([])).slice(-36);
+    return URL.createObjectURL(new Blob([])).slice(-36);
   } else {
-    crypto.randomUUID();
+    return crypto.randomUUID();
   }
 }
 
