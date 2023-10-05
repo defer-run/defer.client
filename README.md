@@ -1,13 +1,12 @@
 <p align="center">
     <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="https://www.defer.run/github/defer_darkmode.png" width="410" height="216">
-        <img alt="Defer logo" src="https://www.defer.run/github/defer_lightmode.png" width="410" height="216">
+        <source media="(prefers-color-scheme: dark)" srcset="docs/logo-horizontal.png">
+        <img alt="Defer logo" src="docs/logo-horizontal.png">
     </picture>
 </p>
 <p align="center">
     Zero infrastructure Node.js background jobs
 </p>
-<p>&nbsp;</p>
 <p align="center">
     <a href="https://docs.defer.run/">Documentation</a>
     <span>&nbsp;·&nbsp;</span>
@@ -17,39 +16,38 @@
     <span>&nbsp;·&nbsp;</span>
     <a href="https://github.com/defer-run/defer.client/discussions/categories/roadmap">Roadmap / RFCs</a>
 </p>
-
-<p>&nbsp;</p>
-<p>&nbsp;</p>
-
-# `@defer/client`
+<br>
 
 ## Get started
 
-- [Next.js Quickstart](https://docs.defer.run/quickstart/next/)
-- [Express/Koa/hapi Quickstart](https://docs.defer.run/quickstart/express-koa-hapi/)
+- [Next.js Quickstart](https://docs.defer.run/get-started/quickstart/nextjs)
+- [Express/Koa/hapi Quickstart](https://docs.defer.run/get-started/quickstart/express-koa-hapi)
 
 ## API documentation
 
-- [Configuration options: retries, concurrency](https://docs.defer.run/features/retries-concurrency/)
-- [Delayed Function](https://docs.defer.run/features/delay/)
-- [CRON](https://docs.defer.run/features/cron/)
-- [Workflows](https://docs.defer.run/features/workflows/)
+- [Retries](https://docs.defer.run/features/retries)
+- [Delayed Function](https://docs.defer.run/features/delays)
+- [CRON](https://docs.defer.run/features/cron)
 
 ## Contributing
 
-You want to fix a bug or suggest a change? Please open a PR!
-Want to pitch a new feature, [please open a RFC](https://github.com/defer-run/defer.client/discussions/new?category=roadmap).
+You want to fix a bug or suggest a change? Please open a PR! Want to
+pitch a new feature, [please open a
+RFC](https://github.com/defer-run/defer.client/discussions/new?category=roadmap).
 
 ### Open a PR
 
-Make sure to follow our [Code of Conduct](./CODE_OF_CONDUCT.md) and the following requirements:
+Make sure to follow our [Code of Conduct](./CODE_OF_CONDUCT.md) and
+the following requirements:
 
 1. Each new feature should be shipped with new tests
 1. A PR should contains a description explaining the motivation
 
 ### Local setup
 
-1. Clone the repository: `git clone git@github.com:defer-run/defer.client.git`
-1. Install the dependencies: `npm ci`
-1. Run the test after introducing changes: `npm run test`
-1. Bump a patch or minor by running `npx changelog` (please provide a brief description of the changes)
+1. Clone the repository: `git clone
+   git@github.com:defer-run/defer.client.git`
+2. Install the dependencies: `npm ci`
+3. Run the test after introducing changes: `npm run test`
+4. Bump a patch or minor by running `npx changelog` (please provide a
+   brief description of the changes)
