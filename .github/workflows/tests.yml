@@ -7,7 +7,30 @@ on:
     branches: ["master"]
 
 jobs:
-  test:
+  test-bun:
+    name: "Bun ${{matrix.bun-version}}"
+    runs-on: "ubuntu-latest"
+    strategy:
+      fail-fast: false
+      matrix:
+        bun-version: [1]
+    steps:
+      - uses: "actions/checkout@v3"
+      - uses: "oven-sh/setup-bun@v1"
+        with:
+          bun-version: "${{matrix.bun-version}}"
+      - uses: "actions/setup-node@v3"
+        with:
+          node-version: 20
+          cache: "npm"
+      - run: "npm install --frozen-lockfile"
+      - run: "bun run lint"
+      - run: "bunx prettier -c src/"
+      - run: "bun run test"
+      - run: "bun run build"
+      - run: "bunx bob check"
+
+  test-node:
     name: "Node ${{matrix.node-version}}"
     runs-on: "ubuntu-latest"
     strategy:
