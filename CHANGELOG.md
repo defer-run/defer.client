@@ -1,5 +1,17 @@
 # @defer/client
 
+## 1.12.0
+
+### Minor Changes
+
+- [#96](https://github.com/defer-run/defer.client/pull/96) [`a392419`](https://github.com/defer-run/defer.client/commit/a392419f2e464c2baee978722e516fd1ef72429e) Thanks [@gearnode](https://github.com/gearnode)! - Add discardAfter option
+
+- [#98](https://github.com/defer-run/defer.client/pull/98) [`a766297`](https://github.com/defer-run/defer.client/commit/a766297ce592ea4ad8eeef3ebe03df2257b9059f) Thanks [@gearnode](https://github.com/gearnode)! - Add reschedule support
+
+### Patch Changes
+
+- [#100](https://github.com/defer-run/defer.client/pull/100) [`4e367da`](https://github.com/defer-run/defer.client/commit/4e367da569d695f2a9fe57991e9c9593d08dec57) Thanks [@estubmo](https://github.com/estubmo)! - Bun support: Use crypto rather than URL/Blob API for generating random UUID
+
 ## 1.11.0
 
 ### Minor Changes
