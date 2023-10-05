@@ -5,7 +5,10 @@
   "type": "module",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
-  "repository": "git@github.com:defer-run/defer.client.git",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/defer-run/defer.client.git"
+  },
   "author": "Defer Inc <support@defer.run>",
   "license": "ISC",
   "engines": {
