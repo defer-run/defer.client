@@ -109,6 +109,7 @@ export function enqueueExecution(
     arguments: request.arguments,
     schedule_for: request.scheduleFor,
     metadata: request.metadata,
+    discard_after: request.discardAfter,
   });
   return client<EnqueueExecutionResponse>("POST", "/public/v1/enqueue", data);
 }
