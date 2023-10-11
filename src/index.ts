@@ -285,48 +285,21 @@ export function delay<F extends DeferableFunction>(
   fn: DeferredFunction<F>,
   delay: Duration | Date
 ): DeferredFunction<F> {
-  const wrapped = async function (
-    ...args: Parameters<typeof fn>
-  ): Promise<client.EnqueueExecutionResponse> {
-    return enqueue(wrapped, ...args);
-  };
-
-  wrapped.__fn = fn.__fn;
-  wrapped.__metadata = fn.__metadata;
-  wrapped.__execOptions = { ...fn.__execOptions, delay };
-  return wrapped;
+  return assignOptions(fn, { delay });
 }
 
 export function addMetadata<F extends DeferableFunction>(
   fn: DeferredFunction<F>,
   metadata: ExecutionMetadata
 ): DeferredFunction<F> {
-  const gatheredMetadata = { ...fn.__execOptions?.metadata, ...metadata };
-  const wrapped = async function (
-    ...args: Parameters<typeof fn>
-  ): Promise<client.EnqueueExecutionResponse> {
-    return enqueue(wrapped, ...args);
-  };
-  wrapped.__fn = fn.__fn;
-  wrapped.__metadata = fn.__metadata;
-  wrapped.__execOptions = { ...fn.__execOptions, metadata: gatheredMetadata };
-  return wrapped;
+  return assignOptions(fn, { metadata });
 }
 
 export function discardAfter<F extends DeferableFunction>(
   fn: DeferredFunction<F>,
   value: Duration | Date
 ): DeferredFunction<F> {
-  const wrapped = async function (
-    ...args: Parameters<typeof fn>
-  ): Promise<client.EnqueueExecutionResponse> {
-    return enqueue(wrapped, ...args);
-  };
-
-  wrapped.__fn = fn.__fn;
-  wrapped.__metadata = fn.__metadata;
-  wrapped.__execOptions = { ...fn.__execOptions, discardAfter: value };
-  return wrapped;
+  return assignOptions(fn, { discardAfter: value });
 }
 
 export function assignOptions<F extends DeferableFunction>(
