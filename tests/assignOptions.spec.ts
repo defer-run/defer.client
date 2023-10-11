@@ -35,7 +35,7 @@ describe("assignOptions()", () => {
         const deferred = defer(myFunction);
         const deferredWithOptions = assignOptions(deferred, {
           delay: new Date("2023-01-01"),
-          metadata: { foo: "bar" },
+          metadata: { foo: "bar", foo2: "bar2" },
         });
 
         const result = await deferredWithOptions("");
