@@ -329,6 +329,22 @@ export function discardAfter<F extends DeferableFunction>(
   return wrapped;
 }
 
+export function assignOptions<F extends DeferableFunction>(
+  fn: DeferredFunction<F>,
+  options: ExecutionOptions
+): DeferredFunction<F> {
+  const wrapped = async function (
+    ...args: Parameters<typeof fn>
+  ): Promise<client.EnqueueExecutionResponse> {
+    return enqueue(wrapped, ...args);
+  };
+
+  wrapped.__fn = fn.__fn;
+  wrapped.__metadata = fn.__metadata;
+  wrapped.__execOptions = { ...fn.__execOptions, ...options };
+  return wrapped;
+}
+
 export function awaitResult<F extends DeferableFunction>(
   fn: DeferredFunction<F>
 ): (...args: Parameters<F>) => Promise<Awaited<ReturnType<F>>> {
