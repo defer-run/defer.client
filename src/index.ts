@@ -281,41 +281,51 @@ defer.cron = function (
   return wrapped;
 };
 
+/**
+ * Delay an execution
+ * @param fn Duration
+ * @param delay Duration | Date
+ * @deprecated Prefer `assignOptions()` (https://docs.defer.run/references/defer-client/assign-options)
+ * @returns
+ */
 export function delay<F extends DeferableFunction>(
   fn: DeferredFunction<F>,
   delay: Duration | Date
 ): DeferredFunction<F> {
-  const wrapped = async function (
-    ...args: Parameters<typeof fn>
-  ): Promise<client.EnqueueExecutionResponse> {
-    return enqueue(wrapped, ...args);
-  };
-
-  wrapped.__fn = fn.__fn;
-  wrapped.__metadata = fn.__metadata;
-  wrapped.__execOptions = { ...fn.__execOptions, delay };
-  return wrapped;
+  return assignOptions(fn, { delay });
 }
 
+/**
+ * Add metadata to an execution
+ * @param fn Duration
+ * @param metadata Object
+ * @deprecated Prefer `assignOptions()` (https://docs.defer.run/references/defer-client/assign-options)
+ * @returns
+ */
 export function addMetadata<F extends DeferableFunction>(
   fn: DeferredFunction<F>,
   metadata: ExecutionMetadata
 ): DeferredFunction<F> {
-  const gatheredMetadata = { ...fn.__execOptions?.metadata, ...metadata };
-  const wrapped = async function (
-    ...args: Parameters<typeof fn>
-  ): Promise<client.EnqueueExecutionResponse> {
-    return enqueue(wrapped, ...args);
-  };
-  wrapped.__fn = fn.__fn;
-  wrapped.__metadata = fn.__metadata;
-  wrapped.__execOptions = { ...fn.__execOptions, metadata: gatheredMetadata };
-  return wrapped;
+  return assignOptions(fn, { metadata });
 }
 
+/**
+ * Discard an execution if not started after a given interval
+ * @param fn Duration
+ * @param value Duration | Date
+ * @deprecated Prefer `assignOptions()` (https://docs.defer.run/references/defer-client/assign-options)
+ * @returns
+ */
 export function discardAfter<F extends DeferableFunction>(
   fn: DeferredFunction<F>,
   value: Duration | Date
+): DeferredFunction<F> {
+  return assignOptions(fn, { discardAfter: value });
+}
+
+export function assignOptions<F extends DeferableFunction>(
+  fn: DeferredFunction<F>,
+  options: ExecutionOptions
 ): DeferredFunction<F> {
   const wrapped = async function (
     ...args: Parameters<typeof fn>
@@ -325,7 +335,7 @@ export function discardAfter<F extends DeferableFunction>(
 
   wrapped.__fn = fn.__fn;
   wrapped.__metadata = fn.__metadata;
-  wrapped.__execOptions = { ...fn.__execOptions, discardAfter: value };
+  wrapped.__execOptions = { ...fn.__execOptions, ...options };
   return wrapped;
 }
 
