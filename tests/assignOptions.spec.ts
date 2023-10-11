@@ -43,6 +43,7 @@ describe("assignOptions()", () => {
           delay: new Date("2023-01-01"),
           metadata: {
             foo: "bar",
+            foo2: "bar2",
           },
         });
         expect(result).toEqual({ id: "1" });
