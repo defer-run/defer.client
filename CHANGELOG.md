@@ -1,5 +1,47 @@
 # @defer/client
 
+## 1.13.0
+
+### Minor Changes
+
+- [#102](https://github.com/defer-run/defer.client/pull/102) [`5613d53`](https://github.com/defer-run/defer.client/commit/5613d537b01659bb8572cdef0cfea51d729296f9) Thanks [@charlypoly](https://github.com/charlypoly)! - Add `assignOptions()` helper
+
+  `assignOptions` is helpful to change the behavior of a given Background Function
+  by combining multiple options such as `delay`, `metadata` or `discardAfter`:
+
+  ```ts
+  import { assignOptions, delay } from "@defer/client";
+  import handleStripeWebhookFn from "./defer/handleStripeWebhook.js";
+
+  // ...
+
+  const handleStripeWebhook = assignOptions(handleStripeWebhookFn, {
+    discardAfter: '12h'
+    // process webhooks in the right order
+    delay: event.created + 60 * 10,
+    // add metadata for the the Defer Console
+    metadata: {
+      livemode: event.livemode,
+      type: event.type,
+      apiVersion: event.api_version,
+    },
+  });
+
+  handleStripeWebhook(event.id)
+    .then((executionID) => {
+      response.sendStatus(
+        200,
+        "application/json",
+        JSON.stringify({ executionID })
+      );
+    })
+    .catch((err) => {
+      response.sendStatus(400);
+    });
+
+  // ...
+  ```
+
 ## 1.12.1
 
 ### Minor Changes
