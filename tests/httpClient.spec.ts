@@ -23,6 +23,7 @@ describe("makeHTTPClient/3", () => {
     expect(fetch).toHaveBeenCalledWith(fakeEndpoint + "/hello", {
       method: "GET",
       body: null,
+      cache: "no-store",
       headers: expectedHeaderFields,
     });
     expect(response).toEqual({});
