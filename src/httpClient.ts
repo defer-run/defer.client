@@ -50,6 +50,7 @@ export function makeHTTPClient(
       ...clientOptions,
       method,
       body,
+      cache: "no-store",
       headers: {
         ...customHeaderFields,
         "Content-type": "application/json",
