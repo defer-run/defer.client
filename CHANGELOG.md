@@ -1,5 +1,11 @@
 # @defer/client
 
+## 1.13.1
+
+### Patch Changes
+
+- [#104](https://github.com/defer-run/defer.client/pull/104) [`11ff735`](https://github.com/defer-run/defer.client/commit/11ff735c92e1e39b6ab5dc8d360555fe81eed135) Thanks [@gearnode](https://github.com/gearnode)! - Disable fetch cache
+
 ## 1.13.0
 
 ### Minor Changes
