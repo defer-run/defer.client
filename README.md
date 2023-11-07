@@ -12,7 +12,7 @@
     <span>&nbsp;·&nbsp;</span>
     <a href="https://www.defer.run/blog">Blog</a>
     <span>&nbsp;·&nbsp;</span>
-    <a href="https://discord.gg/x2v84Vqsk6">Community</a>
+    <a href="https://discord.gg/defer">Community</a>
     <span>&nbsp;·&nbsp;</span>
     <a href="https://github.com/defer-run/defer.client/discussions/categories/roadmap">Roadmap / RFCs</a>
 </p>
@@ -46,7 +46,7 @@ the following requirements:
 ### Local setup
 
 1. Clone the repository: `git clone
-   git@github.com:defer-run/defer.client.git`
+git@github.com:defer-run/defer.client.git`
 2. Install the dependencies: `npm ci`
 3. Run the test after introducing changes: `npm run test`
 4. Bump a patch or minor by running `npx changelog` (please provide a
