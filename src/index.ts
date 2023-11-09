@@ -13,6 +13,7 @@ import {
   randomUUID,
   sanitizeFunctionArguments,
 } from "./utils.js";
+import { execLocally, setupFn } from "./local.js";
 
 if (getEnv("DEFER_TOKEN") === undefined) {
   console.log(`
@@ -131,6 +132,7 @@ async function enqueue<F extends DeferableFunction>(
 
   const id = randomUUID();
   __database.set(id, { id: id, state: "started" });
+
   execLocally(id, originalFunction, functionArguments, true);
   return { id };
 }
@@ -159,6 +161,8 @@ export type Concurrency = Range<0, 51>;
 export type NextRouteString = `/api/${string}`;
 
 export interface Manifest {
+  id: string;
+  name: string;
   version: number;
   cron?: string;
   retry?: RetryPolicy;
@@ -266,12 +270,16 @@ export function defer<F extends DeferableFunction>(
 
   wrapped.__fn = fn;
   wrapped.__metadata = {
+    id: randomUUID(),
+    name: fn.name,
     version: INTERNAL_VERSION,
     retry: parseRetryPolicy(config),
     concurrency: config?.concurrency,
     maxDuration: config?.maxDuration,
     maxConcurrencyAction: config?.maxConcurrencyAction,
   };
+
+  setupFn(wrapped.__metadata)
 
   return wrapped;
 }
@@ -289,6 +297,8 @@ defer.cron = function (
 
   wrapped.__fn = fn;
   wrapped.__metadata = {
+    id: randomUUID(),
+    name: fn.name,
     version: INTERNAL_VERSION,
     retry: parseRetryPolicy(config),
     cron: cronExpr,
@@ -380,7 +390,7 @@ export function awaitResult<F extends DeferableFunction>(
     } else {
       const id = randomUUID();
       __database.set(id, { id: id, state: "started" });
-      response = await execLocally(id, originalFunction, functionArguments);
+      response = await execLocally(id, fn, functionArguments);
     }
 
     if (response.state === "failed") {
