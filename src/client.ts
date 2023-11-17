@@ -25,9 +25,9 @@ export type ExecutionState =
   | "succeed"
   | "failed"
   | "cancelled"
-  | "cancelling"
   | "aborting"
-  | "aborted";
+  | "aborted"
+  | "discarded";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface FetchExecutionResponse<R = any> {
