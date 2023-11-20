@@ -1,5 +1,11 @@
 # @defer/client
 
+## 1.14.0
+
+### Minor Changes
+
+- [#108](https://github.com/defer-run/defer.client/pull/108) [`f4e14f2`](https://github.com/defer-run/defer.client/commit/f4e14f2e80b79ca41c36dfbbb288b82969a34066) Thanks [@gearnode](https://github.com/gearnode)! - Fix execution state bad values
+
 ## 1.13.1
 
 ### Patch Changes
