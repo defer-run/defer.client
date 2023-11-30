@@ -1,4 +1,5 @@
 import { awaitResult, defer } from "../src";
+import { DeferError } from "../src/errors";
 import { makeHTTPClient } from "../src/httpClient";
 import { jitter } from "../src/jitter";
 
@@ -59,6 +60,21 @@ describe("awaitResult(deferFn)", () => {
         expect(result).toEqual("coucou");
         expect(myFunction).not.toHaveBeenCalled();
       });
+    });
+  });
+
+  describe("when Defer is inactive (`DEFER_TOKEN` is unset)", () => {
+    beforeAll(() => {
+      process.env["DEFER_TOKEN"] = "";
+    });
+    it("should rethrow any error as `DeferError`", async () => {
+      const myFunction = async (_str: string) => {
+        throw new Error("my function failed locally!");
+      };
+      const deferred = defer(myFunction);
+      const awaitable = awaitResult(deferred);
+
+      await expect(awaitable("")).rejects.toThrow(DeferError);
     });
   });
 });
