@@ -1,5 +1,11 @@
 # @defer/client
 
+## 1.14.1
+
+### Patch Changes
+
+- [#110](https://github.com/defer-run/defer.client/pull/110) [`a9055df`](https://github.com/defer-run/defer.client/commit/a9055df0b421a6a419bee499d4c9e4116a5a0f6b) Thanks [@charlypoly](https://github.com/charlypoly)! - Re-throw errors for local development
+
 ## 1.14.0
 
 ### Minor Changes
