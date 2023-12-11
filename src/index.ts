@@ -34,20 +34,22 @@ export const deferEnabled = () => !!getEnv("DEFER_TOKEN");
 async function execLocally(
   id: string,
   fn: any,
-  args: any
+  args: any,
+  shouldThrowErrors = false
 ): Promise<client.FetchExecutionResponse> {
   let state: client.ExecutionState = "succeed";
   let originalResult: any;
+  let executionError: Error | undefined;
   try {
     originalResult = await fn(...args);
   } catch (error) {
-    const e = error as Error;
+    executionError = error as Error;
     state = "failed";
     originalResult = {
-      name: e.name,
-      message: e.message,
-      cause: e.cause,
-      stack: e.stack,
+      name: executionError.name,
+      message: executionError.message,
+      cause: executionError.cause,
+      stack: executionError.stack,
     };
   }
 
@@ -61,6 +63,10 @@ async function execLocally(
 
   const response = { id, state, result };
   __database.set(id, response);
+
+  if (executionError && shouldThrowErrors) {
+    throw executionError;
+  }
 
   return response;
 }
@@ -105,7 +111,7 @@ async function enqueue<F extends DeferableFunction>(
 
   const id = randomUUID();
   __database.set(id, { id: id, state: "started" });
-  execLocally(id, originalFunction, functionArguments);
+  execLocally(id, originalFunction, functionArguments, true);
   return { id };
 }
 
