@@ -6,12 +6,32 @@ import {
 } from "./constants.js";
 import { APIError, DeferError } from "./errors.js";
 import { HTTPClient, makeHTTPClient } from "./httpClient.js";
+import version from "./version.js";
 import {
   debug,
   getEnv,
   randomUUID,
   sanitizeFunctionArguments,
 } from "./utils.js";
+
+if (getEnv("DEFER_TOKEN") === undefined) {
+  console.log(`
+   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@         Defer ${version}
+   @@@@       @@@     @@@@     @@@@         Running in development mode
+   @@@@       @@@     @@@@     @@@@
+   @@@@       @@@     @@@@     @@@@
+   @@@@@@@@@@@@@@     @@@@     @@@@
+   @@@@               @@@@     @@@@         Website: https://www.defer.run
+   @@@@               @@@@     @@@@         Documentation: https://docs.defer.run
+   @@@@@@@@@@@@@@@@@@@@@@@     @@@@
+   @@@@@@@@@@@@@@@@@@@@@@@     @@@@
+   @@@@                        @@@@
+   @@@@                        @@@@
+   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+`);
+}
 
 const withDelay = (dt: Date, delay: Duration): Date =>
   new Date(dt.getTime() + parseDuration(delay)!);
