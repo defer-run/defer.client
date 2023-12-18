@@ -10,7 +10,7 @@ const expectedHeaderFields = {
   Authorization: "Basic OmZvb2Jhcg==",
   "Content-type": "application/json",
   "User-Agent":
-    "defer/unknow (source: https://github.com/defer-run/defer.client)",
+    "defer/unknown (source: https://github.com/defer-run/defer.client)",
 };
 
 describe("makeHTTPClient/3", () => {
