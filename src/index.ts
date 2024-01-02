@@ -23,7 +23,7 @@ if (getEnv("DEFER_TOKEN") === undefined) {
    @@@@       @@@     @@@@     @@@@
    @@@@@@@@@@@@@@     @@@@     @@@@
    @@@@               @@@@     @@@@         Website: https://www.defer.run
-   @@@@               @@@@     @@@@         Documentation: https://docs.defer.run
+   @@@@               @@@@     @@@@         Documentation: https://defer.run/docs
    @@@@@@@@@@@@@@@@@@@@@@@     @@@@
    @@@@@@@@@@@@@@@@@@@@@@@     @@@@
    @@@@                        @@@@
