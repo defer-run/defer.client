@@ -141,12 +141,6 @@ export interface ExecutionMetadata {
   [key: string]: string;
 }
 
-export interface DeferredFunctionOptions {
-  delay?: Duration | Date;
-  metadata?: ExecutionMetadata;
-  discardAfter?: Duration | Date;
-}
-
 // https://stackoverflow.com/questions/39494689/is-it-possible-to-restrict-number-to-a-certain-range/70307091#70307091
 type Enumerate<
   N extends number,
@@ -180,12 +174,6 @@ export interface RetryPolicy {
   maxInterval: number;
 }
 
-export interface DeferOptions {
-  retry?: boolean | number | Partial<RetryPolicy>;
-  concurrency?: Concurrency;
-  maxDuration?: number;
-}
-
 export type DeferableFunction = (...args: any) => Promise<any>;
 
 export interface ExecutionOptions {
@@ -205,6 +193,7 @@ export interface DeferredFunctionConfiguration {
   retry?: boolean | number | Partial<RetryPolicy>;
   concurrency?: Concurrency;
   maxDuration?: number;
+  maxConcurrencyAction?: "keep" | "cancel";
 }
 
 function defaultRetryPolicy(): RetryPolicy {
@@ -217,7 +206,9 @@ function defaultRetryPolicy(): RetryPolicy {
   };
 }
 
-function parseRetryPolicy(options?: DeferOptions): RetryPolicy {
+function parseRetryPolicy(
+  options?: DeferredFunctionConfiguration
+): RetryPolicy {
   const retryPolicy: RetryPolicy = defaultRetryPolicy();
   switch (typeof options?.retry) {
     case "boolean": {
@@ -279,6 +270,7 @@ export function defer<F extends DeferableFunction>(
     retry: parseRetryPolicy(config),
     concurrency: config?.concurrency,
     maxDuration: config?.maxDuration,
+    maxConcurrencyAction: config?.maxConcurrencyAction,
   };
 
   return wrapped;
@@ -302,6 +294,7 @@ defer.cron = function (
     cron: cronExpr,
     concurrency: config?.concurrency,
     maxDuration: config?.maxDuration,
+    maxConcurrencyAction: config?.maxConcurrencyAction,
   };
 
   return wrapped;
