@@ -1,5 +1,11 @@
 # @defer/client
 
+## 1.15.0
+
+### Minor Changes
+
+- [#112](https://github.com/defer-run/defer.client/pull/112) [`b2363a6`](https://github.com/defer-run/defer.client/commit/b2363a650a221410328ad4c60c3178f8eb5d77e4) Thanks [@codenem](https://github.com/codenem)! - add function configuration maxConcurrencyAction
+
 ## 1.14.1
 
 ### Patch Changes
