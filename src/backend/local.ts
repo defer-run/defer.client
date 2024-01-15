@@ -12,7 +12,12 @@
 // OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 // PERFORMANCE OF THIS SOFTWARE.
 
-import { EnqueueResult } from "../backend.js";
+import {
+  CancelExecutionResult,
+  EnqueueResult,
+  GetExecutionResult,
+  RescheduleExecutionResult,
+} from "../backend.js";
 import { DeferableFunction, DeferredFunction } from "../index.js";
 import { error, info } from "../logger";
 import { randomUUID } from "../utils";
@@ -72,3 +77,15 @@ export async function enqueue<F extends DeferableFunction>(
     return { id: executionId };
   }
 }
+
+export async function getExecution(id: string): Promise<GetExecutionResult> {}
+
+export async function cancelExecution(
+  id: string,
+  force: boolean
+): Promise<CancelExecutionResult> {}
+
+export async function rescheduleExecution(
+  id: string,
+  scheduleFor: Duration | Date | undefined
+): Promise<RescheduleExecutionResult> {}
