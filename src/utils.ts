@@ -14,6 +14,8 @@
 
 import parseDuration, { Units } from "parse-duration";
 
+export type Duration = `${string}${Units}`;
+
 export function randomUUID() {
   // Although the function implementation may not be completely secure,
   // it is suitable for local use. The reason we use the conditional is
@@ -44,10 +46,10 @@ export function sanitizeFunctionArguments(values: any): any {
   }
 }
 
-export function isDebugEnabled(): bool {
-  getEnv("DEFER_DEBUG") !== "";
+export function isDebugEnabled(): boolean {
+  return getEnv("DEFER_DEBUG") !== "";
 }
 
 export function fromDurationToDate(dt: Date, delay: Duration): Date {
-  new Date(dt.getTime() + parseDuration(delay)!);
+  return new Date(dt.getTime() + parseDuration(delay)!);
 }
