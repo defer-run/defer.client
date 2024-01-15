@@ -12,22 +12,37 @@
 // OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 // PERFORMANCE OF THIS SOFTWARE.
 
-import { DeferableFunction, DeferredFunction } from "../index.js";
+import { DeferableFunction, DeferredFunction } from "./index.js";
+import { Duration } from "./utils.js";
+
+export type ExecutionState =
+  | "created"
+  | "started"
+  | "succeed"
+  | "failed"
+  | "cancelled"
+  | "aborting"
+  | "aborted"
+  | "discarded";
 
 export interface EnqueueResult {
   id: string;
+  state: ExecutionState;
 }
 
 export interface GetExecutionResult {
   id: string;
+  state: ExecutionState;
 }
 
 export interface CancelExecutionResult {
   id: string;
+  state: ExecutionState;
 }
 
 export interface RescheduleExecutionResult {
   id: string;
+  state: ExecutionState;
 }
 
 export interface Backend {
