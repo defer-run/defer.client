@@ -3,9 +3,12 @@ import { Concurrency } from ".";
 export class Queue<T> extends Array<T> {
   private running = 0;
 
-  constructor(public invoker: (item: T) => Promise<void>, public concurrency?: Concurrency) {
+  constructor(
+    public invoker: (item: T) => Promise<void>,
+    public concurrency?: Concurrency
+  ) {
     super();
-    Object.setPrototypeOf(this, Queue.prototype)
+    Object.setPrototypeOf(this, Queue.prototype);
   }
 
   override push(...items: T[]): number {
