@@ -46,7 +46,7 @@ export async function enqueue<F extends DeferableFunction>(
       });
       executionState.set(executionId, "started");
       try {
-        const result = await func(args);
+        const result = await func(...args);
         executionState.set(executionId, "succeed");
         executionResult.set(
           executionId,
