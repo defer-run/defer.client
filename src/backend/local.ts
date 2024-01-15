@@ -18,7 +18,7 @@ import { error, info } from "../logger";
 import { randomUUID } from "../utils";
 
 const executionState = new Map<string, string>();
-const promiseState = new Map<string, Promise<void>>();
+const promiseState = new Map<string, () => Promise<void>>();
 const executionResult = new Map<string, any>();
 
 export async function enqueue<F extends DeferableFunction>(
