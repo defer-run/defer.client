@@ -15,6 +15,7 @@
 import {
   CancelExecutionResult,
   EnqueueResult,
+  ExecutionState,
   GetExecutionResult,
   RescheduleExecutionResult,
 } from "../backend.js";
@@ -22,7 +23,7 @@ import { DeferableFunction, DeferredFunction } from "../index.js";
 import { error, info } from "../logger";
 import { randomUUID } from "../utils";
 
-const executionState = new Map<string, string>();
+const executionState = new Map<string, ExecutionState>();
 const promiseState = new Map<string, () => Promise<void>>();
 const executionResult = new Map<string, any>();
 
