@@ -6,6 +6,7 @@ import {
 } from "./constants.js";
 import { APIError, DeferError } from "./errors.js";
 import { HTTPClient, makeHTTPClient } from "./httpClient.js";
+import { debug } from "./logger.js";
 import version from "./version.js";
 import {
   debug,
@@ -98,7 +99,7 @@ async function enqueue<F extends DeferableFunction>(
 ): Promise<client.EnqueueExecutionResponse> {
   const originalFunction = func.__fn;
   const functionArguments = sanitizeFunctionArguments(args);
-  debug(`[defer.run][${originalFunction.name}] invoked.`);
+  debug("function enqueued", { function: originalFunction.name });
 
   const httpClient = getHTTPClient();
   if (httpClient) {
@@ -128,7 +129,7 @@ async function enqueue<F extends DeferableFunction>(
     return client.enqueueExecution(httpClient, request);
   }
 
-  debug(`[defer.run][${originalFunction.name}] defer ignore, no token found.`);
+  debug(`defer ignore, no token found.`, { function: originalFunction.name });
 
   const id = randomUUID();
   __database.set(id, { id: id, state: "started" });

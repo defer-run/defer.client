@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Defer SAS <hello@defer.run>.
+// Copyright (c) 2021-2023 Defer SAS <hello@defer.run>.
 //
 // Permission to use, copy, modify, and/or distribute this software for any
 // purpose with or without fee is hereby granted, provided that the above
@@ -12,7 +12,7 @@
 // OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 // PERFORMANCE OF THIS SOFTWARE.
 
-import { getEnv } from "./utils";
+import { isDebugEnabled } from "./utils";
 
 // source: https://github.com/csquared/node-logfmt/blob/master/lib/stringify.js
 function fmtData(data: any): string {
@@ -54,5 +54,5 @@ export function error(msg: string, data?: any) {
 }
 
 export function debug(msg: string, data?: any) {
-  if (getEnv("DEFER_DEBUG")) log("debug", msg, data);
+  if (isDebugEnabled()) log("debug", msg, data);
 }
