@@ -5,7 +5,7 @@ import {
   __database,
   DeferableFunction,
   LocalManifest,
-} from "./index";
+} from "./index.js";
 import { Queue } from "./queue.js";
 
 type Invocation<F extends DeferableFunction> = {

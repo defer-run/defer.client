@@ -1,4 +1,4 @@
-import { Concurrency } from ".";
+import { Concurrency } from "./index.js";
 
 export class Queue<T> extends Array<T> {
   private running = 0;
