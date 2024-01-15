@@ -6,7 +6,7 @@ import {
 } from "./errors.js";
 import VERSION from "./version.js";
 
-export type HTTPClient = <T>(
+export type HTTPClient = <T = any>(
   method: string,
   path: string,
   body?: string | null
