@@ -4,7 +4,7 @@ import {
   HTTPRequestError,
   errorMessage,
 } from "./errors.js";
-import VERSION from "./version.js";
+import VERSION from "../../version.js";
 
 export type HTTPClient = <T = any>(
   method: string,
