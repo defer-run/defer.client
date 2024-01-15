@@ -60,7 +60,6 @@ export type Concurrency = Range<0, 51>;
 export type NextRouteString = `/api/${string}`;
 
 export interface Manifest {
-  id: string;
   name: string;
   version: number;
   cron?: string;
