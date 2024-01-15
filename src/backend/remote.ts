@@ -79,6 +79,7 @@ export async function enqueue<F extends DeferableFunction>(
     const response = await httpClient("POST", "/public/v1/enqueue", request);
     return {
       id: response.id,
+      state: response.state,
     };
   } catch (e) {
     error("cannot enqueue function is the queue", {
@@ -90,7 +91,11 @@ export async function enqueue<F extends DeferableFunction>(
 
 export async function getExecution(id: string): Promise<GetExecutionResult> {
   const httpClient = newClientFromEnv();
-  return httpClient("GET", `/public/v1/executions/${id}`);
+  const response = await httpClient("GET", `/public/v1/executions/${id}`);
+  return {
+    id: response.id,
+    state: response.state,
+  };
 }
 
 export async function cancelExecution(
@@ -99,7 +104,15 @@ export async function cancelExecution(
 ): Promise<CancelExecutionResult> {
   const httpClient = newClientFromEnv();
   const request = JSON.stringify({ force: force });
-  return httpClient("POST", `/public/v1/executions/${id}/cancel`, request);
+  const response = await httpClient(
+    "POST",
+    `/public/v1/executions/${id}/cancel`,
+    request
+  );
+  return {
+    id: response.id,
+    state: response.state,
+  };
 }
 
 export async function rescheduleExecution(
@@ -108,5 +121,13 @@ export async function rescheduleExecution(
 ): Promise<RescheduleExecutionResult> {
   const httpClient = newClientFromEnv();
   const request = JSON.stringify({ schedule_for: scheduleFor });
-  return httpClient("POST", `/public/v1/executions/${id}/reschedule`, request);
+  const response = await httpClient(
+    "POST",
+    `/public/v1/executions/${id}/reschedule`,
+    request
+  );
+  return {
+    id: response.id,
+    state: response.state,
+  };
 }
