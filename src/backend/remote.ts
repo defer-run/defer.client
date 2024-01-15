@@ -12,13 +12,13 @@
 // OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 // PERFORMANCE OF THIS SOFTWARE.
 
-import { DeferableFunction, DeferredFunction } from "../../index";
-import { debug, error, info } from "../../logger";
+import { DeferableFunction, DeferredFunction } from "../../index.js";
+import { debug, error, info } from "../../logger.js";
 import {
   fromDurationToDate,
   getEnv,
   sanitizeFunctionArguments,
-} from "../../utils";
+} from "../../utils.js";
 import { HTTPClient, makeHTTPClient } from "./httpClient.js";
 
 function newClientFromEnv(): HTTPClient {
@@ -30,7 +30,7 @@ function newClientFromEnv(): HTTPClient {
 
 export async function enqueue<F extends DeferableFunction>(
   func: DeferredFunction<F>,
-  ...args: Parameters<F>
+  args: Parameters<F>
 ): Promise<any> {
   const originalFunction = func.__fn;
 
