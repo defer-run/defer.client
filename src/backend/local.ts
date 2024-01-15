@@ -75,7 +75,7 @@ export async function enqueue<F extends DeferableFunction>(
 
     promiseState.set(executionId, execution);
 
-    return { id: executionId };
+    return { id: executionId, state: "created" };
   }
 }
 
