@@ -5,9 +5,14 @@ import {
   GetExecutionResult,
   RescheduleExecutionResult,
 } from "./backend.js";
+import * as localBackend from "./backend/local.js";
+import * as remoteBackend from "./backend/remote.js";
 import { APIError, DeferError } from "./errors.js";
 import { Duration, fromDurationToDate, getEnv } from "./utils.js";
 import version from "./version.js";
+
+const INTERNAL_VERSION = 6;
+const RETRY_MAX_ATTEMPTS_PLACEHOLDER = 13;
 
 if (getEnv("DEFER_TOKEN") === undefined) {
   console.log(`
@@ -27,9 +32,6 @@ if (getEnv("DEFER_TOKEN") === undefined) {
    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 `);
 }
-
-import * as localBackend from "./backend/local.js";
-import * as remoteBackend from "./backend/remote.js";
 
 let backend: Backend = localBackend;
 if (getEnv("DEFER_TOKEN") !== undefined) backend = remoteBackend;
