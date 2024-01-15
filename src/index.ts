@@ -13,7 +13,7 @@ import {
   randomUUID,
   sanitizeFunctionArguments,
 } from "./utils.js";
-import { execLocally, setupFn } from "./local.js";
+import { execLocally, registerFunction } from "./local.js";
 
 if (getEnv("DEFER_TOKEN") === undefined) {
   console.log(`
@@ -120,13 +120,16 @@ export type Concurrency = Range<0, 51>;
 export type NextRouteString = `/api/${string}`;
 
 export interface Manifest {
-  id: string;
-  name: string;
   version: number;
   cron?: string;
   retry?: RetryPolicy;
   concurrency?: Concurrency | undefined;
   maxDuration?: number | undefined;
+}
+
+export interface LocalManifest {
+  id: string;
+  name: string;
 }
 
 export interface RetryPolicy {
@@ -148,6 +151,7 @@ export interface ExecutionOptions {
 export interface DeferredFunction<F extends DeferableFunction> {
   (...args: Parameters<F>): Promise<client.EnqueueExecutionResponse>;
   __metadata: Manifest;
+  __localMetadata?: LocalManifest;
   __fn: F;
   __execOptions?: ExecutionOptions;
 }
@@ -229,8 +233,6 @@ export function defer<F extends DeferableFunction>(
 
   wrapped.__fn = fn;
   wrapped.__metadata = {
-    id: randomUUID(),
-    name: fn.name,
     version: INTERNAL_VERSION,
     retry: parseRetryPolicy(config),
     concurrency: config?.concurrency,
@@ -238,7 +240,13 @@ export function defer<F extends DeferableFunction>(
     maxConcurrencyAction: config?.maxConcurrencyAction,
   };
 
-  setupFn(wrapped.__metadata);
+  if (!getHTTPClient()) {
+    wrapped.__localMetadata = {
+      id: randomUUID(),
+      name: fn.name,
+    };
+    registerFunction(wrapped);
+  }
 
   return wrapped;
 }
