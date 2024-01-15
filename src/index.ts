@@ -1,6 +1,12 @@
-import { Backend, EnqueueResult } from "./backend.js";
+import {
+  Backend,
+  CancelExecutionResult,
+  EnqueueResult,
+  GetExecutionResult,
+  RescheduleExecutionResult,
+} from "./backend.js";
 import { APIError, DeferError } from "./errors.js";
-import { Duration, getEnv } from "./utils.js";
+import { Duration, fromDurationToDate, getEnv } from "./utils.js";
 import version from "./version.js";
 
 if (getEnv("DEFER_TOKEN") === undefined) {
@@ -295,29 +301,15 @@ export function awaitResult<F extends DeferableFunction>(
   };
 }
 
-export async function getExecution(
-  id: string
-): Promise<client.FetchExecutionResponse> {
-  const httpClient = getHTTPClient();
-  if (httpClient) return client.fetchExecution(httpClient, { id });
-  const response = __database.get(id);
-  if (response)
-    return Promise.resolve({
-      ...response,
-      state: response.state,
-    });
-
-  throw new APIError("execution not found", "not found");
+export async function getExecution(id: string): Promise<GetExecutionResult> {
+  return backend.getExecution(id);
 }
 
 export async function cancelExecution(
   id: string,
   force = false
-): Promise<client.CancelExecutionResponse> {
-  const httpClient = getHTTPClient();
-  if (httpClient) return client.cancelExecution(httpClient, { id, force });
-
-  return {};
+): Promise<CancelExecutionResult> {
+  return backend.cancelExecution(id, force);
 }
 
 export async function getExecutionTries(
@@ -336,20 +328,16 @@ export async function getExecutionTries(
 export async function rescheduleExecution(
   id: string,
   scheduleFor: Duration | Date | undefined
-): Promise<client.RescheduleExecutionResponse> {
-  const request: client.RescheduleExecutionRequest = {
-    id,
-    scheduleFor: new Date(),
-  };
-  if (scheduleFor instanceof Date) {
-    request.scheduleFor = scheduleFor;
+): Promise<RescheduleExecutionResult> {
+  const now = new Date();
+
+  if (scheduleFor === undefined) {
+    scheduleFor = now;
+  } else if (scheduleFor instanceof Date) {
+    scheduleFor = scheduleFor;
   } else if (scheduleFor) {
-    const now = new Date();
-    request.scheduleFor = withDelay(now, scheduleFor);
+    scheduleFor = fromDurationToDate(now, scheduleFor);
   }
 
-  const httpClient = getHTTPClient();
-  if (httpClient) return client.rescheduleExecution(httpClient, request);
-
-  return {};
+  return backend.rescheduleExecution(id, scheduleFor);
 }

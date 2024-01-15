@@ -22,53 +22,53 @@ const promiseState = new Map<string, () => Promise<void>>();
 const executionResult = new Map<string, any>();
 
 export async function enqueue<F extends DeferableFunction>(
-	func: DeferredFunction<F>,
-	args: Parameters<F>
+  func: DeferredFunction<F>,
+  args: Parameters<F>
 ): Promise<EnqueueResult> {
-	{
-		const executionId = randomUUID();
-		executionState.set(executionId, "created");
-		info("execution created", {
-			functionName: func.name,
-			executionId: executionId,
-		});
+  {
+    const executionId = randomUUID();
+    executionState.set(executionId, "created");
+    info("execution created", {
+      functionName: func.name,
+      executionId: executionId,
+    });
 
-		const execution = async () => {
-			info("starting execution", {
-				functionName: func.name,
-				executionId: executionId,
-			});
-			executionState.set(executionId, "started");
-			try {
-				const result = await func(args);
-				executionState.set(executionId, "succeed");
-				executionResult.set(
-					executionId,
-					JSON.parse(JSON.stringify(result || ""))
-				);
-				info("execution succeeded", {
-					functionName: func.name,
-					executionId: executionId,
-				});
-			} catch (err) {
-				const e: Error = err as Error;
-				executionState.set(executionId, "failed");
-				executionResult.set(executionId, {
-					name: e.name,
-					message: e.message,
-					cause: e.cause,
-					stack: e.stack,
-				});
-				error("execution failed", {
-					functionName: func.name,
-					executionId: executionId,
-				});
-				throw err;
-			}
-		};
+    const execution = async () => {
+      info("starting execution", {
+        functionName: func.name,
+        executionId: executionId,
+      });
+      executionState.set(executionId, "started");
+      try {
+        const result = await func(args);
+        executionState.set(executionId, "succeed");
+        executionResult.set(
+          executionId,
+          JSON.parse(JSON.stringify(result || ""))
+        );
+        info("execution succeeded", {
+          functionName: func.name,
+          executionId: executionId,
+        });
+      } catch (err) {
+        const e: Error = err as Error;
+        executionState.set(executionId, "failed");
+        executionResult.set(executionId, {
+          name: e.name,
+          message: e.message,
+          cause: e.cause,
+          stack: e.stack,
+        });
+        error("execution failed", {
+          functionName: func.name,
+          executionId: executionId,
+        });
+        throw err;
+      }
+    };
 
-		promiseState.set(executionId, execution);
+    promiseState.set(executionId, execution);
 
-		return { id: executionId };
-	}
+    return { id: executionId };
+  }
 }

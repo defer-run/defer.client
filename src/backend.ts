@@ -18,9 +18,27 @@ export interface EnqueueResult {
   id: string;
 }
 
+export interface GetExecutionResult {
+  id: string;
+}
+
+export interface CancelExecutionResult {
+  id: string;
+}
+
+export interface RescheduleExecutionResult {
+  id: string;
+}
+
 export interface Backend {
   enqueue<F extends DeferableFunction>(
     func: DeferredFunction<F>,
     args: Parameters<F>
   ): Promise<EnqueueResult>;
+  getExecution(id: string): Promise<GetExecutionResult>;
+  cancelExecution(id: string, force: boolean): Promise<CancelExecutionResult>;
+  rescheduleExecution(
+    id: string,
+    scheduleFor: Duration | Date | undefined
+  ): Promise<RescheduleExecutionResult>;
 }
