@@ -14,9 +14,13 @@
 
 import { DeferableFunction, DeferredFunction } from "../index.js";
 
+export interface EnqueueResult {
+  id: string;
+}
+
 export interface Backend {
   enqueue<F extends DeferableFunction>(
     func: DeferredFunction<F>,
     args: Parameters<F>
-  ): Promise<any>;
+  ): Promise<EnqueueResult>;
 }
