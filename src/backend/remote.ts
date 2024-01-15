@@ -12,10 +12,16 @@
 // OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 // PERFORMANCE OF THIS SOFTWARE.
 
-import { EnqueueResult } from "../backend.js";
+import {
+  CancelExecutionResult,
+  EnqueueResult,
+  GetExecutionResult,
+  RescheduleExecutionResult,
+} from "../backend.js";
 import { DeferableFunction, DeferredFunction } from "../index.js";
 import { debug, error, info } from "../logger.js";
 import {
+  Duration,
   fromDurationToDate,
   getEnv,
   sanitizeFunctionArguments,
@@ -80,4 +86,27 @@ export async function enqueue<F extends DeferableFunction>(
     });
     throw e;
   }
+}
+
+export async function getExecution(id: string): Promise<GetExecutionResult> {
+  const httpClient = newClientFromEnv();
+  return httpClient("GET", `/public/v1/executions/${id}`);
+}
+
+export async function cancelExecution(
+  id: string,
+  force: boolean
+): Promise<CancelExecutionResult> {
+  const httpClient = newClientFromEnv();
+  const request = JSON.stringify({ force: force });
+  return httpClient("POST", `/public/v1/executions/${id}/cancel`, request);
+}
+
+export async function rescheduleExecution(
+  id: string,
+  scheduleFor: Duration | Date | undefined
+): Promise<RescheduleExecutionResult> {
+  const httpClient = newClientFromEnv();
+  const request = JSON.stringify({ schedule_for: scheduleFor });
+  return httpClient("POST", `/public/v1/executions/${id}/reschedule`, request);
 }
