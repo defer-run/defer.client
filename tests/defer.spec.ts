@@ -26,8 +26,8 @@ describe("defer()", () => {
 
   describe("when Defer is active (`DEFER_TOKEN` is set)", () => {
     describe("with successful API responses", () => {
-      beforeAll(() => {
-        jest.mocked(makeHTTPClient).mockImplementationOnce(() => {
+      beforeEach(() => {
+        jest.mocked(makeHTTPClient).mockImplementation(() => {
           return async <T>(
             _method: string,
             _path: string,
@@ -58,8 +58,8 @@ describe("defer()", () => {
     });
 
     describe("with error API responses", () => {
-      beforeAll(() => {
-        jest.mocked(makeHTTPClient).mockImplementationOnce(() => {
+      beforeEach(() => {
+        jest.mocked(makeHTTPClient).mockImplementation(() => {
           return async <T>(
             _method: string,
             _path: string,

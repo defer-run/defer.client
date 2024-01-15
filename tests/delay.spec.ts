@@ -9,10 +9,10 @@ describe("delay()", () => {
       let httpClient: HTTPClient | undefined;
 
       beforeAll(() => {
-        httpClient = jest.fn().mockImplementationOnce(async () => {
+        httpClient = jest.fn().mockImplementation(async () => {
           return { id: "1" } as any;
         });
-        jest.mocked(makeHTTPClient).mockImplementationOnce(() => httpClient!);
+        jest.mocked(makeHTTPClient).mockImplementation(() => httpClient!);
         process.env["DEFER_TOKEN"] = "test";
       });
 
