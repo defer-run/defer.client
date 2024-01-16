@@ -29,7 +29,6 @@ import { randomUUID } from "../utils";
 const executionState = new Map<string, ExecutionState>();
 const promiseState = new Map<string, () => Promise<void>>();
 const executionResult = new Map<string, any>();
-const lock = new Lock();
 
 export async function enqueue<F extends DeferableFunction>(
   func: DeferredFunction<F>,
