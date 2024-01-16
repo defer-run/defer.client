@@ -13,6 +13,12 @@
 // PERFORMANCE OF THIS SOFTWARE.
 
 class Locker {
+  // NOTE: This is a very basic implementation of a lock. If needed
+  // in the future, we will have to implement a different approach
+  // to wait for read and write, and allow a timeout while trying to
+  // acquire the lock. However, for development purposes, this
+  // version should be sufficient.
+
   private _locked: boolean;
   private _waiting: Array<(unlock: () => void) => void>;
 
