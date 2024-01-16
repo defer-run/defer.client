@@ -43,14 +43,14 @@ export async function enqueue<F extends DeferableFunction>(
   try {
     executionState.set(executionId, "created");
     info("execution created", {
-      functionName: func.name,
-      executionId: executionId,
+      function: func.name,
+      execution: executionId,
     });
 
     const execution = async () => {
       info("starting execution", {
-        functionName: func.name,
-        executionId: executionId,
+        function: func.name,
+        execution: executionId,
       });
       executionState.set(executionId, "started");
       try {
@@ -61,8 +61,8 @@ export async function enqueue<F extends DeferableFunction>(
           JSON.parse(JSON.stringify(result || ""))
         );
         info("execution succeeded", {
-          functionName: func.name,
-          executionId: executionId,
+          function: func.name,
+          execution: executionId,
         });
       } catch (err) {
         const e: Error = err as Error;
@@ -74,8 +74,8 @@ export async function enqueue<F extends DeferableFunction>(
           stack: e.stack,
         });
         error("execution failed", {
-          functionName: func.name,
-          executionId: executionId,
+          function: func.name,
+          execution: executionId,
         });
         throw err;
       }
