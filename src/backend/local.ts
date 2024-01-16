@@ -15,6 +15,9 @@
 import {
   CancelExecutionResult,
   EnqueueResult,
+  ExecutionAbortingAlreadyInProgress,
+  ExecutionNotCancellable,
+  ExecutionNotFound,
   ExecutionState,
   GetExecutionResult,
   RescheduleExecutionResult,
@@ -26,6 +29,7 @@ import { randomUUID } from "../utils";
 const executionState = new Map<string, ExecutionState>();
 const promiseState = new Map<string, () => Promise<void>>();
 const executionResult = new Map<string, any>();
+const lock = new Lock();
 
 export async function enqueue<F extends DeferableFunction>(
   func: DeferredFunction<F>,
@@ -79,12 +83,47 @@ export async function enqueue<F extends DeferableFunction>(
   }
 }
 
-export async function getExecution(id: string): Promise<GetExecutionResult> {}
+export async function getExecution(id: string): Promise<GetExecutionResult> {
+  const state = executionState.get(id);
+
+  if (state === undefined) throw new ExecutionNotFound(id);
+
+  return { id, state };
+}
 
 export async function cancelExecution(
   id: string,
   force: boolean
-): Promise<CancelExecutionResult> {}
+): Promise<CancelExecutionResult> {
+  const state = executionState.get(id);
+
+  if (state === undefined) throw new ExecutionNotFound(id);
+
+  if (force) {
+    switch (state) {
+      case "aborting":
+        throw new ExecutionAbortingAlreadyInProgress();
+      case "created":
+        executionState.set(id, "cancelled");
+        break;
+      case "started":
+        executionState.set(id, "aborting");
+        break;
+      default:
+        throw new ExecutionNotCancellable(state);
+    }
+  } else {
+    switch (state) {
+      case "created":
+        executionState.set(id, "cancelled");
+        break;
+      default:
+        throw new ExecutionNotCancellable(state);
+    }
+  }
+
+  return { id, state };
+}
 
 export async function rescheduleExecution(
   id: string,

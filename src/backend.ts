@@ -45,6 +45,46 @@ export interface RescheduleExecutionResult {
   state: ExecutionState;
 }
 
+export const errorMessage = (error: Error) => {
+  let message = error.message;
+
+  if (error.cause instanceof Error) {
+    message = `${message}: ${errorMessage(error.cause)}`;
+  } else {
+    message = `${message}: ${String(error.cause)}`;
+  }
+
+  return message;
+};
+
+export class DeferError extends Error {
+  constructor(msg: string) {
+    super(msg);
+    Object.setPrototypeOf(this, DeferError.prototype);
+  }
+}
+
+export class ExecutionNotFound extends DeferError {
+  constructor(id: string) {
+    super(`cannot find execution "${id}"`);
+    Object.setPrototypeOf(this, ExecutionNotFound.prototype);
+  }
+}
+
+export class ExecutionNotCancellable extends DeferError {
+  constructor(state: string) {
+    super(`cannot cancel execution in "${state}" state`);
+    Object.setPrototypeOf(this, ExecutionNotCancellable.prototype);
+  }
+}
+
+export class ExecutionAbortingAlreadyInProgress extends DeferError {
+  constructor() {
+    super("aborting execution already in progress");
+    Object.setPrototypeOf(this, ExecutionAbortingAlreadyInProgress.prototype);
+  }
+}
+
 export interface Backend {
   enqueue<F extends DeferableFunction>(
     func: DeferredFunction<F>,
