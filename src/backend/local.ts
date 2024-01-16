@@ -70,6 +70,8 @@ export async function enqueue<F extends DeferableFunction>(
   return {
     id: execution.id,
     state: execution.state,
+    createdAt: execution.createdAt,
+    updatedAt: execution.updatedAt,
   };
 }
 
@@ -80,7 +82,12 @@ export async function getExecution(id: string): Promise<GetExecutionResult> {
   const unlock = await mut.lock();
   try {
     const execution = executionState.get(id) as Execution;
-    return { id, state: execution.state };
+    return {
+      id,
+      state: execution.state,
+      createdAt: execution.createdAt,
+      updatedAt: execution.updatedAt,
+    };
   } finally {
     unlock();
   }
@@ -122,7 +129,12 @@ export async function cancelExecution(
 
     executionState.set(execution.id, execution);
 
-    return { id, state: execution.state };
+    return {
+      id,
+      state: execution.state,
+      createdAt: execution.createdAt,
+      updatedAt: execution.updatedAt,
+    };
   } finally {
     unlock();
   }
@@ -153,6 +165,8 @@ export async function rescheduleExecution(
     return {
       id,
       state: execution.state,
+      createdAt: execution.createdAt,
+      updatedAt: execution.updatedAt,
     };
   } finally {
     unlock();

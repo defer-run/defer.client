@@ -28,21 +28,29 @@ export type ExecutionState =
 export interface EnqueueResult {
   id: string;
   state: ExecutionState;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface GetExecutionResult {
   id: string;
   state: ExecutionState;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface CancelExecutionResult {
   id: string;
   state: ExecutionState;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface RescheduleExecutionResult {
   id: string;
   state: ExecutionState;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export const errorMessage = (error: Error) => {
