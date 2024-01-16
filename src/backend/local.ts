@@ -144,10 +144,13 @@ export async function rescheduleExecution(
   id: string,
   scheduleFor: Duration | Date | undefined
 ): Promise<RescheduleExecutionResult> {
-  if (scheduleFor instanceof Date) scheduleFor = scheduleFor;
-  else if (scheduleFor)
+  if (scheduleFor instanceof Date) {
+    scheduleFor = scheduleFor;
+  } else if (scheduleFor) {
     scheduleFor = fromDurationToDate(new Date(), scheduleFor);
-  else scheduleFor = new Date();
+  } else {
+    scheduleFor = new Date();
+  }
 
   const mut = stateLock.get(id);
   if (mut === undefined) throw new ExecutionNotFound(id);
