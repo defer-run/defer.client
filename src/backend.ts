@@ -85,6 +85,13 @@ export class ExecutionAbortingAlreadyInProgress extends DeferError {
   }
 }
 
+export class ExecutionNotReschedulable extends DeferError {
+  constructor(state: string) {
+    super(`cannot resechedule execution in "${state}" state`);
+    Object.setPrototypeOf(this, ExecutionNotReschedulable.prototype);
+  }
+}
+
 export interface Backend {
   enqueue<F extends DeferableFunction>(
     func: DeferredFunction<F>,

@@ -18,86 +18,74 @@ import {
   ExecutionAbortingAlreadyInProgress,
   ExecutionNotCancellable,
   ExecutionNotFound,
+  ExecutionNotReschedulable,
   ExecutionState,
   GetExecutionResult,
   RescheduleExecutionResult,
 } from "../backend.js";
 import { DeferableFunction, DeferredFunction } from "../index.js";
-import { error, info } from "../logger";
-import { randomUUID } from "../utils";
+import { debug, info } from "../logger";
+import {
+  Duration,
+  fromDurationToDate,
+  randomUUID,
+  sanitizeFunctionArguments,
+} from "../utils";
 
-const executionState = new Map<string, ExecutionState>();
-const promiseState = new Map<string, () => Promise<void>>();
-const executionResult = new Map<string, any>();
-const executionLock = new Map<string, Locker>();
+interface Execution {
+  id: string;
+  args: string;
+  state: ExecutionState;
+  result?: string;
+  scheduleFor: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const stateLock = new Map<string, Locker>();
+const executionState = new Map<string, Execution>();
+
+// const executionState = new Map<string, ExecutionState>();
+// const promiseState = new Map<string, () => Promise<void>>();
+// const executionResult = new Map<string, any>();
+// const executionLock = new Map<string, Locker>();
 
 export async function enqueue<F extends DeferableFunction>(
   func: DeferredFunction<F>,
   args: Parameters<F>
 ): Promise<EnqueueResult> {
-  const executionId = randomUUID();
+  debug("serializing function arguments", { function: func.name });
+  const functionArguments = sanitizeFunctionArguments(args);
+
   const mut = new Locker();
+  const now = new Date();
+  const execution: Execution = {
+    id: randomUUID(),
+    state: "created",
+    args: functionArguments,
+    scheduleFor: now,
+    createdAt: now,
+    updatedAt: now,
+  };
 
-  executionLock.set(executionId, mut);
-  const unlock = await mut.lock();
-  try {
-    executionState.set(executionId, "created");
-    info("execution created", {
-      function: func.name,
-      execution: executionId,
-    });
+  stateLock.set(execution.id, mut);
+  executionState.set(execution.id, execution);
+  info("execution created", { function: func.name, execution: execution.id });
 
-    const execution = async () => {
-      info("starting execution", {
-        function: func.name,
-        execution: executionId,
-      });
-      executionState.set(executionId, "started");
-      try {
-        const result = await func(...args);
-        executionState.set(executionId, "succeed");
-        executionResult.set(
-          executionId,
-          JSON.parse(JSON.stringify(result || ""))
-        );
-        info("execution succeeded", {
-          function: func.name,
-          execution: executionId,
-        });
-      } catch (err) {
-        const e: Error = err as Error;
-        executionState.set(executionId, "failed");
-        executionResult.set(executionId, {
-          name: e.name,
-          message: e.message,
-          cause: e.cause,
-          stack: e.stack,
-        });
-        error("execution failed", {
-          function: func.name,
-          execution: executionId,
-        });
-        throw err;
-      }
-    };
-
-    promiseState.set(executionId, execution);
-
-    return { id: executionId, state: "created" };
-  } finally {
-    unlock();
-  }
+  return {
+    id: execution.id,
+    state: execution.state,
+  };
 }
 
 export async function getExecution(id: string): Promise<GetExecutionResult> {
-  const mut = executionLock.get(id);
+  const mut = stateLock.get(id);
   if (mut === undefined) throw new ExecutionNotFound(id);
 
   const unlock = await mut.lock();
-
   try {
-    const state = executionState.get(id) as ExecutionState;
-    return { id, state };
+    const execution = executionState.get(id) as Execution;
+    return { id, state: execution.state };
   } finally {
     unlock();
   }
@@ -107,37 +95,39 @@ export async function cancelExecution(
   id: string,
   force: boolean
 ): Promise<CancelExecutionResult> {
-  const mut = executionLock.get(id);
+  const mut = stateLock.get(id);
   if (mut === undefined) throw new ExecutionNotFound(id);
 
   const unlock = await mut.lock();
   try {
-    const state = executionState.get(id) as ExecutionState;
+    const execution = executionState.get(id) as Execution;
 
     if (force) {
-      switch (state) {
+      switch (execution.state) {
         case "aborting":
           throw new ExecutionAbortingAlreadyInProgress();
         case "created":
-          executionState.set(id, "cancelled");
+          execution.state = "cancelled";
           break;
         case "started":
-          executionState.set(id, "aborting");
+          execution.state = "aborting";
           break;
         default:
-          throw new ExecutionNotCancellable(state);
+          throw new ExecutionNotCancellable(execution.state);
       }
     } else {
-      switch (state) {
+      switch (execution.state) {
         case "created":
-          executionState.set(id, "cancelled");
+          execution.state = "cancelled";
           break;
         default:
-          throw new ExecutionNotCancellable(state);
+          throw new ExecutionNotCancellable(execution.state);
       }
     }
 
-    return { id, state };
+    executionState.set(execution.id, execution);
+
+    return { id, state: execution.state };
   } finally {
     unlock();
   }
@@ -146,4 +136,30 @@ export async function cancelExecution(
 export async function rescheduleExecution(
   id: string,
   scheduleFor: Duration | Date | undefined
-): Promise<RescheduleExecutionResult> {}
+): Promise<RescheduleExecutionResult> {
+  if (scheduleFor instanceof Date) scheduleFor = scheduleFor;
+  else if (scheduleFor)
+    scheduleFor = fromDurationToDate(new Date(), scheduleFor);
+  else scheduleFor = new Date();
+
+  const mut = stateLock.get(id);
+  if (mut === undefined) throw new ExecutionNotFound(id);
+
+  const unlock = await mut.lock();
+  try {
+    const execution = executionState.get(id) as Execution;
+
+    if (execution.state !== "created")
+      throw new ExecutionNotReschedulable(execution.state);
+
+    execution.scheduleFor = new Date();
+    executionState.set(execution.id, execution);
+
+    return {
+      id,
+      state: execution.state,
+    };
+  } finally {
+    unlock();
+  }
+}
