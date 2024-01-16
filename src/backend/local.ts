@@ -24,7 +24,7 @@ import {
   RescheduleExecutionResult,
 } from "../backend.js";
 import { DeferableFunction, DeferredFunction } from "../index.js";
-import { debug, info } from "../logger";
+import { debug } from "../logger";
 import {
   Duration,
   fromDurationToDate,
@@ -35,6 +35,7 @@ import {
 interface Execution {
   id: string;
   args: string;
+  func: DeferableFunction;
   state: ExecutionState;
   result?: string;
   scheduleFor: Date;
@@ -57,6 +58,7 @@ export async function enqueue<F extends DeferableFunction>(
   const execution: Execution = {
     id: randomUUID(),
     state: "created",
+    func: func,
     args: functionArguments,
     scheduleFor: now,
     createdAt: now,
@@ -65,7 +67,6 @@ export async function enqueue<F extends DeferableFunction>(
 
   stateLock.set(execution.id, mut);
   executionState.set(execution.id, execution);
-  info("execution created", { function: func.name, execution: execution.id });
 
   return {
     id: execution.id,
