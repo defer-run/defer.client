@@ -90,45 +90,57 @@ export async function enqueue<F extends DeferableFunction>(
 }
 
 export async function getExecution(id: string): Promise<GetExecutionResult> {
-  const state = executionState.get(id);
+  const mut = executionLock.get(id);
+  if (mut === undefined) throw new ExecutionNotFound(id);
 
-  if (state === undefined) throw new ExecutionNotFound(id);
+  const unlock = await mut.lock();
 
-  return { id, state };
+  try {
+    const state = executionState.get(id) as ExecutionState;
+    return { id, state };
+  } finally {
+    unlock();
+  }
 }
 
 export async function cancelExecution(
   id: string,
   force: boolean
 ): Promise<CancelExecutionResult> {
-  const state = executionState.get(id);
+  const mut = executionLock.get(id);
+  if (mut === undefined) throw new ExecutionNotFound(id);
 
-  if (state === undefined) throw new ExecutionNotFound(id);
+  const unlock = await mut.lock();
+  try {
+    const state = executionState.get(id) as ExecutionState;
 
-  if (force) {
-    switch (state) {
-      case "aborting":
-        throw new ExecutionAbortingAlreadyInProgress();
-      case "created":
-        executionState.set(id, "cancelled");
-        break;
-      case "started":
-        executionState.set(id, "aborting");
-        break;
-      default:
-        throw new ExecutionNotCancellable(state);
+    if (force) {
+      switch (state) {
+        case "aborting":
+          throw new ExecutionAbortingAlreadyInProgress();
+        case "created":
+          executionState.set(id, "cancelled");
+          break;
+        case "started":
+          executionState.set(id, "aborting");
+          break;
+        default:
+          throw new ExecutionNotCancellable(state);
+      }
+    } else {
+      switch (state) {
+        case "created":
+          executionState.set(id, "cancelled");
+          break;
+        default:
+          throw new ExecutionNotCancellable(state);
+      }
     }
-  } else {
-    switch (state) {
-      case "created":
-        executionState.set(id, "cancelled");
-        break;
-      default:
-        throw new ExecutionNotCancellable(state);
-    }
+
+    return { id, state };
+  } finally {
+    unlock();
   }
-
-  return { id, state };
 }
 
 export async function rescheduleExecution(
