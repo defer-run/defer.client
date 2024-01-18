@@ -208,7 +208,7 @@ defer.cron = function (
  * Delay an execution
  * @param fn Duration
  * @param delay Duration | Date
- * @deprecated Prefer `assignOptions()` (https://docs.defer.run/references/defer-client/assign-options)
+ * @deprecated Prefer `assignOptions()` (https://www.defer.run/docs/references/defer-client/assign-options)
  * @returns
  */
 export function delay<F extends DeferableFunction>(
@@ -222,7 +222,7 @@ export function delay<F extends DeferableFunction>(
  * Add metadata to an execution
  * @param fn Duration
  * @param metadata Object
- * @deprecated Prefer `assignOptions()` (https://docs.defer.run/references/defer-client/assign-options)
+ * @deprecated Prefer `assignOptions()` (https://www.defer.run/docs/references/defer-client/assign-options)
  * @returns
  */
 export function addMetadata<F extends DeferableFunction>(
@@ -236,7 +236,7 @@ export function addMetadata<F extends DeferableFunction>(
  * Discard an execution if not started after a given interval
  * @param fn Duration
  * @param value Duration | Date
- * @deprecated Prefer `assignOptions()` (https://docs.defer.run/references/defer-client/assign-options)
+ * @deprecated Prefer `assignOptions()` (https://www.defer.run/docs/references/defer-client/assign-options)
  * @returns
  */
 export function discardAfter<F extends DeferableFunction>(
