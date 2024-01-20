@@ -46,6 +46,7 @@ interface Execution {
 
 const stateLock = new Map<string, Locker>();
 const executionState = new Map<string, Execution>();
+const functionIdMapping = new Map<string, string>();
 
 export async function enqueue<F extends DeferableFunction>(
   func: DeferredFunction<F>,
@@ -54,11 +55,18 @@ export async function enqueue<F extends DeferableFunction>(
   debug("serializing function arguments", { function: func.name });
   const functionArguments = sanitizeFunctionArguments(args);
 
+  let functionId = functionIdMapping.get(func.name);
+  if (functionId === undefined) {
+    functionId = randomUUID();
+    functionIdMapping.set(func.name, functionId);
+  }
+
   const mut = new Locker();
   const now = new Date();
   const execution: Execution = {
     id: randomUUID(),
     state: "created",
+    functionId: functionId,
     func: func,
     args: functionArguments,
     scheduleFor: now,
@@ -72,6 +80,8 @@ export async function enqueue<F extends DeferableFunction>(
   return {
     id: execution.id,
     state: execution.state,
+    functionName: execution.func.name,
+    functionId: execution.functionId,
     createdAt: execution.createdAt,
     updatedAt: execution.updatedAt,
   };
@@ -87,6 +97,8 @@ export async function getExecution(id: string): Promise<GetExecutionResult> {
     return {
       id,
       state: execution.state,
+      functionName: execution.func.name,
+      functionId: execution.functionId,
       createdAt: execution.createdAt,
       updatedAt: execution.updatedAt,
     };
@@ -134,6 +146,8 @@ export async function cancelExecution(
     return {
       id,
       state: execution.state,
+      functionName: execution.func.name,
+      functionId: execution.functionId,
       createdAt: execution.createdAt,
       updatedAt: execution.updatedAt,
     };
@@ -170,6 +184,8 @@ export async function rescheduleExecution(
     return {
       id,
       state: execution.state,
+      functionName: execution.func.name,
+      functionId: execution.functionId,
       createdAt: execution.createdAt,
       updatedAt: execution.updatedAt,
     };
