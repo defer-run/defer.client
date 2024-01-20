@@ -80,6 +80,10 @@ export async function enqueue<F extends DeferableFunction>(
     return {
       id: response.id,
       state: response.state,
+      functionName: response.function_name,
+      functionId: response.function_id,
+      updatedAt: response.updated_at,
+      createdAt: response.created_at,
     };
   } catch (e) {
     error("cannot enqueue function is the queue", {
@@ -95,6 +99,10 @@ export async function getExecution(id: string): Promise<GetExecutionResult> {
   return {
     id: response.id,
     state: response.state,
+    functionName: response.function_name,
+    functionId: response.function_id,
+    updatedAt: response.updated_at,
+    createdAt: response.created_at,
   };
 }
 
@@ -112,6 +120,10 @@ export async function cancelExecution(
   return {
     id: response.id,
     state: response.state,
+    functionName: response.function_name,
+    functionId: response.function_id,
+    updatedAt: response.updated_at,
+    createdAt: response.created_at,
   };
 }
 
@@ -129,5 +141,9 @@ export async function rescheduleExecution(
   return {
     id: response.id,
     state: response.state,
+    functionName: response.function_name,
+    functionId: response.function_id,
+    updatedAt: response.updated_at,
+    createdAt: response.created_at,
   };
 }
