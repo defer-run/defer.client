@@ -28,6 +28,8 @@ export type ExecutionState =
 export interface EnqueueResult {
   id: string;
   state: ExecutionState;
+  functionName: string;
+  functionId: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -35,6 +37,8 @@ export interface EnqueueResult {
 export interface GetExecutionResult {
   id: string;
   state: ExecutionState;
+  functionName: string;
+  functionId: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -42,6 +46,8 @@ export interface GetExecutionResult {
 export interface CancelExecutionResult {
   id: string;
   state: ExecutionState;
+  functionName: string;
+  functionId: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -49,6 +55,8 @@ export interface CancelExecutionResult {
 export interface RescheduleExecutionResult {
   id: string;
   state: ExecutionState;
+  functionName: string;
+  functionId: string;
   createdAt: Date;
   updatedAt: Date;
 }

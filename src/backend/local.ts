@@ -36,6 +36,7 @@ interface Execution {
   id: string;
   args: string;
   func: DeferableFunction;
+  functionId: string;
   state: ExecutionState;
   result?: string;
   scheduleFor: Date;
