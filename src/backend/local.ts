@@ -50,6 +50,7 @@ interface Execution {
 const stateLock = new Map<string, Locker>();
 const executionState = new Map<string, Execution>();
 const functionIdMapping = new Map<string, string>();
+const promisesState = new Set<Promise<void>>();
 
 const banner = `
    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -137,12 +138,13 @@ async function loop(shouldRun: () => boolean): Promise<void> {
         unlock();
       }
 
-      // TODO track promise ref
-      perform();
+      promisesState.add(perform());
     }
 
     await sleep(10);
   }
+
+  await Promise.allSettled(promisesState.entries());
 }
 
 export async function enqueue<F extends DeferableFunction>(
