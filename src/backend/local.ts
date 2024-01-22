@@ -37,7 +37,7 @@ import { Locker } from "./local/locker.js";
 
 interface Execution {
   id: string;
-  args: string;
+  args: any;
   func: DeferableFunction;
   functionId: string;
   state: ExecutionState;
@@ -90,6 +90,8 @@ async function loop(shouldRun: () => boolean): Promise<void> {
   while (shouldRun()) {
     const now = new Date();
     for (const executionId of executionState.keys()) {
+      let perform: () => Promise<void>;
+
       const mut = stateLock.get(executionId) as Locker;
 
       const unlock = await mut.lock();
@@ -102,10 +104,41 @@ async function loop(shouldRun: () => boolean): Promise<void> {
 
         execution.state = "started";
         executionState.set(executionId, execution);
+
+        const func = execution.func as DeferredFunction<typeof execution.func>;
+        const args = execution.args;
+        // const concurrency = func.__metadata.concurrency
+
         console.log(execution);
+
+        perform = async () => {
+          let result: any;
+          let state: ExecutionState;
+
+          try {
+            result = await func.__fn(...args);
+            state = "succeed";
+          } catch (e) {
+            state = "failed";
+          }
+
+          const mut = stateLock.get(executionId) as Locker;
+          const unlock = await mut.lock();
+          try {
+            const execution = executionState.get(executionId) as Execution;
+            execution.state = state;
+            execution.result = JSON.stringify(result);
+            executionState.set(executionId, execution);
+          } finally {
+            unlock();
+          }
+        };
       } finally {
         unlock();
       }
+
+      // TODO track promise ref
+      perform();
     }
 
     await sleep(10);
