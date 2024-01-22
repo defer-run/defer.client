@@ -50,8 +50,20 @@ const stateLock = new Map<string, Locker>();
 const executionState = new Map<string, Execution>();
 const functionIdMapping = new Map<string, string>();
 
-export async function start() {
-  while (true) {
+export function start(): () => Promise<void> {
+  let runCond = true;
+  const getRunCond = (): boolean => runCond;
+
+  let ref = loop(getRunCond);
+
+  return async function () {
+    runCond = false;
+    await ref;
+  };
+}
+
+async function loop(shouldRun: () => boolean): Promise<void> {
+  while (shouldRun()) {
     const now = new Date();
     for (const executionId of executionState.keys()) {
       const mut = stateLock.get(executionId) as Locker;
@@ -59,15 +71,14 @@ export async function start() {
       const unlock = await mut.lock();
       try {
         const execution = executionState.get(executionId) as Execution;
-        if (execution.state !== "created") {
-          continue;
-        }
+        const shouldRun =
+          execution.state === "created" && execution.createdAt < now;
 
-        if (execution.createdAt < now) {
-          execution.state = "started";
-          executionState.set(executionId, execution);
-          console.log(execution);
-        }
+        if (!shouldRun) continue;
+
+        execution.state = "started";
+        executionState.set(executionId, execution);
+        console.log(execution);
       } finally {
         unlock();
       }
