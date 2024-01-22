@@ -23,7 +23,11 @@ import {
   GetExecutionResult,
   RescheduleExecutionResult,
 } from "../backend.js";
-import { DeferableFunction, DeferredFunction } from "../index.js";
+import {
+  DeferableFunction,
+  DeferredFunction,
+  ExecutionMetadata,
+} from "../index.js";
 import { debug, info } from "../logger.js";
 import {
   Duration,
@@ -43,6 +47,7 @@ interface Execution {
   state: ExecutionState;
   result?: string;
   scheduleFor: Date;
+  metadata: ExecutionMetadata;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -113,6 +118,8 @@ async function loop(shouldRun: () => boolean): Promise<void> {
         execution.state = "started";
         executionState.set(executionId, execution);
 
+        func.__execOptions?.metadata;
+
         perform = async () => {
           let result: any;
           let state: ExecutionState;
@@ -169,6 +176,7 @@ export async function enqueue<F extends DeferableFunction>(
     functionId: functionId,
     func: func,
     args: functionArguments,
+    metadata: func.__execOptions?.metadata || {},
     scheduleFor: now,
     createdAt: now,
     updatedAt: now,
