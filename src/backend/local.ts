@@ -110,8 +110,6 @@ async function loop(shouldRun: () => boolean): Promise<void> {
         const args = execution.args;
         // const concurrency = func.__metadata.concurrency
 
-        console.log(execution);
-
         perform = async () => {
           let result: any;
           let state: ExecutionState;
