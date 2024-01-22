@@ -14,27 +14,11 @@ import version from "./version.js";
 const INTERNAL_VERSION = 6;
 const RETRY_MAX_ATTEMPTS_PLACEHOLDER = 13;
 
+let backend: Backend = remoteBackend;
 if (getEnv("DEFER_TOKEN") === undefined) {
-  console.log(`
-   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@         Defer ${version}
-   @@@@       @@@     @@@@     @@@@         Running in development mode
-   @@@@       @@@     @@@@     @@@@
-   @@@@       @@@     @@@@     @@@@
-   @@@@@@@@@@@@@@     @@@@     @@@@
-   @@@@               @@@@     @@@@         Website: https://www.defer.run
-   @@@@               @@@@     @@@@         Documentation: https://defer.run/docs
-   @@@@@@@@@@@@@@@@@@@@@@@     @@@@
-   @@@@@@@@@@@@@@@@@@@@@@@     @@@@
-   @@@@                        @@@@
-   @@@@                        @@@@
-   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-`);
+  backend = localBackend;
+  localBackend.start();
 }
-
-let backend: Backend = localBackend;
-if (getEnv("DEFER_TOKEN") !== undefined) backend = remoteBackend;
 
 export const deferEnabled = () => !!getEnv("DEFER_TOKEN");
 

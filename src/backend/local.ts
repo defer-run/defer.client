@@ -32,6 +32,7 @@ import {
   sanitizeFunctionArguments,
   sleep,
 } from "../utils.js";
+import version from "../version.js";
 import { Locker } from "./local/locker.js";
 
 interface Execution {
@@ -50,7 +51,26 @@ const stateLock = new Map<string, Locker>();
 const executionState = new Map<string, Execution>();
 const functionIdMapping = new Map<string, string>();
 
+const banner = `
+   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@         Defer ${version}
+   @@@@       @@@     @@@@     @@@@         Running in development mode
+   @@@@       @@@     @@@@     @@@@
+   @@@@       @@@     @@@@     @@@@
+   @@@@@@@@@@@@@@     @@@@     @@@@
+   @@@@               @@@@     @@@@         Website: https://www.defer.run
+   @@@@               @@@@     @@@@         Documentation: https://defer.run/docs
+   @@@@@@@@@@@@@@@@@@@@@@@     @@@@
+   @@@@@@@@@@@@@@@@@@@@@@@     @@@@
+   @@@@                        @@@@
+   @@@@                        @@@@
+   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+`;
+
 export function start(): () => Promise<void> {
+  console.log(banner);
+
   let runCond = true;
   const getRunCond = (): boolean => runCond;
 
