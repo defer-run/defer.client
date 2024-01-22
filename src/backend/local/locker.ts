@@ -12,7 +12,7 @@
 // OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 // PERFORMANCE OF THIS SOFTWARE.
 
-class Locker {
+export class Locker {
   // NOTE: This is a very basic implementation of a lock. If needed
   // in the future, we will have to implement a different approach
   // to wait for read and write, and allow a timeout while trying to
