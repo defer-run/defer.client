@@ -30,6 +30,7 @@ import {
   fromDurationToDate,
   randomUUID,
   sanitizeFunctionArguments,
+  sleep,
 } from "../utils.js";
 import { Locker } from "./local/locker.js";
 
@@ -48,6 +49,33 @@ interface Execution {
 const stateLock = new Map<string, Locker>();
 const executionState = new Map<string, Execution>();
 const functionIdMapping = new Map<string, string>();
+
+export async function start() {
+  while (true) {
+    const now = new Date();
+    for (const executionId of executionState.keys()) {
+      const mut = stateLock.get(executionId) as Locker;
+
+      const unlock = await mut.lock();
+      try {
+        const execution = executionState.get(executionId) as Execution;
+        if (execution.state !== "created") {
+          continue;
+        }
+
+        if (execution.createdAt < now) {
+          execution.state = "started";
+          executionState.set(executionId, execution);
+          console.log(execution);
+        }
+      } finally {
+        unlock();
+      }
+    }
+
+    await sleep(10);
+  }
+}
 
 export async function enqueue<F extends DeferableFunction>(
   func: DeferredFunction<F>,

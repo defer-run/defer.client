@@ -53,3 +53,7 @@ export function isDebugEnabled(): boolean {
 export function fromDurationToDate(dt: Date, delay: Duration): Date {
   return new Date(dt.getTime() + parseDuration(delay)!);
 }
+
+export function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
