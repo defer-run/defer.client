@@ -24,7 +24,7 @@ import {
   RescheduleExecutionResult,
 } from "../backend.js";
 import { DeferableFunction, DeferredFunction } from "../index.js";
-import { debug } from "../logger.js";
+import { debug, info } from "../logger.js";
 import {
   Duration,
   fromDurationToDate,
@@ -74,11 +74,15 @@ export function start(): () => Promise<void> {
   let runCond = true;
   const getRunCond = (): boolean => runCond;
 
+  info("starting local backend");
   let ref = loop(getRunCond);
+  info("local backend started");
 
   return async function () {
+    info("stopping local backend");
     runCond = false;
     await ref;
+    info("local backend stopped");
   };
 }
 
