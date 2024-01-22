@@ -24,13 +24,14 @@ import {
   RescheduleExecutionResult,
 } from "../backend.js";
 import { DeferableFunction, DeferredFunction } from "../index.js";
-import { debug } from "../logger";
+import { debug } from "../logger.js";
 import {
   Duration,
   fromDurationToDate,
   randomUUID,
   sanitizeFunctionArguments,
-} from "../utils";
+} from "../utils.js";
+import { Locker } from "./local/locker.js";
 
 interface Execution {
   id: string;
