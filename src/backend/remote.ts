@@ -16,6 +16,7 @@ import {
   CancelExecutionResult,
   EnqueueResult,
   GetExecutionResult,
+  ReRunExecutionResult,
   RescheduleExecutionResult,
 } from "../backend.js";
 import { DeferableFunction, DeferredFunction } from "../index.js";
@@ -110,6 +111,27 @@ export async function rescheduleExecution(
     `/public/v1/executions/${id}/reschedule`,
     request
   );
+  return {
+    id: response.id,
+    state: response.state,
+    functionName: response.function_name,
+    functionId: response.function_id,
+    updatedAt: response.updated_at,
+    createdAt: response.created_at,
+  };
+}
+
+export async function reRunExecution(
+  id: string
+): Promise<ReRunExecutionResult> {
+  const httpClient = newClientFromEnv();
+  const request = JSON.stringify({});
+  const response = await httpClient(
+    "POST",
+    `/public/v2/executions/${id}/reruns`,
+    request
+  );
+
   return {
     id: response.id,
     state: response.state,

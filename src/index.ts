@@ -355,3 +355,10 @@ export async function rescheduleExecution(
 
   return backend.rescheduleExecution(id, scheduleFor);
 }
+
+export async function reRunExecution(
+  id: string
+): Promise<ReRunExecutionResult> {
+  return backend.reRunExecution(id);
+}
+

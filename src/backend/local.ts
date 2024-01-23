@@ -21,6 +21,7 @@ import {
   ExecutionNotReschedulable,
   ExecutionState,
   GetExecutionResult,
+  ReRunExecutionResult,
   RescheduleExecutionResult,
 } from "../backend.js";
 import {
@@ -302,5 +303,37 @@ export async function rescheduleExecution(
     functionId: execution.functionId,
     createdAt: execution.createdAt,
     updatedAt: execution.updatedAt,
+  };
+}
+
+export async function reRunExecution(
+  id: string
+): Promise<ReRunExecutionResult> {
+  let execution = await executionsStore.get(id);
+  if (execution === undefined) throw new ExecutionNotFound(id);
+
+  const now = new Date();
+  const newExecution: Execution = {
+    id: randomUUID(),
+    state: "created",
+    functionId: execution.functionId,
+    func: execution.func,
+    args: execution.args,
+    metadata: execution.metadata,
+    scheduleFor: now,
+    discardAfter: undefined,
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  await executionsStore.set(newExecution.id, newExecution);
+
+  return {
+    id: newExecution.id,
+    state: newExecution.state,
+    functionName: newExecution.func.name,
+    functionId: newExecution.functionId,
+    createdAt: newExecution.createdAt,
+    updatedAt: newExecution.updatedAt,
   };
 }

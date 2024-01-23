@@ -60,6 +60,15 @@ export interface RescheduleExecutionResult {
   updatedAt: Date;
 }
 
+export interface ReRunExecutionResult {
+  id: string;
+  state: ExecutionState;
+  functionName: string;
+  functionId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export const errorMessage = (error: Error) => {
   let message = error.message;
 
@@ -116,6 +125,7 @@ export interface Backend {
   ): Promise<EnqueueResult>;
   getExecution(id: string): Promise<GetExecutionResult>;
   cancelExecution(id: string, force: boolean): Promise<CancelExecutionResult>;
+  reRunExecution(id: string): Promise<ReRunExecutionResult>;
   rescheduleExecution(
     id: string,
     scheduleFor: Date
