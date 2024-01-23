@@ -107,7 +107,7 @@ async function loop(shouldRun: () => boolean): Promise<void> {
 
           const shouldRun =
             execution.state === "created" &&
-            execution.createdAt < now &&
+            execution.scheduleFor < now &&
             (func.__metadata.concurrency === undefined ||
               concurrencyCounter.getCount(execution.functionId) <
                 func.__metadata.concurrency);
