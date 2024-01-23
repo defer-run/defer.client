@@ -171,6 +171,7 @@ async function enqueue<F extends DeferableFunction>(
     scheduleFor,
     discardAfter
   );
+
   info("execution enqueued", { id: response.id, function: func.__fn.name });
 
   return response;
