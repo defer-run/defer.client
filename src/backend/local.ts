@@ -95,6 +95,8 @@ async function loop(shouldRun: () => boolean): Promise<void> {
   while (shouldRun()) {
     const now = new Date();
     for (const executionId of await executionsStore.keys()) {
+      let shouldRun: boolean = false;
+
       const execution = await executionsStore.transaction(
         executionId,
         async (execution) => {
@@ -105,7 +107,7 @@ async function loop(shouldRun: () => boolean): Promise<void> {
             execution.discardAfter !== undefined &&
             execution.discardAfter > now;
 
-          const shouldRun =
+          shouldRun =
             execution.state === "created" &&
             execution.scheduleFor < now &&
             (func.__metadata.concurrency === undefined ||
@@ -128,9 +130,13 @@ async function loop(shouldRun: () => boolean): Promise<void> {
         }
       );
 
-      if (execution.state === "started") {
+      if (shouldRun) {
+        const executionId = execution.id;
+        const func = execution.func as DeferredFunction<typeof execution.func>;
+        const args = JSON.parse(execution.args);
+
         info("starting execution", {
-          id: execution.id,
+          id: executionId,
           function: execution.func.name,
           scheduleFor: execution.scheduleFor,
         });
@@ -139,22 +145,17 @@ async function loop(shouldRun: () => boolean): Promise<void> {
           let result: any;
           let state: ExecutionState;
 
-          const func = execution.func as DeferredFunction<
-            typeof execution.func
-          >;
-
           try {
-            const args = JSON.parse(execution.args);
             result = await func.__fn(...args);
             state = "succeed";
             info("execution succeeded", {
-              id: execution.id,
+              id: executionId,
               function: func.__fn.name,
             });
           } catch (e) {
             state = "failed";
             error("execution failed", {
-              id: execution.id,
+              id: executionId,
               function: func.__fn.name,
               cause: (e as any).message,
             });
