@@ -142,6 +142,7 @@ async function loop(shouldRun: () => boolean): Promise<void> {
             const execution = executionState.get(executionId) as Execution;
             execution.state = state;
             execution.result = stringify(result);
+            execution.updatedAt = new Date();
             executionState.set(executionId, execution);
           } finally {
             unlock();
@@ -254,6 +255,7 @@ export async function cancelExecution(
       }
     }
 
+    execution.updatedAt = new Date();
     executionState.set(execution.id, execution);
 
     return {
@@ -284,6 +286,7 @@ export async function rescheduleExecution(
       throw new ExecutionNotReschedulable(execution.state);
 
     execution.scheduleFor = scheduleFor;
+    execution.updatedAt = new Date();
     executionState.set(execution.id, execution);
 
     return {
