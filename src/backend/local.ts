@@ -32,7 +32,7 @@ import { error, info } from "../logger.js";
 import { randomUUID, sleep, stringify } from "../utils.js";
 import version from "../version.js";
 import { Counter } from "./local/counter.js";
-import { Locker } from "./local/locker.js";
+import { KV } from "./local/kv.js";
 
 interface Execution {
   id: string;
@@ -48,10 +48,9 @@ interface Execution {
   updatedAt: Date;
 }
 
-const stateLock = new Map<string, Locker>();
-const executionState = new Map<string, Execution>();
-const functionIdMapping = new Map<string, string>();
 const concurrencyCounter = new Counter();
+const executionsStore = new KV<Execution>();
+const functionIdMapping = new Map<string, string>();
 
 const promisesState = new Set<Promise<void>>();
 
@@ -91,83 +90,87 @@ export function start(): () => Promise<void> {
 }
 
 async function loop(shouldRun: () => boolean): Promise<void> {
+  // TODO handle error in the loop
+
   while (shouldRun()) {
     const now = new Date();
-    for (const executionId of executionState.keys()) {
-      let perform: () => Promise<void>;
+    for (const executionId of await executionsStore.keys()) {
+      const execution = await executionsStore.transaction(
+        executionId,
+        async (execution) => {
+          const func = execution.func as DeferredFunction<
+            typeof execution.func
+          >;
+          const shouldDiscard =
+            execution.discardAfter !== undefined &&
+            execution.discardAfter > now;
 
-      const mut = stateLock.get(executionId) as Locker;
+          const shouldRun =
+            execution.state === "created" &&
+            execution.createdAt < now &&
+            (func.__metadata.concurrency === undefined ||
+              concurrencyCounter.getCount(execution.functionId) <
+                func.__metadata.concurrency);
 
-      const unlock = await mut.lock();
-      try {
-        const execution = executionState.get(executionId) as Execution;
-        const func = execution.func as DeferredFunction<typeof execution.func>;
-        const args = JSON.parse(execution.args);
-        const shouldDiscard =
-          execution.discardAfter !== undefined && execution.discardAfter > now;
-        const shouldRun =
-          execution.state === "created" &&
-          execution.createdAt < now &&
-          (func.__metadata.concurrency === undefined ||
-            concurrencyCounter.getCount(execution.functionId) <
-              func.__metadata.concurrency);
+          if (shouldDiscard) {
+            execution.state = "discarded";
+            execution.updatedAt = new Date();
+            return execution;
+          }
 
-        if (shouldDiscard) {
-          execution.state = "discarded";
+          if (!shouldRun) return execution;
+
+          await concurrencyCounter.incr(execution.functionId);
+          execution.state = "started";
           execution.updatedAt = new Date();
-          executionState.set(executionId, execution);
-          continue;
+
+          return execution;
         }
+      );
 
-        if (!shouldRun) continue;
-
+      if (execution.state === "started") {
         info("starting execution", {
           id: execution.id,
-          function: func.name,
+          function: execution.func.name,
           scheduleFor: execution.scheduleFor,
         });
 
-        await concurrencyCounter.incr(execution.functionId);
-        execution.state = "started";
-        executionState.set(executionId, execution);
-
-        perform = async () => {
+        const perform: () => Promise<void> = async () => {
           let result: any;
           let state: ExecutionState;
 
+          const func = execution.func as DeferredFunction<
+            typeof execution.func
+          >;
+
           try {
+            const args = JSON.parse(execution.args);
             result = await func.__fn(...args);
             state = "succeed";
             info("execution succeeded", {
               id: execution.id,
-              function: func.name,
+              function: func.__fn.name,
             });
           } catch (e) {
             state = "failed";
             error("execution failed", {
               id: execution.id,
-              function: func.name,
+              function: func.__fn.name,
               cause: (e as any).message,
             });
           } finally {
             await concurrencyCounter.decr(execution.functionId);
           }
 
-          const mut = stateLock.get(executionId) as Locker;
-          const unlock = await mut.lock();
-          try {
-            const execution = executionState.get(executionId) as Execution;
+          await executionsStore.transaction(executionId, async (execution) => {
             execution.state = state;
             execution.result = stringify(result);
             execution.updatedAt = new Date();
-            executionState.set(executionId, execution);
-          } finally {
-            unlock();
-          }
+            return execution;
+          });
         };
+
         promisesState.add(perform());
-      } finally {
-        unlock();
       }
     }
 
@@ -189,7 +192,6 @@ export async function enqueue<F extends DeferableFunction>(
     functionIdMapping.set(func.name, functionId);
   }
 
-  const mut = new Locker();
   const now = new Date();
   const execution: Execution = {
     id: randomUUID(),
@@ -204,8 +206,7 @@ export async function enqueue<F extends DeferableFunction>(
     updatedAt: now,
   };
 
-  stateLock.set(execution.id, mut);
-  executionState.set(execution.id, execution);
+  await executionsStore.set(execution.id, execution);
 
   return {
     id: execution.id,
@@ -218,36 +219,27 @@ export async function enqueue<F extends DeferableFunction>(
 }
 
 export async function getExecution(id: string): Promise<GetExecutionResult> {
-  const mut = stateLock.get(id);
-  if (mut === undefined) throw new ExecutionNotFound(id);
+  const execution = await executionsStore.get(id);
+  if (execution === undefined) throw new ExecutionNotFound(id);
 
-  const unlock = await mut.lock();
-  try {
-    const execution = executionState.get(id) as Execution;
-    return {
-      id,
-      state: execution.state,
-      functionName: execution.func.name,
-      functionId: execution.functionId,
-      createdAt: execution.createdAt,
-      updatedAt: execution.updatedAt,
-    };
-  } finally {
-    unlock();
-  }
+  return {
+    id,
+    state: execution.state,
+    functionName: execution.func.name,
+    functionId: execution.functionId,
+    createdAt: execution.createdAt,
+    updatedAt: execution.updatedAt,
+  };
 }
 
 export async function cancelExecution(
   id: string,
   force: boolean
 ): Promise<CancelExecutionResult> {
-  const mut = stateLock.get(id);
-  if (mut === undefined) throw new ExecutionNotFound(id);
+  let execution = await executionsStore.get(id);
+  if (execution === undefined) throw new ExecutionNotFound(id);
 
-  const unlock = await mut.lock();
-  try {
-    const execution = executionState.get(id) as Execution;
-
+  execution = await executionsStore.transaction(id, async (execution) => {
     if (force) {
       switch (execution.state) {
         case "aborting":
@@ -272,48 +264,41 @@ export async function cancelExecution(
     }
 
     execution.updatedAt = new Date();
-    executionState.set(execution.id, execution);
+    return execution;
+  });
 
-    return {
-      id,
-      state: execution.state,
-      functionName: execution.func.name,
-      functionId: execution.functionId,
-      createdAt: execution.createdAt,
-      updatedAt: execution.updatedAt,
-    };
-  } finally {
-    unlock();
-  }
+  return {
+    id,
+    state: execution.state,
+    functionName: execution.func.name,
+    functionId: execution.functionId,
+    createdAt: execution.createdAt,
+    updatedAt: execution.updatedAt,
+  };
 }
 
 export async function rescheduleExecution(
   id: string,
   scheduleFor: Date
 ): Promise<RescheduleExecutionResult> {
-  const mut = stateLock.get(id);
-  if (mut === undefined) throw new ExecutionNotFound(id);
+  let execution = await executionsStore.get(id);
+  if (execution === undefined) throw new ExecutionNotFound(id);
 
-  const unlock = await mut.lock();
-  try {
-    const execution = executionState.get(id) as Execution;
-
+  execution = await executionsStore.transaction(id, async (execution) => {
     if (execution.state !== "created")
       throw new ExecutionNotReschedulable(execution.state);
 
     execution.scheduleFor = scheduleFor;
     execution.updatedAt = new Date();
-    executionState.set(execution.id, execution);
+    return execution;
+  });
 
-    return {
-      id,
-      state: execution.state,
-      functionName: execution.func.name,
-      functionId: execution.functionId,
-      createdAt: execution.createdAt,
-      updatedAt: execution.updatedAt,
-    };
-  } finally {
-    unlock();
-  }
+  return {
+    id,
+    state: execution.state,
+    functionName: execution.func.name,
+    functionId: execution.functionId,
+    createdAt: execution.createdAt,
+    updatedAt: execution.updatedAt,
+  };
 }
