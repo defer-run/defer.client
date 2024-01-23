@@ -24,6 +24,8 @@ export type ExecutionState =
   | "aborted"
   | "discarded";
 
+export type ExecutionErrorCode = "ER0000" | "ER0001" | "ER0002" | "ER0003";
+
 export interface Execution {
   id: string;
   state: ExecutionState;
@@ -36,8 +38,8 @@ export interface Execution {
 export interface PageInfo {
   hasNextPage: boolean;
   hasPrevPage: boolean;
-  startCursor?: string;
-  endCursor?: string;
+  startCursor: string | undefined;
+  endCursor: string | undefined;
 }
 
 export interface PageResult<T> {
@@ -46,10 +48,21 @@ export interface PageResult<T> {
 }
 
 export interface PageRequest {
-  first?: string;
+  first?: number;
   after?: string;
-  last?: string;
+  last?: number;
   before?: string;
+}
+
+export interface ExecutionFilters {
+  states?: ExecutionState[];
+  functionIds?: string[];
+  errorCodes?: string[];
+  executedBy?: string;
+  metadata?: {
+    key: string;
+    values: string[];
+  }[];
 }
 
 export type EnqueueResult = Execution;
@@ -129,11 +142,11 @@ export interface Backend {
   ): Promise<RescheduleExecutionResult>;
   listExecutions(
     page?: PageRequest,
-    filters?: any
+    filters?: ExecutionFilters
   ): Promise<ListExecutionsResult>;
   listExecutionAttempts(
     id: string,
     page?: PageRequest,
-    filters?: any
+    filters?: ExecutionFilters
   ): Promise<ListExecutionAttemptsResult>;
 }

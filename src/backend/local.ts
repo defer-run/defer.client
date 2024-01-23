@@ -17,6 +17,8 @@ import {
   EnqueueResult,
   Execution,
   ExecutionAbortingAlreadyInProgress,
+  ExecutionErrorCode,
+  ExecutionFilters,
   ExecutionNotCancellable,
   ExecutionNotFound,
   ExecutionNotReschedulable,
@@ -25,6 +27,7 @@ import {
   ListExecutionAttemptsResult,
   ListExecutionsResult,
   PageRequest,
+  PageResult,
   ReRunExecutionResult,
   RescheduleExecutionResult,
 } from "../backend.js";
@@ -49,6 +52,7 @@ interface InternalExecution {
   scheduleFor: Date;
   discardAfter: Date | undefined;
   metadata: ExecutionMetadata;
+  errorCode?: ExecutionErrorCode;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -74,6 +78,57 @@ const banner = `
    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 `;
+
+function paginate<T>(
+  page: PageRequest | undefined,
+  records: Map<string, T>
+): PageResult<T> {
+  let edges = Array.from(records.keys()).reverse();
+  let hasNextPage: boolean = false;
+  let hasPrevPage: boolean = false;
+
+  if (page?.before) {
+    const beforeIndex = edges.indexOf(page.before);
+    if (beforeIndex != -1) {
+      edges = edges.slice(0, beforeIndex - 1);
+      hasNextPage = true;
+    }
+  } else if (page?.after) {
+    const afterIndex = edges.indexOf(page.after);
+    if (afterIndex != -1) {
+      edges = edges.slice(afterIndex + 1, -1);
+      hasPrevPage = true;
+    }
+  }
+
+  if (page?.last) {
+    if (page.last < 0) {
+      throw new Error("page.last cannot be negative");
+    }
+    if (edges.length > page.last) {
+      edges = edges.slice(-page.last, -1);
+      hasPrevPage = true;
+    }
+  } else if (page?.first) {
+    if (page.first < 0) {
+      throw new Error("page.first cannot be negative");
+    }
+    if (edges.length > page.first) {
+      edges = edges.slice(0, page.first - 1);
+      hasNextPage = true;
+    }
+  }
+
+  return {
+    pageInfo: {
+      hasNextPage,
+      hasPrevPage,
+      startCursor: edges[0],
+      endCursor: edges[-1],
+    },
+    data: edges.map((key) => records.get(key) as T),
+  };
+}
 
 export function start(): () => Promise<void> {
   if (getEnv("DEFER_NO_BANNER") === undefined) {
@@ -313,7 +368,7 @@ export async function rescheduleExecution(
 export async function reRunExecution(
   id: string
 ): Promise<ReRunExecutionResult> {
-  let execution = await executionsStore.get(id);
+  const execution = await executionsStore.get(id);
   if (execution === undefined) throw new ExecutionNotFound(id);
 
   const now = new Date();
@@ -343,25 +398,54 @@ export async function reRunExecution(
 }
 
 export async function listExecutions(
-  page?: PageRequest,
-  _filters?: any
+  pageRequest?: PageRequest,
+  filters?: ExecutionFilters
 ): Promise<ListExecutionsResult> {
-  const executions: Execution[] = [];
-
-  if (page?.after) {
-  } else if (page?.before) {
-  } else {
-    // chose default
-  }
-
-  const executionsIds = await executionsStore.keys();
+  const executionIds = await executionsStore.keys();
+  const data = new Map<string, Execution>();
 
   for (const executionId of executionIds) {
     const execution = (await executionsStore.get(
       executionId
     )) as InternalExecution;
 
-    executions.push({
+    if (
+      filters?.states &&
+      filters.states.length > 0 &&
+      !filters?.states?.includes(execution.state)
+    ) {
+      continue;
+    }
+    if (
+      filters?.functionIds &&
+      filters.functionIds.length > 0 &&
+      !filters?.functionIds?.includes(execution.functionId)
+    ) {
+      continue;
+    }
+    if (
+      execution.errorCode &&
+      filters?.errorCodes &&
+      filters.errorCodes.length > 0 &&
+      !filters?.errorCodes?.includes(execution.errorCode)
+    ) {
+      continue;
+    }
+    if (
+      filters?.metadata &&
+      filters.metadata.length > 0 &&
+      execution.metadata
+    ) {
+      filters.metadata
+        .filter((mdFilter) => mdFilter.values.length > 0)
+        .some((mdFilter) =>
+          mdFilter.values.some(
+            (value) => execution.metadata[mdFilter.key] === value
+          )
+        );
+    }
+
+    data.set(executionId, {
       id: execution.id,
       state: execution.state,
       functionName: execution.func.name,
@@ -371,45 +455,33 @@ export async function listExecutions(
     });
   }
 
-  return {
-    pageInfo: {
-      hasNextPage: false,
-      hasPrevPage: false,
-    },
-    data: executions,
-  };
+  return paginate(pageRequest, data);
 }
 
 export async function listExecutionAttempts(
   id: string,
-  _page?: PageRequest,
-  _filters?: any
+  pageRequest?: PageRequest,
+  filters?: any
 ): Promise<ListExecutionAttemptsResult> {
-  const executions: Execution[] = [];
+  const executionIds = await executionsStore.keys();
+  const data = new Map<string, Execution>();
 
-  for (const executionId of await executionsStore.keys()) {
+  // TODO add retryOf
+
+  for (const executionId of executionIds) {
     const execution = (await executionsStore.get(
       executionId
     )) as InternalExecution;
-    if (execution.id === id) {
-      executions.push({
-        id: execution.id,
-        state: execution.state,
-        functionName: execution.func.name,
-        functionId: execution.functionId,
-        createdAt: execution.createdAt,
-        updatedAt: execution.updatedAt,
-      });
-    }
 
-    // TODO add retryOf
+    data.set(executionId, {
+      id: execution.id,
+      state: execution.state,
+      functionName: execution.func.name,
+      functionId: execution.functionId,
+      createdAt: execution.createdAt,
+      updatedAt: execution.updatedAt,
+    });
   }
 
-  return {
-    pageInfo: {
-      hasNextPage: false,
-      hasPrevPage: false,
-    },
-    data: executions,
-  };
+  return paginate(pageRequest, data);
 }
