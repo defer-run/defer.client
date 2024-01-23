@@ -28,7 +28,7 @@ import {
   DeferredFunction,
   ExecutionMetadata,
 } from "../index.js";
-import { info } from "../logger.js";
+import { error, info } from "../logger.js";
 import { randomUUID, sleep, stringify } from "../utils.js";
 import version from "../version.js";
 import { Counter } from "./local/counter.js";
@@ -121,7 +121,12 @@ async function loop(shouldRun: () => boolean): Promise<void> {
 
         if (!shouldRun) continue;
 
-        // TODO incr function counter
+        info("starting execution", {
+          id: execution.id,
+          function: func.name,
+          scheduleFor: execution.scheduleFor,
+        });
+
         await concurrencyCounter.incr(execution.functionId);
         execution.state = "started";
         executionState.set(executionId, execution);
@@ -133,8 +138,17 @@ async function loop(shouldRun: () => boolean): Promise<void> {
           try {
             result = await func.__fn(...args);
             state = "succeed";
+            info("execution succeeded", {
+              id: execution.id,
+              function: func.name,
+            });
           } catch (e) {
             state = "failed";
+            error("execution failed", {
+              id: execution.id,
+              function: func.name,
+              cause: (e as any).message,
+            });
           } finally {
             await concurrencyCounter.decr(execution.functionId);
           }
