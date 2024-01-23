@@ -101,6 +101,8 @@ async function loop(shouldRun: () => boolean): Promise<void> {
         const execution = executionState.get(executionId) as Execution;
         const func = execution.func as DeferredFunction<typeof execution.func>;
         const args = execution.args;
+        const shouldDiscard =
+          execution.discardAfter !== undefined && execution.discardAfter > now;
         const shouldRun =
           execution.state === "created" &&
           execution.createdAt < now &&
@@ -108,10 +110,7 @@ async function loop(shouldRun: () => boolean): Promise<void> {
             (functionConcurrency.get(execution.functionId) || 0) <
               func.__metadata.concurrency);
 
-        if (
-          execution.discardAfter !== undefined &&
-          execution.discardAfter > now
-        ) {
+        if (shouldDiscard) {
           execution.state = "discarded";
           execution.updatedAt = new Date();
           executionState.set(executionId, execution);
