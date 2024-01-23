@@ -51,7 +51,6 @@ interface Execution {
 const concurrencyCounter = new Counter();
 const executionsStore = new KV<Execution>();
 const functionIdMapping = new Map<string, string>();
-
 const promisesState = new Set<Promise<void>>();
 
 const banner = `
