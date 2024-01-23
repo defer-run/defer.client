@@ -53,6 +53,10 @@ export function error(msg: string, data?: any) {
   log("error", msg, data);
 }
 
+export function warn(msg: string, data?: any) {
+  log("warn", msg, data);
+}
+
 export function debug(msg: string, data?: any) {
   if (isDebugEnabled()) log("debug", msg, data);
 }
