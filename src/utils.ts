@@ -35,9 +35,9 @@ export function getEnv(key: string): string | undefined {
   return;
 }
 
-export function stringify(src: any): any {
+export function stringify(src: any): string {
   try {
-    JSON.stringify(src);
+    return JSON.stringify(src);
   } catch (e) {
     const error = e as Error;
     throw new Error(`cannot stringify value: ${error.message}`);
