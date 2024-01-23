@@ -7,6 +7,7 @@ import {
 } from "./backend.js";
 import * as localBackend from "./backend/local.js";
 import * as remoteBackend from "./backend/remote.js";
+import { info } from "./logger.js";
 import { Duration, fromDurationToDate, getEnv, stringify } from "./utils.js";
 
 const INTERNAL_VERSION = 6;
@@ -163,7 +164,15 @@ async function enqueue<F extends DeferableFunction>(
     discardAfter = fromDurationToDate(now, after);
   }
 
-  return backend.enqueue(func, stringify(args), scheduleFor, discardAfter);
+  const response = await backend.enqueue(
+    func,
+    stringify(args),
+    scheduleFor,
+    discardAfter
+  );
+  info("execution enqueued", { id: response.id, function: func.__fn.name });
+
+  return response;
 }
 
 export function defer<F extends DeferableFunction>(
