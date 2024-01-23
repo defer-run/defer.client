@@ -1,5 +1,5 @@
 import type { NextRequest, NextResponse } from "next/server";
-import { APIError } from "../errors.js";
+import { DeferError } from "../backend.js";
 import { DeferredFunction, getExecution } from "../index.js";
 
 export interface DeferNextRoute {
@@ -28,7 +28,7 @@ export function asNextRoute<F extends (...args: any) => Promise<any>>(
           const { state, result } = await getExecution(id);
           return ResponseJSON({ id, state, result });
         } catch (e: unknown) {
-          if (e instanceof APIError) {
+          if (e instanceof DeferError) {
             return ResponseJSON(
               { id, error: e.toString() },
               {

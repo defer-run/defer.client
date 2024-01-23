@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useRef, useState } from "react";
-import type { ExecutionState, FetchExecutionResponse } from "../client.js";
+import type { EnqueueResult, ExecutionState } from "../backend.js";
 import type { DeferredFunction } from "../index.js";
 
 export type UseDeferRoute<ARA extends boolean, A extends any[], R> = [
@@ -40,7 +40,7 @@ export const useDeferRoute = <
     const res = await fetch(`${routePath}?id=${executionId}`, {
       method: "GET",
     });
-    const data = (await res.json()) as FetchExecutionResponse;
+    const data = (await res.json()) as EnqueueResult;
     setStatus(data.state);
     if (["succeed", "failed"].includes(data.state) && intervalRef.current) {
       clearInterval(intervalRef.current);
