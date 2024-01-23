@@ -108,6 +108,16 @@ async function loop(shouldRun: () => boolean): Promise<void> {
             (functionConcurrency.get(execution.functionId) || 0) <
               func.__metadata.concurrency);
 
+        if (
+          execution.discardAfter !== undefined &&
+          execution.discardAfter > now
+        ) {
+          execution.state = "discarded";
+          execution.updatedAt = new Date();
+          executionState.set(executionId, execution);
+          continue;
+        }
+
         if (!shouldRun) continue;
 
         // TODO incr function counter
@@ -139,11 +149,10 @@ async function loop(shouldRun: () => boolean): Promise<void> {
             // TODO decr function counter
           }
         };
+        promisesState.add(perform());
       } finally {
         unlock();
       }
-
-      promisesState.add(perform());
     }
 
     await sleep(10);
