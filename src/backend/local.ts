@@ -29,7 +29,7 @@ import {
   ExecutionMetadata,
 } from "../index.js";
 import { error, info } from "../logger.js";
-import { randomUUID, sleep, stringify } from "../utils.js";
+import { getEnv, randomUUID, sleep, stringify } from "../utils.js";
 import version from "../version.js";
 import { Counter } from "./local/counter.js";
 import { KV } from "./local/kv.js";
@@ -71,7 +71,9 @@ const banner = `
 `;
 
 export function start(): () => Promise<void> {
-  console.log(banner);
+  if (getEnv("DEFER_NO_BANNER") === undefined) {
+    console.log(banner);
+  }
 
   let runCond = true;
   const getRunCond = (): boolean => runCond;
