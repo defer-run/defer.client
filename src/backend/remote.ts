@@ -19,7 +19,7 @@ import {
   RescheduleExecutionResult,
 } from "../backend.js";
 import { DeferableFunction, DeferredFunction } from "../index.js";
-import { error, info } from "../logger.js";
+import { error } from "../logger.js";
 import { getEnv } from "../utils.js";
 import { HTTPClient, makeHTTPClient } from "./remote/httpClient.js";
 
@@ -47,7 +47,6 @@ export async function enqueue<F extends DeferableFunction>(
     metadata: func.__execOptions?.metadata || {},
   };
 
-  info("enqueueing function in the queue", { function: originalFunction.name });
   try {
     const response = await httpClient("POST", "/public/v1/enqueue", request);
     return {
