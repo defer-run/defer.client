@@ -77,7 +77,7 @@ export function start(): () => Promise<void> {
   const getRunCond = (): boolean => runCond;
 
   info("starting local backend");
-  let ref = loop(getRunCond);
+  const ref = loop(getRunCond);
   info("local backend started");
 
   return async function () {
