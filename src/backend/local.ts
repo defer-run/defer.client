@@ -102,7 +102,7 @@ async function loop(shouldRun: () => boolean): Promise<void> {
       try {
         const execution = executionState.get(executionId) as Execution;
         const func = execution.func as DeferredFunction<typeof execution.func>;
-        const args = execution.args;
+        const args = JSON.parse(execution.args);
         const shouldDiscard =
           execution.discardAfter !== undefined && execution.discardAfter > now;
         const shouldRun =
