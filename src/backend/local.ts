@@ -123,8 +123,6 @@ async function loop(shouldRun: () => boolean): Promise<void> {
         execution.state = "started";
         executionState.set(executionId, execution);
 
-        func.__execOptions?.metadata;
-
         perform = async () => {
           let result: any;
           let state: ExecutionState;
