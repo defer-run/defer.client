@@ -24,7 +24,7 @@ export type ExecutionState =
   | "aborted"
   | "discarded";
 
-export interface EnqueueResult {
+export interface Execution {
   id: string;
   state: ExecutionState;
   functionName: string;
@@ -33,41 +33,38 @@ export interface EnqueueResult {
   updatedAt: Date;
 }
 
-export interface GetExecutionResult {
-  id: string;
-  state: ExecutionState;
-  functionName: string;
-  functionId: string;
-  createdAt: Date;
-  updatedAt: Date;
+export interface PageInfo {
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+  startCursor?: string;
+  endCursor?: string;
 }
 
-export interface CancelExecutionResult {
-  id: string;
-  state: ExecutionState;
-  functionName: string;
-  functionId: string;
-  createdAt: Date;
-  updatedAt: Date;
+export interface PageResult<T> {
+  data: T[];
+  pageInfo: PageInfo;
 }
 
-export interface RescheduleExecutionResult {
-  id: string;
-  state: ExecutionState;
-  functionName: string;
-  functionId: string;
-  createdAt: Date;
-  updatedAt: Date;
+export interface PageRequest {
+  first?: string;
+  after?: string;
+  last?: string;
+  before?: string;
 }
 
-export interface ReRunExecutionResult {
-  id: string;
-  state: ExecutionState;
-  functionName: string;
-  functionId: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+export type EnqueueResult = Execution;
+
+export type GetExecutionResult = Execution;
+
+export type CancelExecutionResult = Execution;
+
+export type RescheduleExecutionResult = Execution;
+
+export type ReRunExecutionResult = Execution;
+
+export type ListExecutionsResult = PageResult<Execution>;
+
+export type ListExecutionAttemptsResult = PageResult<Execution>;
 
 export const errorMessage = (error: Error) => {
   let message = error.message;
@@ -130,4 +127,13 @@ export interface Backend {
     id: string,
     scheduleFor: Date
   ): Promise<RescheduleExecutionResult>;
+  listExecutions(
+    page?: PageRequest,
+    filters?: any
+  ): Promise<ListExecutionsResult>;
+  listExecutionAttempts(
+    id: string,
+    page?: PageRequest,
+    filters?: any
+  ): Promise<ListExecutionAttemptsResult>;
 }

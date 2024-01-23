@@ -15,12 +15,16 @@
 import {
   CancelExecutionResult,
   EnqueueResult,
+  Execution,
   ExecutionAbortingAlreadyInProgress,
   ExecutionNotCancellable,
   ExecutionNotFound,
   ExecutionNotReschedulable,
   ExecutionState,
   GetExecutionResult,
+  ListExecutionAttemptsResult,
+  ListExecutionsResult,
+  PageRequest,
   ReRunExecutionResult,
   RescheduleExecutionResult,
 } from "../backend.js";
@@ -35,7 +39,7 @@ import version from "../version.js";
 import { Counter } from "./local/counter.js";
 import { KV } from "./local/kv.js";
 
-interface Execution {
+interface InternalExecution {
   id: string;
   args: string;
   func: DeferableFunction;
@@ -50,7 +54,7 @@ interface Execution {
 }
 
 const concurrencyCounter = new Counter();
-const executionsStore = new KV<Execution>();
+const executionsStore = new KV<InternalExecution>();
 const functionIdMapping = new Map<string, string>();
 const promisesState = new Set<Promise<void>>();
 
@@ -196,7 +200,7 @@ export async function enqueue<F extends DeferableFunction>(
   }
 
   const now = new Date();
-  const execution: Execution = {
+  const execution: InternalExecution = {
     id: randomUUID(),
     state: "created",
     functionId: functionId,
@@ -313,7 +317,7 @@ export async function reRunExecution(
   if (execution === undefined) throw new ExecutionNotFound(id);
 
   const now = new Date();
-  const newExecution: Execution = {
+  const newExecution: InternalExecution = {
     id: randomUUID(),
     state: "created",
     functionId: execution.functionId,
@@ -335,5 +339,77 @@ export async function reRunExecution(
     functionId: newExecution.functionId,
     createdAt: newExecution.createdAt,
     updatedAt: newExecution.updatedAt,
+  };
+}
+
+export async function listExecutions(
+  page?: PageRequest,
+  _filters?: any
+): Promise<ListExecutionsResult> {
+  const executions: Execution[] = [];
+
+  if (page?.after) {
+  } else if (page?.before) {
+  } else {
+    // chose default
+  }
+
+  const executionsIds = await executionsStore.keys();
+
+  for (const executionId of executionIds) {
+    const execution = (await executionsStore.get(
+      executionId
+    )) as InternalExecution;
+
+    executions.push({
+      id: execution.id,
+      state: execution.state,
+      functionName: execution.func.name,
+      functionId: execution.functionId,
+      createdAt: execution.createdAt,
+      updatedAt: execution.updatedAt,
+    });
+  }
+
+  return {
+    pageInfo: {
+      hasNextPage: false,
+      hasPrevPage: false,
+    },
+    data: executions,
+  };
+}
+
+export async function listExecutionAttempts(
+  id: string,
+  _page?: PageRequest,
+  _filters?: any
+): Promise<ListExecutionAttemptsResult> {
+  const executions: Execution[] = [];
+
+  for (const executionId of await executionsStore.keys()) {
+    const execution = (await executionsStore.get(
+      executionId
+    )) as InternalExecution;
+    if (execution.id === id) {
+      executions.push({
+        id: execution.id,
+        state: execution.state,
+        functionName: execution.func.name,
+        functionId: execution.functionId,
+        createdAt: execution.createdAt,
+        updatedAt: execution.updatedAt,
+      });
+    }
+
+    // TODO add retryOf
+  }
+
+  return {
+    pageInfo: {
+      hasNextPage: false,
+      hasPrevPage: false,
+    },
+    data: executions,
   };
 }

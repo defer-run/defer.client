@@ -8,7 +8,7 @@ import {
 } from "./backend.js";
 import * as localBackend from "./backend/local.js";
 import * as remoteBackend from "./backend/remote.js";
-import { info } from "./logger.js";
+import { info, warn } from "./logger.js";
 import { Duration, fromDurationToDate, getEnv, stringify } from "./utils.js";
 
 const INTERNAL_VERSION = 6;
@@ -327,19 +327,6 @@ export async function cancelExecution(
   return backend.cancelExecution(id, force);
 }
 
-export async function getExecutionTries(
-  id: string
-): Promise<client.GetExecutionTriesResponse> {
-  const httpClient = getHTTPClient();
-  if (httpClient) return client.getExecutionTries(httpClient, { id });
-
-  const response = __database.get(id);
-  if (response)
-    return Promise.resolve([{ id: response.id, state: response.state }]);
-
-  throw new APIError("execution not found", "not found");
-}
-
 export async function rescheduleExecution(
   id: string,
   value: Duration | Date | undefined
@@ -364,3 +351,15 @@ export async function reRunExecution(
   return backend.reRunExecution(id);
 }
 
+export async function getExecutionTries(id: string): Promise<any> {
+  warn(
+    `"getExecutionTries/1" is deprecated and will be removed in future versions. Please use "listExecutionAttempts/2" instead.`
+  );
+  listExecutionAttemps(id);
+}
+
+export async function listExecutionAttemps(id: string): Promise<any> {
+  console.log(id);
+}
+
+export async function listExecutions(): Promise<any> {}
