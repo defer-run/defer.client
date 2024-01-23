@@ -140,7 +140,7 @@ async function loop(shouldRun: () => boolean): Promise<void> {
 
           info("starting execution", {
             id: executionId,
-            function: execution.func.name,
+            function: func.__fn.name,
             scheduleFor: execution.scheduleFor,
           });
 
