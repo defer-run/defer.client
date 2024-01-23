@@ -3,6 +3,7 @@ import {
   CancelExecutionResult,
   EnqueueResult,
   GetExecutionResult,
+  ReRunExecutionResult,
   RescheduleExecutionResult,
 } from "./backend.js";
 import * as localBackend from "./backend/local.js";
