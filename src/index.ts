@@ -13,7 +13,7 @@ import { Duration, fromDurationToDate, getEnv, stringify } from "./utils.js";
 const INTERNAL_VERSION = 6;
 const RETRY_MAX_ATTEMPTS_PLACEHOLDER = 13;
 
-let backend: Backend = remoteBackend;
+export let backend: Backend = remoteBackend;
 if (getEnv("DEFER_TOKEN") === undefined) {
   backend = localBackend;
   if (getEnv("DEFER_NO_LOCAL_SCHEDULER") === undefined) localBackend.start();
