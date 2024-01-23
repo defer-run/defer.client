@@ -13,7 +13,6 @@
 // PERFORMANCE OF THIS SOFTWARE.
 
 import { DeferableFunction, DeferredFunction } from "./index.js";
-import { Duration } from "./utils.js";
 
 export type ExecutionState =
   | "created"
@@ -111,12 +110,14 @@ export class ExecutionNotReschedulable extends DeferError {
 export interface Backend {
   enqueue<F extends DeferableFunction>(
     func: DeferredFunction<F>,
-    args: Parameters<F>
+    args: string,
+    scheduleFor: Date,
+    discardAfter?: Date
   ): Promise<EnqueueResult>;
   getExecution(id: string): Promise<GetExecutionResult>;
   cancelExecution(id: string, force: boolean): Promise<CancelExecutionResult>;
   rescheduleExecution(
     id: string,
-    scheduleFor: Duration | Date | undefined
+    scheduleFor: Date
   ): Promise<RescheduleExecutionResult>;
 }

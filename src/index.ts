@@ -7,9 +7,7 @@ import {
 } from "./backend.js";
 import * as localBackend from "./backend/local.js";
 import * as remoteBackend from "./backend/remote.js";
-import { APIError, DeferError } from "./errors.js";
-import { Duration, fromDurationToDate, getEnv } from "./utils.js";
-import version from "./version.js";
+import { Duration, fromDurationToDate, getEnv, stringify } from "./utils.js";
 
 const INTERNAL_VERSION = 6;
 const RETRY_MAX_ATTEMPTS_PLACEHOLDER = 13;
@@ -140,16 +138,41 @@ function parseRetryPolicy(
   return retryPolicy;
 }
 
+async function enqueue<F extends DeferableFunction>(
+  func: DeferredFunction<F>,
+  ...args: Parameters<F>
+): Promise<EnqueueResult> {
+  let scheduleFor: Date;
+  let discardAfter: Date | undefined;
+
+  const delay = func.__execOptions?.delay;
+  if (delay instanceof Date) {
+    scheduleFor = delay;
+  } else if (delay) {
+    const now = new Date();
+    scheduleFor = fromDurationToDate(now, delay);
+  } else {
+    scheduleFor = new Date();
+  }
+
+  const after = func.__execOptions?.discardAfter;
+  if (after instanceof Date) {
+    discardAfter = after;
+  } else if (after) {
+    const now = new Date();
+    discardAfter = fromDurationToDate(now, after);
+  }
+
+  return backend.enqueue(func, stringify(args), scheduleFor, discardAfter);
+}
+
 export function defer<F extends DeferableFunction>(
   fn: F,
   config?: DeferredFunctionConfiguration
 ): DeferredFunction<F> {
-  const wrapped = async function (
+  const wrapped = async (
     ...args: Parameters<typeof fn>
-  ): Promise<EnqueueResult> {
-    return backend.enqueue(wrapped, args);
-  };
-
+  ): Promise<EnqueueResult> => enqueue(wrapped, ...args);
   wrapped.__fn = fn;
   wrapped.__metadata = {
     name: fn.name,
@@ -168,11 +191,9 @@ defer.cron = function (
   cronExpr: string,
   config?: DeferredFunctionConfiguration
 ): DeferredFunction<typeof fn> {
-  const wrapped = async function (
+  const wrapped = async (
     ...args: Parameters<typeof fn>
-  ): Promise<EnqueueResult> {
-    return backend.enqueue(wrapped, args);
-  };
+  ): Promise<EnqueueResult> => enqueue(wrapped, ...args);
 
   wrapped.__fn = fn;
   wrapped.__metadata = {
@@ -234,11 +255,9 @@ export function assignOptions<F extends DeferableFunction>(
   fn: DeferredFunction<F>,
   options: ExecutionOptions
 ): DeferredFunction<F> {
-  const wrapped = async function (
+  const wrapped = async (
     ...args: Parameters<typeof fn>
-  ): Promise<EnqueueResult> {
-    return backend.enqueue(wrapped, args);
-  };
+  ): Promise<EnqueueResult> => enqueue(wrapped, ...args);
 
   wrapped.__fn = fn.__fn;
   wrapped.__metadata = fn.__metadata;
@@ -312,16 +331,17 @@ export async function getExecutionTries(
 
 export async function rescheduleExecution(
   id: string,
-  scheduleFor: Duration | Date | undefined
+  value: Duration | Date | undefined
 ): Promise<RescheduleExecutionResult> {
   const now = new Date();
+  let scheduleFor: Date;
 
-  if (scheduleFor === undefined) {
+  if (value instanceof Date) {
+    scheduleFor = value;
+  } else if (value) {
+    scheduleFor = fromDurationToDate(now, value);
+  } else {
     scheduleFor = now;
-  } else if (scheduleFor instanceof Date) {
-    scheduleFor = scheduleFor;
-  } else if (scheduleFor) {
-    scheduleFor = fromDurationToDate(now, scheduleFor);
   }
 
   return backend.rescheduleExecution(id, scheduleFor);

@@ -19,13 +19,8 @@ import {
   RescheduleExecutionResult,
 } from "../backend.js";
 import { DeferableFunction, DeferredFunction } from "../index.js";
-import { debug, error, info } from "../logger.js";
-import {
-  Duration,
-  fromDurationToDate,
-  getEnv,
-  sanitizeFunctionArguments,
-} from "../utils.js";
+import { error, info } from "../logger.js";
+import { getEnv } from "../utils.js";
 import { HTTPClient, makeHTTPClient } from "./remote/httpClient.js";
 
 function newClientFromEnv(): HTTPClient {
@@ -37,42 +32,20 @@ function newClientFromEnv(): HTTPClient {
 
 export async function enqueue<F extends DeferableFunction>(
   func: DeferredFunction<F>,
-  args: Parameters<F>
+  args: string,
+  scheduleFor: Date,
+  discardAfter: Date | undefined
 ): Promise<EnqueueResult> {
   const originalFunction = func.__fn;
-
-  debug("serializing function arguments", { function: originalFunction.name });
-  const functionArguments = sanitizeFunctionArguments(args);
-
-  debug("creating http defer client from environment variable", {
-    function: originalFunction.name,
-  });
   const httpClient = newClientFromEnv();
 
-  debug("preparing enqueue request", { function: originalFunction.name });
   const request: any = {
-    name: originalFunction.name,
-    arguments: functionArguments,
+    name: func.__fn.name,
+    arguments: args,
+    scheduleFor,
+    discardAfter,
     metadata: func.__execOptions?.metadata || {},
   };
-
-  const delay = func.__execOptions?.delay;
-  if (delay instanceof Date) {
-    request.schedule_for = delay;
-  } else if (delay) {
-    const now = new Date();
-    request.schedule_for = fromDurationToDate(now, delay);
-  } else {
-    request.schedule_for = new Date();
-  }
-
-  const after = func.__execOptions?.discardAfter;
-  if (after instanceof Date) {
-    request.discard_after = after;
-  } else if (after) {
-    const now = new Date();
-    request.discard_after = fromDurationToDate(now, after);
-  }
 
   info("enqueueing function in the queue", { function: originalFunction.name });
   try {
@@ -129,7 +102,7 @@ export async function cancelExecution(
 
 export async function rescheduleExecution(
   id: string,
-  scheduleFor: Duration | Date | undefined
+  scheduleFor: Date
 ): Promise<RescheduleExecutionResult> {
   const httpClient = newClientFromEnv();
   const request = JSON.stringify({ schedule_for: scheduleFor });

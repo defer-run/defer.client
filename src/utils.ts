@@ -35,14 +35,12 @@ export function getEnv(key: string): string | undefined {
   return;
 }
 
-export function sanitizeFunctionArguments(values: any): any {
+export function stringify(src: any): any {
   try {
-    const stringified = JSON.stringify(values);
-    const sanitized = JSON.parse(stringified);
-    return sanitized;
+    JSON.stringify(src);
   } catch (e) {
     const error = e as Error;
-    throw new Error(`cannot serialize argument: ${error.message}`);
+    throw new Error(`cannot stringify value: ${error.message}`);
   }
 }
 

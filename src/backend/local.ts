@@ -28,25 +28,20 @@ import {
   DeferredFunction,
   ExecutionMetadata,
 } from "../index.js";
-import { debug, info } from "../logger.js";
-import {
-  Duration,
-  fromDurationToDate,
-  randomUUID,
-  sanitizeFunctionArguments,
-  sleep,
-} from "../utils.js";
+import { info } from "../logger.js";
+import { randomUUID, sleep, stringify } from "../utils.js";
 import version from "../version.js";
 import { Locker } from "./local/locker.js";
 
 interface Execution {
   id: string;
-  args: any;
+  args: string;
   func: DeferableFunction;
   functionId: string;
   state: ExecutionState;
   result?: string;
   scheduleFor: Date;
+  discardAfter: Date | undefined;
   metadata: ExecutionMetadata;
   createdAt: Date;
   updatedAt: Date;
@@ -115,6 +110,7 @@ async function loop(shouldRun: () => boolean): Promise<void> {
 
         if (!shouldRun) continue;
 
+        // TODO incr function counter
         execution.state = "started";
         executionState.set(executionId, execution);
 
@@ -136,10 +132,11 @@ async function loop(shouldRun: () => boolean): Promise<void> {
           try {
             const execution = executionState.get(executionId) as Execution;
             execution.state = state;
-            execution.result = JSON.stringify(result);
+            execution.result = stringify(result);
             executionState.set(executionId, execution);
           } finally {
             unlock();
+            // TODO decr function counter
           }
         };
       } finally {
@@ -157,11 +154,10 @@ async function loop(shouldRun: () => boolean): Promise<void> {
 
 export async function enqueue<F extends DeferableFunction>(
   func: DeferredFunction<F>,
-  args: Parameters<F>
+  args: Parameters<F>,
+  scheduleFor: Date,
+  discardAfter?: Date
 ): Promise<EnqueueResult> {
-  debug("serializing function arguments", { function: func.name });
-  const functionArguments = sanitizeFunctionArguments(args);
-
   let functionId = functionIdMapping.get(func.name);
   if (functionId === undefined) {
     functionId = randomUUID();
@@ -174,10 +170,11 @@ export async function enqueue<F extends DeferableFunction>(
     id: randomUUID(),
     state: "created",
     functionId: functionId,
-    func: func,
-    args: functionArguments,
+    func,
+    args,
     metadata: func.__execOptions?.metadata || {},
-    scheduleFor: now,
+    scheduleFor,
+    discardAfter,
     createdAt: now,
     updatedAt: now,
   };
@@ -266,16 +263,8 @@ export async function cancelExecution(
 
 export async function rescheduleExecution(
   id: string,
-  scheduleFor: Duration | Date | undefined
+  scheduleFor: Date
 ): Promise<RescheduleExecutionResult> {
-  if (scheduleFor instanceof Date) {
-    scheduleFor = scheduleFor;
-  } else if (scheduleFor) {
-    scheduleFor = fromDurationToDate(new Date(), scheduleFor);
-  } else {
-    scheduleFor = new Date();
-  }
-
   const mut = stateLock.get(id);
   if (mut === undefined) throw new ExecutionNotFound(id);
 
@@ -286,7 +275,7 @@ export async function rescheduleExecution(
     if (execution.state !== "created")
       throw new ExecutionNotReschedulable(execution.state);
 
-    execution.scheduleFor = new Date();
+    execution.scheduleFor = scheduleFor;
     executionState.set(execution.id, execution);
 
     return {
