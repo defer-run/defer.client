@@ -16,7 +16,7 @@ const RETRY_MAX_ATTEMPTS_PLACEHOLDER = 13;
 let backend: Backend = remoteBackend;
 if (getEnv("DEFER_TOKEN") === undefined) {
   backend = localBackend;
-  localBackend.start();
+  if (getEnv("DEFER_NO_LOCAL_SCHEDULER") === undefined) localBackend.start();
 }
 
 export const deferEnabled = () => !!getEnv("DEFER_TOKEN");
