@@ -134,15 +134,15 @@ async function loop(shouldRun: () => boolean): Promise<void> {
         const func = execution.func as DeferredFunction<typeof execution.func>;
         const args = JSON.parse(execution.args);
 
-        info("starting execution", {
-          id: executionId,
-          function: execution.func.name,
-          scheduleFor: execution.scheduleFor,
-        });
-
         const perform: () => Promise<void> = async () => {
           let result: any;
           let state: ExecutionState;
+
+          info("starting execution", {
+            id: executionId,
+            function: execution.func.name,
+            scheduleFor: execution.scheduleFor,
+          });
 
           try {
             result = await func.__fn(...args);
