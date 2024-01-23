@@ -31,6 +31,7 @@ import {
 import { info } from "../logger.js";
 import { randomUUID, sleep, stringify } from "../utils.js";
 import version from "../version.js";
+import { Counter } from "./local/counter.js";
 import { Locker } from "./local/locker.js";
 
 interface Execution {
@@ -50,7 +51,8 @@ interface Execution {
 const stateLock = new Map<string, Locker>();
 const executionState = new Map<string, Execution>();
 const functionIdMapping = new Map<string, string>();
-const functionConcurrency = new Map<string, number>();
+const concurrencyCounter = new Counter();
+
 const promisesState = new Set<Promise<void>>();
 
 const banner = `
@@ -107,7 +109,7 @@ async function loop(shouldRun: () => boolean): Promise<void> {
           execution.state === "created" &&
           execution.createdAt < now &&
           (func.__metadata.concurrency === undefined ||
-            (functionConcurrency.get(execution.functionId) || 0) <
+            concurrencyCounter.getCount(execution.functionId) <
               func.__metadata.concurrency);
 
         if (shouldDiscard) {
@@ -120,6 +122,7 @@ async function loop(shouldRun: () => boolean): Promise<void> {
         if (!shouldRun) continue;
 
         // TODO incr function counter
+        await concurrencyCounter.incr(execution.functionId);
         execution.state = "started";
         executionState.set(executionId, execution);
 
@@ -132,6 +135,8 @@ async function loop(shouldRun: () => boolean): Promise<void> {
             state = "succeed";
           } catch (e) {
             state = "failed";
+          } finally {
+            await concurrencyCounter.decr(execution.functionId);
           }
 
           const mut = stateLock.get(executionId) as Locker;
@@ -144,7 +149,6 @@ async function loop(shouldRun: () => boolean): Promise<void> {
             executionState.set(executionId, execution);
           } finally {
             unlock();
-            // TODO decr function counter
           }
         };
         promisesState.add(perform());
