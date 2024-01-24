@@ -454,6 +454,15 @@ export async function listExecutions(
       continue;
     }
 
+    if (
+      execution.startedAt &&
+      filters?.startedAt &&
+      execution.startedAt < filters.startedAt.from &&
+      execution.startedAt > filters.startedAt.to
+    ) {
+      continue;
+    }
+
     data.set(executionId, {
       id: execution.id,
       state: execution.state,
