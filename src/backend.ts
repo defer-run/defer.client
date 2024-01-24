@@ -54,11 +54,18 @@ export interface PageRequest {
   before?: string;
 }
 
+export interface DateInterval {
+  from: Date;
+  to: Date;
+}
+
 export interface ExecutionFilters {
   states?: ExecutionState[];
   functionIds?: string[];
   errorCodes?: string[];
   executedBy?: string;
+  startedAt?: DateInterval;
+  scheduleAt?: DateInterval;
   metadata?: {
     key: string;
     values: string[];
