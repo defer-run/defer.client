@@ -18,8 +18,7 @@ describe("randomUUID/0", () => {
     const crypto = globalThis.crypto;
 
     beforeEach(() => {
-      // @ts-expect-error
-      globalThis.crypto = undefined;
+      (globalThis as any).crypto = undefined;
     });
 
     afterEach(() => {
@@ -54,8 +53,7 @@ describe("getEnv/1", () => {
     const process = globalThis.process;
 
     beforeEach(() => {
-      // @ts-expect-error
-      globalThis.process = undefined;
+      (globalThis as any).process = undefined;
 
       const f = globalThis as any;
       f["FOO"] = "BAR";
