@@ -445,6 +445,15 @@ export async function listExecutions(
         );
     }
 
+    if (
+      execution.scheduleFor &&
+      filters?.scheduleAt &&
+      execution.scheduleFor < filters.scheduleAt.from &&
+      execution.scheduleFor > filters.scheduleAt.to
+    ) {
+      continue;
+    }
+
     data.set(executionId, {
       id: execution.id,
       state: execution.state,
