@@ -62,7 +62,7 @@ export interface DateInterval {
 export interface ExecutionFilters {
   states?: ExecutionState[];
   functionIds?: string[];
-  errorCodes?: string[];
+  errorCodes?: ExecutionErrorCode[];
   executedBy?: string;
   startedAt?: DateInterval;
   scheduleAt?: DateInterval;
