@@ -1,6 +1,7 @@
 import {
   Backend,
   CancelExecutionResult,
+  DeferError,
   EnqueueResult,
   ExecutionFilters,
   GetExecutionResult,
@@ -280,46 +281,6 @@ export function assignOptions<F extends DeferableFunction>(
   return wrapped;
 }
 
-export function awaitResult<F extends DeferableFunction>(
-  fn: DeferredFunction<F>
-): (...args: Parameters<F>) => Promise<Awaited<ReturnType<F>>> {
-  return async function (
-    ...args: Parameters<F>
-  ): Promise<Awaited<ReturnType<F>>> {
-    const originalFunction = fn.__fn;
-    const functionArguments = sanitizeFunctionArguments(args);
-    const httpClient = getHTTPClient();
-
-    let response: client.FetchExecutionResponse;
-    if (httpClient) {
-      const { id } = await client.enqueueExecution(httpClient, {
-        name: originalFunction.name,
-        arguments: functionArguments,
-        scheduleFor: new Date(),
-        metadata: {},
-      });
-      response = await client.waitExecutionResult(httpClient, { id: id });
-    } else {
-      const id = randomUUID();
-      __database.set(id, { id: id, state: "started" });
-      response = await execLocally(id, fn, functionArguments);
-    }
-
-    if (response.state === "failed") {
-      let error = new DeferError("Defer execution failed");
-      if (response.result?.message) {
-        error = new DeferError(response.result.message);
-        error.stack = response.result.stack;
-      } else if (response.result) {
-        error = response.result;
-      }
-      throw error;
-    }
-
-    return response.result;
-  };
-}
-
 export async function getExecution(id: string): Promise<GetExecutionResult> {
   return backend.getExecution(id);
 }
@@ -373,4 +334,26 @@ export async function listExecutions(
   filters?: ExecutionFilters
 ): Promise<ListExecutionsResult> {
   return backend.listExecutions(page, filters);
+}
+
+export function awaitResult<F extends DeferableFunction>(
+  func: DeferredFunction<F>
+): (...args: Parameters<F>) => Promise<Awaited<ReturnType<F>>> {
+  return async function (
+    ...args: Parameters<F>
+  ): Promise<Awaited<ReturnType<F>>> {
+    const response = await enqueue(func, ...args);
+    if (response.state === "failed") {
+      let error = new DeferError("Defer execution failed");
+      if (response.result?.message) {
+        error = new DeferError(response.result.message);
+        error.stack = response.result.stack;
+      } else if (response.result) {
+        error = response.result;
+      }
+      throw error;
+    }
+
+    return response.result;
+  };
 }
