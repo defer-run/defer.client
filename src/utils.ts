@@ -45,7 +45,7 @@ export function stringify(src: any): string {
 }
 
 export function isDebugEnabled(): boolean {
-  return getEnv("DEFER_DEBUG") !== "";
+  return getEnv("DEFER_DEBUG") !== undefined;
 }
 
 export function fromDurationToDate(dt: Date, delay: Duration): Date {
