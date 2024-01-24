@@ -1,7 +1,7 @@
 process.env["DEFER_NO_LOCAL_SCHEDULER"] = "1";
 process.env["DEFER_NO_BANNER"] = "1";
 
-import { defer } from "../src/index.js";
+import { addMetadata, defer, delay, discardAfter } from "../src/index.js";
 
 describe("defer/2", () => {
   describe("when no options is set", () => {
@@ -24,6 +24,7 @@ describe("defer/2", () => {
       expect(myDeferedFunc.__metadata.concurrency).toBeUndefined();
       expect(myDeferedFunc.__metadata.maxDuration).toBeUndefined();
       expect(myDeferedFunc.__metadata.maxConcurrencyAction).toBeUndefined();
+      expect(myDeferedFunc.__execOptions).toBeUndefined();
     });
   });
 
@@ -48,6 +49,7 @@ describe("defer/2", () => {
         expect(myDeferedFunc.__metadata.concurrency).toBeUndefined();
         expect(myDeferedFunc.__metadata.maxDuration).toBeUndefined();
         expect(myDeferedFunc.__metadata.maxConcurrencyAction).toBeUndefined();
+        expect(myDeferedFunc.__execOptions).toBeUndefined();
       });
     });
 
@@ -71,6 +73,7 @@ describe("defer/2", () => {
         expect(myDeferedFunc.__metadata.concurrency).toBeUndefined();
         expect(myDeferedFunc.__metadata.maxDuration).toBeUndefined();
         expect(myDeferedFunc.__metadata.maxConcurrencyAction).toBeUndefined();
+        expect(myDeferedFunc.__execOptions).toBeUndefined();
       });
     });
 
@@ -102,6 +105,7 @@ describe("defer/2", () => {
         expect(myDeferedFunc.__metadata.concurrency).toBeUndefined();
         expect(myDeferedFunc.__metadata.maxDuration).toBeUndefined();
         expect(myDeferedFunc.__metadata.maxConcurrencyAction).toBeUndefined();
+        expect(myDeferedFunc.__execOptions).toBeUndefined();
       });
     });
   });
@@ -126,6 +130,7 @@ describe("defer/2", () => {
       expect(myDeferedFunc.__metadata.concurrency).toBe(20);
       expect(myDeferedFunc.__metadata.maxDuration).toBeUndefined();
       expect(myDeferedFunc.__metadata.maxConcurrencyAction).toBeUndefined();
+      expect(myDeferedFunc.__execOptions).toBeUndefined();
     });
   });
 
@@ -149,6 +154,7 @@ describe("defer/2", () => {
       expect(myDeferedFunc.__metadata.concurrency).toBeUndefined();
       expect(myDeferedFunc.__metadata.maxDuration).toBe(2000);
       expect(myDeferedFunc.__metadata.maxConcurrencyAction).toBeUndefined();
+      expect(myDeferedFunc.__execOptions).toBeUndefined();
     });
   });
 
@@ -172,6 +178,58 @@ describe("defer/2", () => {
       expect(myDeferedFunc.__metadata.concurrency).toBeUndefined();
       expect(myDeferedFunc.__metadata.maxDuration).toBeUndefined();
       expect(myDeferedFunc.__metadata.maxConcurrencyAction).toBe("cancel");
+      expect(myDeferedFunc.__execOptions).toBeUndefined();
     });
   });
 });
+
+describe("delay/2", () => {
+  it("adds delay in __execOptions", () => {
+    const myFunc = async () => console.log("the cake is a lie");
+    const myDeferedFunc = defer(myFunc, { maxConcurrencyAction: "cancel" });
+    const myDeferedDelayFunc = delay(myDeferedFunc, "2h");
+
+    expect(myDeferedDelayFunc.__execOptions).toBeDefined();
+    expect(myDeferedDelayFunc.__execOptions?.delay).toBe("2h");
+    expect(myDeferedDelayFunc.__execOptions?.metadata).toBeUndefined();
+    expect(myDeferedDelayFunc.__execOptions?.discardAfter).toBeUndefined();
+  });
+});
+
+describe("addMetadata/2", () => {
+  it("adds metadata in __execOptions", () => {
+    const myFunc = async () => console.log("the cake is a lie");
+    const myDeferedFunc = defer(myFunc, { maxConcurrencyAction: "cancel" });
+    const myDeferedMDFunc = addMetadata(myDeferedFunc, { foo: "bar" });
+
+    expect(myDeferedMDFunc.__execOptions).toBeDefined();
+    expect(myDeferedMDFunc.__execOptions?.delay).toBeUndefined();
+    expect(myDeferedMDFunc.__execOptions?.metadata).toStrictEqual({
+      foo: "bar",
+    });
+    expect(myDeferedMDFunc.__execOptions?.discardAfter).toBeUndefined();
+
+    const myDeferedMDFunc2 = addMetadata(myDeferedFunc, { bar: "foo" });
+    expect(myDeferedMDFunc2.__execOptions).toBeDefined();
+    expect(myDeferedMDFunc2.__execOptions?.delay).toBeUndefined();
+    expect(myDeferedMDFunc2.__execOptions?.metadata).toStrictEqual({
+      bar: "foo",
+    });
+    expect(myDeferedMDFunc2.__execOptions?.discardAfter).toBeUndefined();
+  });
+});
+
+describe("discardAfter/2", () => {
+  it("adds discardAfter in __execOptions", () => {
+    const myFunc = async () => console.log("the cake is a lie");
+    const myDeferedFunc = defer(myFunc, { maxConcurrencyAction: "cancel" });
+    const myDeferedDelayFunc = discardAfter(myDeferedFunc, "2h");
+
+    expect(myDeferedDelayFunc.__execOptions).toBeDefined();
+    expect(myDeferedDelayFunc.__execOptions?.delay).toBeUndefined();
+    expect(myDeferedDelayFunc.__execOptions?.metadata).toBeUndefined();
+    expect(myDeferedDelayFunc.__execOptions?.discardAfter).toBe("2h");
+  });
+});
+
+describe("assignOptions/2", () => {});
