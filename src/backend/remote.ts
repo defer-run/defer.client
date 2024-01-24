@@ -15,7 +15,11 @@
 import {
   CancelExecutionResult,
   EnqueueResult,
+  ExecutionFilters,
   GetExecutionResult,
+  ListExecutionAttemptsResult,
+  ListExecutionsResult,
+  PageRequest,
   ReRunExecutionResult,
   RescheduleExecutionResult,
 } from "../backend.js";
@@ -140,4 +144,19 @@ export async function reRunExecution(
     updatedAt: response.updated_at,
     createdAt: response.created_at,
   };
+}
+
+export async function listExecutions(
+  _pageRequest?: PageRequest,
+  _filters?: ExecutionFilters
+): Promise<ListExecutionsResult> {
+  return {} as any;
+}
+
+export async function listExecutionAttempts(
+  _id: string,
+  _pageRequest?: PageRequest,
+  _filters?: ExecutionFilters
+): Promise<ListExecutionAttemptsResult> {
+  return {} as any;
 }
