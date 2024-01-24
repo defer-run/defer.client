@@ -28,6 +28,29 @@ import { error } from "../logger.js";
 import { getEnv } from "../utils.js";
 import { HTTPClient, makeHTTPClient } from "./remote/httpClient.js";
 
+export interface SingleObjectResponse<T> {
+  data: T;
+}
+
+export interface APIExecution {
+  id: string;
+  state: ExecutionState;
+  function_name: string;
+  function_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type CreateExecutionResponse = SingleObjectResponse<APIExecution>;
+
+export type GetExecutionResponse = SingleObjectResponse<APIExecution>;
+
+export type ReRunExecutionResponse = SingleObjectResponse<APIExecution>;
+
+export type RescheduleExecutionResponse = SingleObjectResponse<APIExecution>;
+
+export type CancelExecutionResponse = SingleObjectResponse<APIExecution>;
+
 function newClientFromEnv(): HTTPClient {
   const accessToken = getEnv("DEFER_TOKEN") || "";
   const endpoint = getEnv("DEFER_ENDPOINT") || "https://api.defer.run";
