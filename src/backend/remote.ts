@@ -15,7 +15,9 @@
 import {
   CancelExecutionResult,
   EnqueueResult,
+  Execution,
   ExecutionFilters,
+  ExecutionState,
   GetExecutionResult,
   ListExecutionAttemptsResult,
   ListExecutionsResult,
@@ -87,15 +89,12 @@ export async function enqueue<F extends DeferableFunction>(
   };
 
   try {
-    const response = await httpClient("POST", "/public/v1/enqueue", request);
-    return {
-      id: response.id,
-      state: response.state,
-      functionName: response.function_name,
-      functionId: response.function_id,
-      updatedAt: response.updated_at,
-      createdAt: response.created_at,
-    };
+    const response = await httpClient<CreateExecutionResponse>(
+      "POST",
+      "/public/v2/enqueue",
+      request
+    );
+    return newExecution(response.data);
   } catch (e) {
     error("cannot enqueue function is the queue", {
       function: originalFunction.name,
@@ -106,15 +105,11 @@ export async function enqueue<F extends DeferableFunction>(
 
 export async function getExecution(id: string): Promise<GetExecutionResult> {
   const httpClient = newClientFromEnv();
-  const response = await httpClient("GET", `/public/v1/executions/${id}`);
-  return {
-    id: response.id,
-    state: response.state,
-    functionName: response.function_name,
-    functionId: response.function_id,
-    updatedAt: response.updated_at,
-    createdAt: response.created_at,
-  };
+  const response = await httpClient<GetExecutionResponse>(
+    "GET",
+    `/public/v2/executions/${id}`
+  );
+  return newExecution(response.data);
 }
 
 export async function cancelExecution(
@@ -123,19 +118,12 @@ export async function cancelExecution(
 ): Promise<CancelExecutionResult> {
   const httpClient = newClientFromEnv();
   const request = JSON.stringify({ force: force });
-  const response = await httpClient(
+  const response = await httpClient<CancelExecutionResponse>(
     "POST",
-    `/public/v1/executions/${id}/cancel`,
+    `/public/v2/executions/${id}/cancellation`,
     request
   );
-  return {
-    id: response.id,
-    state: response.state,
-    functionName: response.function_name,
-    functionId: response.function_id,
-    updatedAt: response.updated_at,
-    createdAt: response.created_at,
-  };
+  return newExecution(response.data);
 }
 
 export async function rescheduleExecution(
@@ -144,19 +132,12 @@ export async function rescheduleExecution(
 ): Promise<RescheduleExecutionResult> {
   const httpClient = newClientFromEnv();
   const request = JSON.stringify({ schedule_for: scheduleFor });
-  const response = await httpClient(
-    "POST",
-    `/public/v1/executions/${id}/reschedule`,
+  const response = await httpClient<RescheduleExecutionResponse>(
+    "PATCH",
+    `/public/v2/executions/${id}/schedule`,
     request
   );
-  return {
-    id: response.id,
-    state: response.state,
-    functionName: response.function_name,
-    functionId: response.function_id,
-    updatedAt: response.updated_at,
-    createdAt: response.created_at,
-  };
+  return newExecution(response.data);
 }
 
 export async function reRunExecution(
@@ -164,20 +145,12 @@ export async function reRunExecution(
 ): Promise<ReRunExecutionResult> {
   const httpClient = newClientFromEnv();
   const request = JSON.stringify({});
-  const response = await httpClient(
+  const response = await httpClient<ReRunExecutionResponse>(
     "POST",
     `/public/v2/executions/${id}/reruns`,
     request
   );
-
-  return {
-    id: response.id,
-    state: response.state,
-    functionName: response.function_name,
-    functionId: response.function_id,
-    updatedAt: response.updated_at,
-    createdAt: response.created_at,
-  };
+  return newExecution(response.data);
 }
 
 export async function listExecutions(
