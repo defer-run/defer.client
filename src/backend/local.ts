@@ -140,24 +140,24 @@ function isExecutionMatchFilter(
     filters?.states &&
     filters.states.length > 0 &&
     !filters?.states?.includes(execution.state)
-  ) {
+  )
     return false;
-  }
+
   if (
     filters?.functionIds &&
     filters.functionIds.length > 0 &&
     !filters?.functionIds?.includes(execution.functionId)
-  ) {
+  )
     return false;
-  }
+
   if (
     execution.errorCode &&
     filters?.errorCodes &&
     filters.errorCodes.length > 0 &&
     !filters?.errorCodes?.includes(execution.errorCode)
-  ) {
+  )
     return false;
-  }
+
   if (filters?.metadata && filters.metadata.length > 0 && execution.metadata) {
     filters.metadata
       .filter((mdFilter) => mdFilter.values.length > 0)
@@ -172,18 +172,16 @@ function isExecutionMatchFilter(
     filters?.scheduleAt &&
     execution.scheduleFor < filters.scheduleAt.from &&
     execution.scheduleFor > filters.scheduleAt.to
-  ) {
+  )
     return false;
-  }
 
   if (
     execution.startedAt &&
     filters?.startedAt &&
     execution.startedAt < filters.startedAt.from &&
     execution.startedAt > filters.startedAt.to
-  ) {
+  )
     return false;
-  }
 
   return true;
 }
