@@ -483,7 +483,7 @@ export async function listExecutions(
 export async function listExecutionAttempts(
   id: string,
   pageRequest?: PageRequest,
-  filters?: any
+  filters?: ExecutionFilters
 ): Promise<ListExecutionAttemptsResult> {
   const executionIds = await executionsStore.keys();
   const data = new Map<string, Execution>();
@@ -495,14 +495,15 @@ export async function listExecutionAttempts(
       executionId
     )) as InternalExecution;
 
-    data.set(executionId, {
-      id: execution.id,
-      state: execution.state,
-      functionName: execution.func.name,
-      functionId: execution.functionId,
-      createdAt: execution.createdAt,
-      updatedAt: execution.updatedAt,
-    });
+    if (isExecutionMatchFilter(filters, execution))
+      data.set(executionId, {
+        id: execution.id,
+        state: execution.state,
+        functionName: execution.func.name,
+        functionId: execution.functionId,
+        createdAt: execution.createdAt,
+        updatedAt: execution.updatedAt,
+      });
   }
 
   return paginate(pageRequest, data);
