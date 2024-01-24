@@ -27,7 +27,7 @@ import {
 } from "../backend.js";
 import { DeferableFunction, DeferredFunction } from "../index.js";
 import { error } from "../logger.js";
-import { getEnv } from "../utils.js";
+import { getEnv, stringify } from "../utils.js";
 import { HTTPClient, makeHTTPClient } from "./remote/httpClient.js";
 
 export interface SingleObjectResponse<T> {
@@ -41,6 +41,14 @@ export interface APIExecution {
   function_id: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface CreateExecutionRequest {
+  function_name: string;
+  function_arguments: string[];
+  schedule_for: string;
+  discard_after: string | undefined;
+  metadata: { [key: string]: string };
 }
 
 export type CreateExecutionResponse = SingleObjectResponse<APIExecution>;
@@ -80,19 +88,19 @@ export async function enqueue<F extends DeferableFunction>(
   const originalFunction = func.__fn;
   const httpClient = newClientFromEnv();
 
-  const request: any = {
-    name: func.__fn.name,
-    arguments: args,
-    scheduleFor,
-    discardAfter,
+  const request: CreateExecutionRequest = {
+    function_name: func.__fn.name,
+    function_arguments: [], // TODO
+    schedule_for: scheduleFor.toISOString(),
+    discard_after: discardAfter?.toISOString(),
     metadata: func.__execOptions?.metadata || {},
   };
 
   try {
     const response = await httpClient<CreateExecutionResponse>(
-      "POST",
+      "PUT",
       "/public/v2/enqueue",
-      request
+      stringify(request)
     );
     return newExecution(response.data);
   } catch (e) {
