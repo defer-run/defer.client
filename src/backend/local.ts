@@ -109,7 +109,7 @@ function paginate<T>(
       throw new Error("page.last cannot be negative");
     }
     if (edges.length > page.last) {
-      edges = edges.slice(-page.last, -1);
+      edges = edges.slice(edges.length - page.last);
       hasPrevPage = true;
     }
   } else if (page?.first) {
