@@ -52,6 +52,7 @@ interface InternalExecution {
   scheduleFor: Date;
   discardAfter?: Date | undefined;
   startedAt?: Date | undefined;
+  retryOf?: string | undefined;
   metadata: ExecutionMetadata;
   errorCode?: ExecutionErrorCode;
   createdAt: Date;
@@ -488,14 +489,15 @@ export async function listExecutionAttempts(
   const executionIds = await executionsStore.keys();
   const data = new Map<string, Execution>();
 
-  // TODO add retryOf
-
   for (const executionId of executionIds) {
     const execution = (await executionsStore.get(
       executionId
     )) as InternalExecution;
 
-    if (isExecutionMatchFilter(filters, execution))
+    if (
+      (execution.id === id || execution.retryOf === id) &&
+      isExecutionMatchFilter(filters, execution)
+    )
       data.set(executionId, {
         id: execution.id,
         state: execution.state,
