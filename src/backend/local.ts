@@ -127,7 +127,7 @@ function paginate<T>(
       hasNextPage,
       hasPrevPage,
       startCursor: edges[0],
-      endCursor: edges[-1],
+      endCursor: edges[edges.length - 1],
     },
     data: edges.map((key) => records.get(key) as T),
   };
