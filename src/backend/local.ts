@@ -99,7 +99,7 @@ function paginate<T>(
   } else if (page?.after) {
     const afterIndex = edges.indexOf(page.after);
     if (afterIndex != -1) {
-      edges = edges.slice(afterIndex + 1, -1);
+      edges = edges.slice(afterIndex + 1);
       hasPrevPage = true;
     }
   }
@@ -117,7 +117,7 @@ function paginate<T>(
       throw new Error("page.first cannot be negative");
     }
     if (edges.length > page.first) {
-      edges = edges.slice(0, page.first - 1);
+      edges = edges.slice(0, page.first);
       hasNextPage = true;
     }
   }
