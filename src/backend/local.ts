@@ -47,6 +47,7 @@ interface InternalExecution {
   args: string;
   func: DeferableFunction;
   functionId: string;
+  functionName: string;
   state: ExecutionState;
   result?: string;
   scheduleFor: Date;
@@ -326,6 +327,7 @@ export async function enqueue<F extends DeferableFunction>(
     id: randomUUID(),
     state: "created",
     functionId: functionId,
+    functionName: func.__fn.name,
     func,
     args,
     metadata: func.__execOptions?.metadata || {},
@@ -340,7 +342,7 @@ export async function enqueue<F extends DeferableFunction>(
   return {
     id: execution.id,
     state: execution.state,
-    functionName: execution.func.name,
+    functionName: execution.functionName,
     functionId: execution.functionId,
     createdAt: execution.createdAt,
     updatedAt: execution.updatedAt,
@@ -354,7 +356,7 @@ export async function getExecution(id: string): Promise<GetExecutionResult> {
   return {
     id,
     state: execution.state,
-    functionName: execution.func.name,
+    functionName: execution.functionName,
     functionId: execution.functionId,
     createdAt: execution.createdAt,
     updatedAt: execution.updatedAt,
@@ -399,7 +401,7 @@ export async function cancelExecution(
   return {
     id,
     state: execution.state,
-    functionName: execution.func.name,
+    functionName: execution.functionName,
     functionId: execution.functionId,
     createdAt: execution.createdAt,
     updatedAt: execution.updatedAt,
@@ -425,7 +427,7 @@ export async function rescheduleExecution(
   return {
     id,
     state: execution.state,
-    functionName: execution.func.name,
+    functionName: execution.functionName,
     functionId: execution.functionId,
     createdAt: execution.createdAt,
     updatedAt: execution.updatedAt,
@@ -443,6 +445,7 @@ export async function reRunExecution(
     id: randomUUID(),
     state: "created",
     functionId: execution.functionId,
+    functionName: execution.functionName,
     func: execution.func,
     args: execution.args,
     metadata: execution.metadata,
@@ -479,7 +482,7 @@ export async function listExecutions(
       data.set(executionId, {
         id: execution.id,
         state: execution.state,
-        functionName: execution.func.name,
+        functionName: execution.functionName,
         functionId: execution.functionId,
         createdAt: execution.createdAt,
         updatedAt: execution.updatedAt,
@@ -509,7 +512,7 @@ export async function listExecutionAttempts(
       data.set(executionId, {
         id: execution.id,
         state: execution.state,
-        functionName: execution.func.name,
+        functionName: execution.functionName,
         functionId: execution.functionId,
         createdAt: execution.createdAt,
         updatedAt: execution.updatedAt,
