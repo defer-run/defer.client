@@ -14,8 +14,10 @@
 
 import {
   CancelExecutionResult,
+  DateInterval,
   EnqueueResult,
   Execution,
+  ExecutionErrorCode,
   ExecutionFilters,
   ExecutionState,
   GetExecutionResult,
@@ -32,6 +34,30 @@ import { HTTPClient, makeHTTPClient } from "./remote/httpClient.js";
 
 export interface SingleObjectResponse<T> {
   data: T;
+}
+
+export interface Page {
+  first?: number;
+  after?: string;
+  last?: number;
+  before?: string;
+}
+
+export interface PageInfo {
+  has_next_page: boolean;
+  has_prev_page: boolean;
+  start_cursor: string;
+  end_cursor: string;
+}
+
+export interface ListObjectsResponse<T> {
+  page_info: PageInfo;
+  data: T[];
+}
+
+export interface ListObjectRequest<T> {
+  page: Page | undefined;
+  filters: T | undefined;
 }
 
 export interface APIExecution {
@@ -59,6 +85,26 @@ export interface RescheduleExecutionRequest {
   schedule_for: string;
 }
 
+export interface ListExecutionFilters {
+  states?: ExecutionState[] | undefined;
+  function_ids?: string[] | undefined;
+  error_codes?: ExecutionErrorCode[] | undefined;
+  scheduled_at?: DateInterval | undefined;
+  started_at?: DateInterval | undefined;
+  executed_by?: string | undefined;
+  metadata?:
+    | {
+        key: string;
+        values: string[];
+      }[]
+    | undefined;
+}
+
+export type ListExecutionsRequest = ListObjectRequest<ListExecutionFilters>;
+
+export type ListExecutionAttemptsRequest =
+  ListObjectRequest<ListExecutionFilters>;
+
 export interface ReRunExecutionRequest {}
 
 export type CreateExecutionResponse = SingleObjectResponse<APIExecution>;
@@ -70,6 +116,10 @@ export type ReRunExecutionResponse = SingleObjectResponse<APIExecution>;
 export type RescheduleExecutionResponse = SingleObjectResponse<APIExecution>;
 
 export type CancelExecutionResponse = SingleObjectResponse<APIExecution>;
+
+export type ListExecutionsResponse = ListObjectsResponse<APIExecution>;
+
+export type ListExecutionAttemptsResponse = ListObjectsResponse<APIExecution>;
 
 function newExecution(o: APIExecution): Execution {
   return {
@@ -174,16 +224,80 @@ export async function reRunExecution(
 }
 
 export async function listExecutions(
-  _pageRequest?: PageRequest,
-  _filters?: ExecutionFilters
+  pageRequest?: PageRequest,
+  filters?: ExecutionFilters
 ): Promise<ListExecutionsResult> {
-  return {} as any;
+  const httpClient = newClientFromEnv();
+  const request: ListExecutionsRequest = {
+    page: pageRequest,
+    filters: filters
+      ? {
+          states: filters?.states,
+          error_codes: filters?.errorCodes,
+          function_ids: filters?.functionIds,
+          scheduled_at: filters?.scheduleAt,
+          started_at: filters?.startedAt,
+          executed_by: filters?.executedBy,
+          metadata: filters?.metadata,
+        }
+      : undefined,
+  };
+  const response = await httpClient<ListExecutionsResponse>(
+    "POST",
+    `/public/v2/executions`,
+    stringify(request)
+  );
+
+  const executions: Execution[] = [];
+  for (const data of response.data) executions.push(newExecution(data));
+
+  return {
+    pageInfo: {
+      hasPrevPage: response.page_info.has_prev_page,
+      hasNextPage: response.page_info.has_next_page,
+      startCursor: response.page_info.start_cursor,
+      endCursor: response.page_info.end_cursor,
+    },
+    data: executions,
+  };
 }
 
 export async function listExecutionAttempts(
-  _id: string,
-  _pageRequest?: PageRequest,
-  _filters?: ExecutionFilters
+  id: string,
+  pageRequest?: PageRequest,
+  filters?: ExecutionFilters
 ): Promise<ListExecutionAttemptsResult> {
-  return {} as any;
+  const httpClient = newClientFromEnv();
+  const request: ListExecutionAttemptsRequest = {
+    page: pageRequest,
+    filters: filters
+      ? {
+          states: filters?.states,
+          error_codes: filters?.errorCodes,
+          function_ids: filters?.functionIds,
+          scheduled_at: filters?.scheduleAt,
+          started_at: filters?.startedAt,
+          executed_by: filters?.executedBy,
+          metadata: filters?.metadata,
+        }
+      : undefined,
+  };
+  const response = await httpClient<ListExecutionAttemptsResponse>(
+    "POST",
+    `/public/v2/executions/${id}/attempts`,
+    stringify(request)
+  );
+
+  const executions: Execution[] = [];
+  for (const data of response.data) executions.push(newExecution(data));
+
+  return {
+    pageInfo: {
+      hasPrevPage: response.page_info.has_prev_page,
+      hasNextPage: response.page_info.has_next_page,
+      startCursor: response.page_info.start_cursor,
+      endCursor: response.page_info.end_cursor,
+    },
+    data: executions,
+  };
 }
