@@ -338,10 +338,8 @@ export async function listExecutions(
 
 export function awaitResult<F extends DeferableFunction>(
   func: DeferredFunction<F>
-): (...args: Parameters<F>) => Promise<Awaited<ReturnType<F>>> {
-  return async function (
-    ...args: Parameters<F>
-  ): Promise<Awaited<ReturnType<F>>> {
+): (...args: Parameters<F>) => Promise<Awaited<F>> {
+  return async function (...args: Parameters<F>): Promise<Awaited<F>> {
     const response = await enqueue(func, ...args);
     if (response.state === "failed") {
       let error = new DeferError("Defer execution failed");
