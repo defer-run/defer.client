@@ -446,7 +446,6 @@ export async function listExecutions(
     }
 
     if (
-      execution.scheduleFor &&
       filters?.scheduleAt &&
       execution.scheduleFor < filters.scheduleAt.from &&
       execution.scheduleFor > filters.scheduleAt.to
