@@ -131,6 +131,62 @@ function paginate<T>(
   };
 }
 
+function isExecutionMatchFilter(
+  filters: ExecutionFilters | undefined,
+  execution: InternalExecution
+): boolean {
+  if (
+    filters?.states &&
+    filters.states.length > 0 &&
+    !filters?.states?.includes(execution.state)
+  ) {
+    return false;
+  }
+  if (
+    filters?.functionIds &&
+    filters.functionIds.length > 0 &&
+    !filters?.functionIds?.includes(execution.functionId)
+  ) {
+    return false;
+  }
+  if (
+    execution.errorCode &&
+    filters?.errorCodes &&
+    filters.errorCodes.length > 0 &&
+    !filters?.errorCodes?.includes(execution.errorCode)
+  ) {
+    return false;
+  }
+  if (filters?.metadata && filters.metadata.length > 0 && execution.metadata) {
+    filters.metadata
+      .filter((mdFilter) => mdFilter.values.length > 0)
+      .some((mdFilter) =>
+        mdFilter.values.some(
+          (value) => execution.metadata[mdFilter.key] === value
+        )
+      );
+  }
+
+  if (
+    filters?.scheduleAt &&
+    execution.scheduleFor < filters.scheduleAt.from &&
+    execution.scheduleFor > filters.scheduleAt.to
+  ) {
+    return false;
+  }
+
+  if (
+    execution.startedAt &&
+    filters?.startedAt &&
+    execution.startedAt < filters.startedAt.from &&
+    execution.startedAt > filters.startedAt.to
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
 export function start(): () => Promise<void> {
   if (getEnv("DEFER_NO_BANNER") === undefined) {
     console.log(banner);
@@ -410,67 +466,15 @@ export async function listExecutions(
       executionId
     )) as InternalExecution;
 
-    if (
-      filters?.states &&
-      filters.states.length > 0 &&
-      !filters?.states?.includes(execution.state)
-    ) {
-      continue;
-    }
-    if (
-      filters?.functionIds &&
-      filters.functionIds.length > 0 &&
-      !filters?.functionIds?.includes(execution.functionId)
-    ) {
-      continue;
-    }
-    if (
-      execution.errorCode &&
-      filters?.errorCodes &&
-      filters.errorCodes.length > 0 &&
-      !filters?.errorCodes?.includes(execution.errorCode)
-    ) {
-      continue;
-    }
-    if (
-      filters?.metadata &&
-      filters.metadata.length > 0 &&
-      execution.metadata
-    ) {
-      filters.metadata
-        .filter((mdFilter) => mdFilter.values.length > 0)
-        .some((mdFilter) =>
-          mdFilter.values.some(
-            (value) => execution.metadata[mdFilter.key] === value
-          )
-        );
-    }
-
-    if (
-      filters?.scheduleAt &&
-      execution.scheduleFor < filters.scheduleAt.from &&
-      execution.scheduleFor > filters.scheduleAt.to
-    ) {
-      continue;
-    }
-
-    if (
-      execution.startedAt &&
-      filters?.startedAt &&
-      execution.startedAt < filters.startedAt.from &&
-      execution.startedAt > filters.startedAt.to
-    ) {
-      continue;
-    }
-
-    data.set(executionId, {
-      id: execution.id,
-      state: execution.state,
-      functionName: execution.func.name,
-      functionId: execution.functionId,
-      createdAt: execution.createdAt,
-      updatedAt: execution.updatedAt,
-    });
+    if (isExecutionMatchFilter(filters, execution))
+      data.set(executionId, {
+        id: execution.id,
+        state: execution.state,
+        functionName: execution.func.name,
+        functionId: execution.functionId,
+        createdAt: execution.createdAt,
+        updatedAt: execution.updatedAt,
+      });
   }
 
   return paginate(pageRequest, data);
