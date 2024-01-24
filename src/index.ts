@@ -55,6 +55,7 @@ export interface Manifest {
   retry?: RetryPolicy;
   concurrency?: Concurrency | undefined;
   maxDuration?: number | undefined;
+  maxConcurrencyAction: "keep" | "cancel" | undefined;
 }
 
 export interface RetryPolicy {
@@ -181,7 +182,7 @@ export function defer<F extends DeferableFunction>(
   fn: F,
   config?: DeferredFunctionConfiguration
 ): DeferredFunction<F> {
-  const wrapped = async (
+  const wrapped: DeferredFunction<F> = async (
     ...args: Parameters<typeof fn>
   ): Promise<EnqueueResult> => enqueue(wrapped, ...args);
   wrapped.__fn = fn;
@@ -202,7 +203,7 @@ defer.cron = function (
   cronExpr: string,
   config?: DeferredFunctionConfiguration
 ): DeferredFunction<typeof fn> {
-  const wrapped = async (
+  const wrapped: DeferredFunction<typeof fn> = async (
     ...args: Parameters<typeof fn>
   ): Promise<EnqueueResult> => enqueue(wrapped, ...args);
 
@@ -266,7 +267,7 @@ export function assignOptions<F extends DeferableFunction>(
   fn: DeferredFunction<F>,
   options: ExecutionOptions
 ): DeferredFunction<F> {
-  const wrapped = async (
+  const wrapped: DeferredFunction<F> = async (
     ...args: Parameters<typeof fn>
   ): Promise<EnqueueResult> => enqueue(wrapped, ...args);
 
