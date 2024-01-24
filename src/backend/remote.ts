@@ -51,6 +51,16 @@ export interface CreateExecutionRequest {
   metadata: { [key: string]: string };
 }
 
+export interface CancelExecutionRequest {
+  force: boolean;
+}
+
+export interface RescheduleExecutionRequest {
+  schedule_for: string;
+}
+
+export interface ReRunExecutionRequest {}
+
 export type CreateExecutionResponse = SingleObjectResponse<APIExecution>;
 
 export type GetExecutionResponse = SingleObjectResponse<APIExecution>;
@@ -125,11 +135,11 @@ export async function cancelExecution(
   force: boolean
 ): Promise<CancelExecutionResult> {
   const httpClient = newClientFromEnv();
-  const request = JSON.stringify({ force: force });
+  const request: CancelExecutionRequest = { force: force };
   const response = await httpClient<CancelExecutionResponse>(
     "POST",
     `/public/v2/executions/${id}/cancellation`,
-    request
+    stringify(request)
   );
   return newExecution(response.data);
 }
@@ -139,11 +149,13 @@ export async function rescheduleExecution(
   scheduleFor: Date
 ): Promise<RescheduleExecutionResult> {
   const httpClient = newClientFromEnv();
-  const request = JSON.stringify({ schedule_for: scheduleFor });
+  const request: RescheduleExecutionRequest = {
+    schedule_for: scheduleFor.toISOString(),
+  };
   const response = await httpClient<RescheduleExecutionResponse>(
     "PATCH",
     `/public/v2/executions/${id}/schedule`,
-    request
+    stringify(request)
   );
   return newExecution(response.data);
 }
@@ -152,11 +164,11 @@ export async function reRunExecution(
   id: string
 ): Promise<ReRunExecutionResult> {
   const httpClient = newClientFromEnv();
-  const request = JSON.stringify({});
+  const request: ReRunExecutionRequest = {};
   const response = await httpClient<ReRunExecutionResponse>(
     "POST",
     `/public/v2/executions/${id}/reruns`,
-    request
+    stringify(request)
   );
   return newExecution(response.data);
 }
