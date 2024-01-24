@@ -50,7 +50,8 @@ interface InternalExecution {
   state: ExecutionState;
   result?: string;
   scheduleFor: Date;
-  discardAfter: Date | undefined;
+  discardAfter?: Date | undefined;
+  startedAt?: Date | undefined;
   metadata: ExecutionMetadata;
   errorCode?: ExecutionErrorCode;
   createdAt: Date;
@@ -185,6 +186,7 @@ async function loop(shouldRun: () => boolean): Promise<void> {
 
           await concurrencyCounter.incr(execution.functionId);
           execution.state = "started";
+          execution.startedAt = new Date();
           execution.updatedAt = new Date();
 
           return execution;
@@ -380,7 +382,6 @@ export async function reRunExecution(
     args: execution.args,
     metadata: execution.metadata,
     scheduleFor: now,
-    discardAfter: undefined,
     createdAt: now,
     updatedAt: now,
   };
