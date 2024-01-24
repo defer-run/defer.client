@@ -1,7 +1,13 @@
 process.env["DEFER_NO_LOCAL_SCHEDULER"] = "1";
 process.env["DEFER_NO_BANNER"] = "1";
 
-import { addMetadata, defer, delay, discardAfter } from "../src/index.js";
+import {
+  addMetadata,
+  assignOptions,
+  defer,
+  delay,
+  discardAfter,
+} from "../src/index.js";
 
 describe("defer/2", () => {
   describe("when no options is set", () => {
@@ -223,13 +229,23 @@ describe("discardAfter/2", () => {
   it("adds discardAfter in __execOptions", () => {
     const myFunc = async () => console.log("the cake is a lie");
     const myDeferedFunc = defer(myFunc, { maxConcurrencyAction: "cancel" });
-    const myDeferedDelayFunc = discardAfter(myDeferedFunc, "2h");
+    const myDeferedDiscardyFunc = discardAfter(myDeferedFunc, "2h");
 
-    expect(myDeferedDelayFunc.__execOptions).toBeDefined();
-    expect(myDeferedDelayFunc.__execOptions?.delay).toBeUndefined();
-    expect(myDeferedDelayFunc.__execOptions?.metadata).toBeUndefined();
-    expect(myDeferedDelayFunc.__execOptions?.discardAfter).toBe("2h");
+    expect(myDeferedDiscardyFunc.__execOptions).toBeDefined();
+    expect(myDeferedDiscardyFunc.__execOptions?.delay).toBeUndefined();
+    expect(myDeferedDiscardyFunc.__execOptions?.metadata).toBeUndefined();
+    expect(myDeferedDiscardyFunc.__execOptions?.discardAfter).toBe("2h");
   });
 });
 
-describe("assignOptions/2", () => {});
+describe("assignOptions/2", () => {
+  describe("when options are empty", () => {
+    it("does nothing", () => {
+      const myFunc = async () => console.log("the cake is a lie");
+      const myDeferedFunc = defer(myFunc, { maxConcurrencyAction: "cancel" });
+      const myDeferedAssignFunc = assignOptions(myDeferedFunc, {});
+
+      expect(myDeferedAssignFunc.__execOptions).toStrictEqual({});
+    });
+  });
+});
