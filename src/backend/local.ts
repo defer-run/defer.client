@@ -257,6 +257,7 @@ async function loop(shouldRun: () => boolean): Promise<void> {
           const perform: () => Promise<void> = async () => {
             let result: any;
             let state: ExecutionState;
+            let errorCode: ExecutionErrorCode;
 
             info("starting execution", {
               id: executionId,
@@ -273,6 +274,7 @@ async function loop(shouldRun: () => boolean): Promise<void> {
               });
             } catch (e) {
               state = "failed";
+              errorCode = "ER0003";
               error("execution failed", {
                 id: executionId,
                 function: func.__fn.name,
@@ -288,6 +290,7 @@ async function loop(shouldRun: () => boolean): Promise<void> {
                 execution.state = state;
                 execution.result = stringify(result);
                 execution.updatedAt = new Date();
+                execution.errorCode = errorCode;
                 return execution;
               }
             );
