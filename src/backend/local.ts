@@ -329,7 +329,7 @@ export async function enqueue<F extends DeferableFunction>(
     functionId: functionId,
     functionName: func.__fn.name,
     func,
-    args,
+    args: stringify(args),
     metadata: func.__execOptions?.metadata || {},
     scheduleFor,
     discardAfter,

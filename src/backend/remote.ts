@@ -141,7 +141,7 @@ function newClientFromEnv(): HTTPClient {
 
 export async function enqueue<F extends DeferableFunction>(
   func: DeferredFunction<F>,
-  args: string,
+  args: Parameters<F>,
   scheduleFor: Date,
   discardAfter: Date | undefined
 ): Promise<EnqueueResult> {
@@ -150,7 +150,7 @@ export async function enqueue<F extends DeferableFunction>(
 
   const request: CreateExecutionRequest = {
     function_name: func.__fn.name,
-    function_arguments: [], // TODO
+    function_arguments: args,
     schedule_for: scheduleFor.toISOString(),
     discard_after: discardAfter?.toISOString(),
     metadata: func.__execOptions?.metadata || {},
