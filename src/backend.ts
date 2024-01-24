@@ -31,6 +31,7 @@ export interface Execution {
   state: ExecutionState;
   functionName: string;
   functionId: string;
+  result?: any;
   createdAt: Date;
   updatedAt: Date;
 }
