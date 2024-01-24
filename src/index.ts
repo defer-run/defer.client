@@ -2,7 +2,11 @@ import {
   Backend,
   CancelExecutionResult,
   EnqueueResult,
+  ExecutionFilters,
   GetExecutionResult,
+  ListExecutionAttemptsResult,
+  ListExecutionsResult,
+  PageRequest,
   ReRunExecutionResult,
   RescheduleExecutionResult,
 } from "./backend.js";
@@ -355,11 +359,18 @@ export async function getExecutionTries(id: string): Promise<any> {
   warn(
     `"getExecutionTries/1" is deprecated and will be removed in future versions. Please use "listExecutionAttempts/2" instead.`
   );
-  listExecutionAttemps(id);
+  listExecutionAttempts(id);
 }
 
-export async function listExecutionAttemps(id: string): Promise<any> {
-  console.log(id);
+export async function listExecutionAttempts(
+  id: string
+): Promise<ListExecutionAttemptsResult> {
+  return backend.listExecutionAttempts(id);
 }
 
-export async function listExecutions(): Promise<any> {}
+export async function listExecutions(
+  page?: PageRequest,
+  filters?: ExecutionFilters
+): Promise<ListExecutionsResult> {
+  return backend.listExecutions(page, filters);
+}
