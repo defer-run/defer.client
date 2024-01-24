@@ -51,6 +51,17 @@ export type RescheduleExecutionResponse = SingleObjectResponse<APIExecution>;
 
 export type CancelExecutionResponse = SingleObjectResponse<APIExecution>;
 
+function newExecution(o: APIExecution): Execution {
+  return {
+    id: o.id,
+    state: o.state,
+    functionName: o.function_name,
+    functionId: o.function_id,
+    updatedAt: new Date(Date.parse(o.updated_at)),
+    createdAt: new Date(Date.parse(o.created_at)),
+  };
+}
+
 function newClientFromEnv(): HTTPClient {
   const accessToken = getEnv("DEFER_TOKEN") || "";
   const endpoint = getEnv("DEFER_ENDPOINT") || "https://api.defer.run";
