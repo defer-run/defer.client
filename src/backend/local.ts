@@ -207,96 +207,103 @@ export function start(): () => Promise<void> {
 }
 
 async function loop(shouldRun: () => boolean): Promise<void> {
-  // TODO handle error in the loop
+  try {
+    while (shouldRun()) {
+      const now = new Date();
+      for (const executionId of await executionsStore.keys()) {
+        let shouldRun: boolean = false;
 
-  while (shouldRun()) {
-    const now = new Date();
-    for (const executionId of await executionsStore.keys()) {
-      let shouldRun: boolean = false;
+        const execution = await executionsStore.transaction(
+          executionId,
+          async (execution) => {
+            const func = execution.func as DeferredFunction<
+              typeof execution.func
+            >;
+            const shouldDiscard =
+              execution.discardAfter !== undefined &&
+              execution.discardAfter > now;
 
-      const execution = await executionsStore.transaction(
-        executionId,
-        async (execution) => {
+            shouldRun =
+              execution.state === "created" &&
+              execution.scheduleFor < now &&
+              (func.__metadata.concurrency === undefined ||
+                concurrencyCounter.getCount(execution.functionId) <
+                  func.__metadata.concurrency);
+
+            if (shouldDiscard) {
+              execution.state = "discarded";
+              execution.updatedAt = new Date();
+              return execution;
+            }
+
+            if (!shouldRun) return execution;
+
+            await concurrencyCounter.incr(execution.functionId);
+            execution.state = "started";
+            execution.startedAt = new Date();
+            execution.updatedAt = new Date();
+
+            return execution;
+          }
+        );
+
+        if (shouldRun) {
+          const executionId = execution.id;
           const func = execution.func as DeferredFunction<
             typeof execution.func
           >;
-          const shouldDiscard =
-            execution.discardAfter !== undefined &&
-            execution.discardAfter > now;
+          const args = JSON.parse(execution.args);
 
-          shouldRun =
-            execution.state === "created" &&
-            execution.scheduleFor < now &&
-            (func.__metadata.concurrency === undefined ||
-              concurrencyCounter.getCount(execution.functionId) <
-                func.__metadata.concurrency);
+          const perform: () => Promise<void> = async () => {
+            let result: any;
+            let state: ExecutionState;
 
-          if (shouldDiscard) {
-            execution.state = "discarded";
-            execution.updatedAt = new Date();
-            return execution;
-          }
+            info("starting execution", {
+              id: executionId,
+              function: func.__fn.name,
+              scheduleFor: execution.scheduleFor,
+            });
 
-          if (!shouldRun) return execution;
+            try {
+              result = await func.__fn(...args);
+              state = "succeed";
+              info("execution succeeded", {
+                id: executionId,
+                function: func.__fn.name,
+              });
+            } catch (e) {
+              state = "failed";
+              error("execution failed", {
+                id: executionId,
+                function: func.__fn.name,
+                cause: (e as any).message,
+              });
+            } finally {
+              await concurrencyCounter.decr(execution.functionId);
+            }
 
-          await concurrencyCounter.incr(execution.functionId);
-          execution.state = "started";
-          execution.startedAt = new Date();
-          execution.updatedAt = new Date();
+            await executionsStore.transaction(
+              executionId,
+              async (execution) => {
+                execution.state = state;
+                execution.result = stringify(result);
+                execution.updatedAt = new Date();
+                return execution;
+              }
+            );
+          };
 
-          return execution;
+          promisesState.add(perform());
         }
-      );
-
-      if (shouldRun) {
-        const executionId = execution.id;
-        const func = execution.func as DeferredFunction<typeof execution.func>;
-        const args = JSON.parse(execution.args);
-
-        const perform: () => Promise<void> = async () => {
-          let result: any;
-          let state: ExecutionState;
-
-          info("starting execution", {
-            id: executionId,
-            function: func.__fn.name,
-            scheduleFor: execution.scheduleFor,
-          });
-
-          try {
-            result = await func.__fn(...args);
-            state = "succeed";
-            info("execution succeeded", {
-              id: executionId,
-              function: func.__fn.name,
-            });
-          } catch (e) {
-            state = "failed";
-            error("execution failed", {
-              id: executionId,
-              function: func.__fn.name,
-              cause: (e as any).message,
-            });
-          } finally {
-            await concurrencyCounter.decr(execution.functionId);
-          }
-
-          await executionsStore.transaction(executionId, async (execution) => {
-            execution.state = state;
-            execution.result = stringify(result);
-            execution.updatedAt = new Date();
-            return execution;
-          });
-        };
-
-        promisesState.add(perform());
       }
+
+      await sleep(10);
     }
 
-    await sleep(10);
+    await Promise.allSettled(promisesState.entries());
+  } catch (e) {
+    error("scheduler loop crash", { cause: (e as any).message });
   }
-
-  await Promise.allSettled(promisesState.entries());
 }
 
 export async function enqueue<F extends DeferableFunction>(
