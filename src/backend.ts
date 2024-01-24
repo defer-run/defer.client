@@ -136,7 +136,7 @@ export class ExecutionNotReschedulable extends DeferError {
 export interface Backend {
   enqueue<F extends DeferableFunction>(
     func: DeferredFunction<F>,
-    args: string,
+    args: Parameters<F>,
     scheduleFor: Date,
     discardAfter?: Date
   ): Promise<EnqueueResult>;
