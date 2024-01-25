@@ -28,7 +28,6 @@ import {
   RescheduleExecutionResult,
 } from "../backend.js";
 import { DeferableFunction, DeferredFunction } from "../index.js";
-import { error } from "../logger.js";
 import { getEnv, stringify } from "../utils.js";
 import { HTTPClient, makeHTTPClient } from "./remote/httpClient.js";
 
@@ -146,9 +145,7 @@ export async function enqueue<F extends DeferableFunction>(
   discardAfter: Date | undefined,
   metadata: { [key: string]: string } | undefined
 ): Promise<EnqueueResult> {
-  const originalFunction = func.__fn;
   const httpClient = newClientFromEnv();
-
   const request: CreateExecutionRequest = {
     function_name: func.__fn.name,
     function_arguments: args,
@@ -157,24 +154,17 @@ export async function enqueue<F extends DeferableFunction>(
     metadata: metadata,
   };
 
-  try {
-    const response = await httpClient<CreateExecutionResponse>(
-      "PUT",
-      "/public/v2/executions",
-      stringify(request)
-    );
-    return newExecution(response.data);
-  } catch (e) {
-    error("cannot enqueue function is the queue", {
-      function: originalFunction.name,
-    });
-    throw e;
-  }
+  const { response } = await httpClient<CreateExecutionResponse>(
+    "PUT",
+    "/public/v2/executions",
+    stringify(request)
+  );
+  return newExecution(response.data);
 }
 
 export async function getExecution(id: string): Promise<GetExecutionResult> {
   const httpClient = newClientFromEnv();
-  const response = await httpClient<GetExecutionResponse>(
+  const { response } = await httpClient<GetExecutionResponse>(
     "GET",
     `/public/v2/executions/${id}`
   );
@@ -187,7 +177,7 @@ export async function cancelExecution(
 ): Promise<CancelExecutionResult> {
   const httpClient = newClientFromEnv();
   const request: CancelExecutionRequest = { force: force };
-  const response = await httpClient<CancelExecutionResponse>(
+  const { response } = await httpClient<CancelExecutionResponse>(
     "POST",
     `/public/v2/executions/${id}/cancellation`,
     stringify(request)
@@ -203,7 +193,7 @@ export async function rescheduleExecution(
   const request: RescheduleExecutionRequest = {
     schedule_for: scheduleFor.toISOString(),
   };
-  const response = await httpClient<RescheduleExecutionResponse>(
+  const { response } = await httpClient<RescheduleExecutionResponse>(
     "PATCH",
     `/public/v2/executions/${id}/schedule`,
     stringify(request)
@@ -216,7 +206,7 @@ export async function reRunExecution(
 ): Promise<ReRunExecutionResult> {
   const httpClient = newClientFromEnv();
   const request: ReRunExecutionRequest = {};
-  const response = await httpClient<ReRunExecutionResponse>(
+  const { response } = await httpClient<ReRunExecutionResponse>(
     "POST",
     `/public/v2/executions/${id}/reruns`,
     stringify(request)
@@ -243,7 +233,7 @@ export async function listExecutions(
         }
       : undefined,
   };
-  const response = await httpClient<ListExecutionsResponse>(
+  const { response } = await httpClient<ListExecutionsResponse>(
     "POST",
     `/public/v2/executions`,
     stringify(request)
@@ -283,7 +273,7 @@ export async function listExecutionAttempts(
         }
       : undefined,
   };
-  const response = await httpClient<ListExecutionAttemptsResponse>(
+  const { response } = await httpClient<ListExecutionAttemptsResponse>(
     "POST",
     `/public/v2/executions/${id}/attempts`,
     stringify(request)

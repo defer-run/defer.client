@@ -55,3 +55,15 @@ export function fromDurationToDate(dt: Date, delay: Duration): Date {
 export function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+export function errorMessage(error: Error): string {
+  let message = error.message;
+
+  if (error.cause instanceof Error) {
+    message = `${message}: ${errorMessage(error.cause)}`;
+  } else {
+    message = `${message}: ${String(error.cause)}`;
+  }
+
+  return message;
+}

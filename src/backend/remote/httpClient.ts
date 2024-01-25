@@ -1,25 +1,23 @@
-import {
-  APIError,
-  ClientError,
-  HTTPRequestError,
-  errorMessage,
-} from "./errors.js";
+import { DeferError } from "../../backend.js";
+import { errorMessage } from "../../utils.js";
 import VERSION from "../../version.js";
 
 export type HTTPClient = <T>(
   method: string,
   path: string,
   body?: string | null
-) => Promise<T>;
+) => Promise<{ status: number; response: T }>;
 
 const basicAuth = (username: string, password: string) => {
   const credentials = btoa(`${username}:${password}`);
   return `Basic ${credentials}`;
 };
 
-interface APIErrorResponse {
-  error: string;
-  message: string;
+export class ClientError extends DeferError {
+  constructor(msg: string) {
+    super(msg);
+    Object.setPrototypeOf(this, ClientError.prototype);
+  }
 }
 
 export function makeHTTPClient(
@@ -31,7 +29,7 @@ export function makeHTTPClient(
     method: string,
     path: string,
     body: string | null = null
-  ): Promise<T> => {
+  ): Promise<{ status: number; response: T }> => {
     let endpoint;
 
     try {
@@ -60,7 +58,7 @@ export function makeHTTPClient(
     };
 
     let response: Response;
-    let data: string;
+    let data: T;
 
     try {
       response = await fetch(endpoint.toString(), options);
@@ -75,7 +73,8 @@ export function makeHTTPClient(
     }
 
     try {
-      data = await response.text();
+      const text = await response.text();
+      data = JSON.parse(text) as T;
     } catch (error) {
       let message;
 
@@ -83,43 +82,9 @@ export function makeHTTPClient(
         message = `cannot decode http response: ${errorMessage(error)}`;
       else message = `unknown error: ${String(error)}`;
 
-      throw new Error(message);
+      throw new ClientError(message);
     }
 
-    const { status } = response;
-    if (status >= 100 && status < 200) {
-      throw new ClientError("unexpected 1xx response code");
-    } else if (status >= 200 && status < 300) {
-      try {
-        return JSON.parse(data) as T;
-      } catch (error) {
-        const e = error as Error;
-        throw new ClientError(
-          `cannot decode http response body: ${errorMessage(e)}`
-        );
-      }
-    } else if (status >= 300 && status < 400) {
-      throw new ClientError("unexpected 3xx response code");
-    } else if (status >= 400 && status < 500) {
-      let decodedData: APIErrorResponse;
-      try {
-        decodedData = JSON.parse(data);
-      } catch (error) {
-        const e = error as Error;
-        throw new ClientError(
-          `cannot decode http response body: ${errorMessage(e)}`
-        );
-      }
-
-      throw new APIError(decodedData.message, decodedData.error);
-    } else if (status >= 500 && status < 600) {
-      throw new HTTPRequestError("internal server error", status, data);
-    } else {
-      throw new HTTPRequestError(
-        `invalid http response status code: ${status}`,
-        status,
-        data
-      );
-    }
+    return { status: response.status, response: data };
   };
 }
