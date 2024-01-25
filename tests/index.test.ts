@@ -807,3 +807,35 @@ describe("listExecutions/2", () => {
     });
   });
 });
+
+describe("enqueue execution", () => {
+  beforeEach(() => {
+    jest.resetModules();
+  });
+
+  describe("when no execution options is set", () => {
+    it("calls the backend", async () => {
+      const spy = jest
+        .spyOn(backend, "enqueue")
+        .mockImplementation(
+          (
+            func: any,
+            args: any,
+            scheduleFor: Date,
+            discardAfter?: Date
+          ): any => {
+            return { func, args, scheduleFor, discardAfter };
+          }
+        );
+
+      const myFunc = async () => console.log("the cake is a lie");
+      const myDeferedFunc = defer(myFunc);
+
+      const now = new Date();
+      jest.setSystemTime(now);
+
+      await myDeferedFunc();
+      expect(spy).toHaveBeenCalledWith(myDeferedFunc, [], now, undefined);
+    });
+  });
+});
