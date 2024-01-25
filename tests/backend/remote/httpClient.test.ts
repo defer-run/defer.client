@@ -1,4 +1,7 @@
-import { makeHTTPClient } from "../../../src/backend/remote/httpClient.js";
+import {
+  makeHTTPClient,
+  ClientError,
+} from "../../../src/backend/remote/httpClient.js";
 
 global.fetch = jest.fn();
 
@@ -16,6 +19,18 @@ const expectedHeaderFields = {
 describe("makeHttpclient/3", () => {
   beforeEach(() => {
     jest.resetModules();
+  });
+
+  describe("when server respond with non json body", () => {
+    it("should throw", async () => {
+      const mockResponse = new Response("{", { status: 500 });
+      (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
+      await expect(
+        async () => await httpClient("GET", "/hello")
+      ).rejects.toThrow(ClientError);
+
+      expect(fetch).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe("when server respond with 2xx", () => {
