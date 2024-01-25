@@ -107,22 +107,22 @@ export class DeferError extends Error {
 }
 
 export class ExecutionNotFound extends DeferError {
-  constructor(id: string) {
-    super(`cannot find execution "${id}"`);
+  constructor(msg: string) {
+    super(msg);
     Object.setPrototypeOf(this, ExecutionNotFound.prototype);
   }
 }
 
 export class ExecutionNotCancellable extends DeferError {
-  constructor(state: string) {
-    super(`cannot cancel execution in "${state}" state`);
+  constructor(msg: string) {
+    super(msg);
     Object.setPrototypeOf(this, ExecutionNotCancellable.prototype);
   }
 }
 
 export class ExecutionAbortingAlreadyInProgress extends DeferError {
-  constructor() {
-    super("aborting execution already in progress");
+  constructor(msg: string) {
+    super(msg);
     Object.setPrototypeOf(this, ExecutionAbortingAlreadyInProgress.prototype);
   }
 }

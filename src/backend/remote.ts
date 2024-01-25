@@ -178,7 +178,8 @@ export async function getExecution(id: string): Promise<GetExecutionResult> {
   );
 
   if (status === 200) return newExecution(response.data);
-  else if (status === 404) throw new ExecutionNotFound(id);
+  else if (status === 404)
+    throw new ExecutionNotFound((response as any).message);
 
   throw new DeferError(
     `backend responds with "${status}" and message "${
@@ -223,8 +224,10 @@ export async function rescheduleExecution(
   );
 
   if (status === 200) return newExecution(response.data);
-  else if (status === 404) throw new ExecutionNotFound(id);
-  else if (status === 409) throw new ExecutionNotCancellable("");
+  else if (status === 404)
+    throw new ExecutionNotFound((response as any).message);
+  else if (status === 409)
+    throw new ExecutionNotCancellable((response as any).message);
 
   throw new DeferError(
     `backend responds with "${status}" and message "${
@@ -245,7 +248,8 @@ export async function reRunExecution(
   );
 
   if (status === 200) return newExecution(response.data);
-  else if (status === 404) throw new ExecutionNotFound(id);
+  else if (status === 404)
+    throw new ExecutionNotFound((response as any).message);
 
   throw new DeferError(
     `backend responds with "${status}" and message "${

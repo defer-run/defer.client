@@ -352,7 +352,8 @@ export async function enqueue<F extends DeferableFunction>(
 
 export async function getExecution(id: string): Promise<GetExecutionResult> {
   const execution = await executionsStore.get(id);
-  if (execution === undefined) throw new ExecutionNotFound(id);
+  if (execution === undefined)
+    throw new ExecutionNotFound(`cannot find execution "${id}"`);
 
   return {
     id,
@@ -369,13 +370,16 @@ export async function cancelExecution(
   force: boolean
 ): Promise<CancelExecutionResult> {
   let execution = await executionsStore.get(id);
-  if (execution === undefined) throw new ExecutionNotFound(id);
+  if (execution === undefined)
+    throw new ExecutionNotFound(`cannot find execution "${id}"`);
 
   execution = await executionsStore.transaction(id, async (execution) => {
     if (force) {
       switch (execution.state) {
         case "aborting":
-          throw new ExecutionAbortingAlreadyInProgress();
+          throw new ExecutionAbortingAlreadyInProgress(
+            "aborting execution already in progress"
+          );
         case "created":
           execution.state = "cancelled";
           break;
@@ -383,7 +387,9 @@ export async function cancelExecution(
           execution.state = "aborting";
           break;
         default:
-          throw new ExecutionNotCancellable(execution.state);
+          throw new ExecutionNotCancellable(
+            `cannot cancel execution in "${execution.state}" state`
+          );
       }
     } else {
       switch (execution.state) {
@@ -391,7 +397,9 @@ export async function cancelExecution(
           execution.state = "cancelled";
           break;
         default:
-          throw new ExecutionNotCancellable(execution.state);
+          throw new ExecutionNotCancellable(
+            `cannot cancel execution in "${execution.state}" state`
+          );
       }
     }
 
@@ -414,7 +422,8 @@ export async function rescheduleExecution(
   scheduleFor: Date
 ): Promise<RescheduleExecutionResult> {
   let execution = await executionsStore.get(id);
-  if (execution === undefined) throw new ExecutionNotFound(id);
+  if (execution === undefined)
+    throw new ExecutionNotFound(`cannot find execution "${id}"`);
 
   execution = await executionsStore.transaction(id, async (execution) => {
     if (execution.state !== "created")
@@ -439,7 +448,8 @@ export async function reRunExecution(
   id: string
 ): Promise<ReRunExecutionResult> {
   const execution = await executionsStore.get(id);
-  if (execution === undefined) throw new ExecutionNotFound(id);
+  if (execution === undefined)
+    throw new ExecutionNotFound(`cannot find execution "${id}"`);
 
   const now = new Date();
   const newExecution: InternalExecution = {
