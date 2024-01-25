@@ -312,7 +312,9 @@ export async function reRunExecution(
   return backend.reRunExecution(id);
 }
 
-export async function getExecutionTries(id: string): Promise<any> {
+export async function getExecutionTries(
+  id: string
+): Promise<ListExecutionAttemptsResult> {
   warn(
     `"getExecutionTries/1" is deprecated and will be removed in future versions. Please use "listExecutionAttempts/2" instead.`
   );
