@@ -74,7 +74,7 @@ export interface CreateExecutionRequest {
   function_arguments: string[];
   schedule_for: string;
   discard_after: string | undefined;
-  metadata: { [key: string]: string };
+  metadata: { [key: string]: string } | undefined;
 }
 
 export interface CancelExecutionRequest {
@@ -143,7 +143,8 @@ export async function enqueue<F extends DeferableFunction>(
   func: DeferredFunction<F>,
   args: Parameters<F>,
   scheduleFor: Date,
-  discardAfter: Date | undefined
+  discardAfter: Date | undefined,
+  metadata: { [key: string]: string } | undefined
 ): Promise<EnqueueResult> {
   const originalFunction = func.__fn;
   const httpClient = newClientFromEnv();
@@ -153,7 +154,7 @@ export async function enqueue<F extends DeferableFunction>(
     function_arguments: args,
     schedule_for: scheduleFor.toISOString(),
     discard_after: discardAfter?.toISOString(),
-    metadata: func.__execOptions?.metadata || {},
+    metadata: metadata,
   };
 
   try {

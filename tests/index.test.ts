@@ -835,7 +835,47 @@ describe("enqueue execution", () => {
       jest.setSystemTime(now);
 
       await myDeferedFunc();
-      expect(spy).toHaveBeenCalledWith(myDeferedFunc, [], now, undefined);
+      expect(spy).toHaveBeenCalledWith(
+        myDeferedFunc,
+        [],
+        now,
+        undefined,
+        undefined
+      );
+    });
+  });
+
+  describe("when execution options is set", () => {
+    it("calls the backend", async () => {
+      const spy = jest
+        .spyOn(backend, "enqueue")
+        .mockImplementation(
+          (
+            func: any,
+            args: any,
+            scheduleFor: Date,
+            discardAfter?: Date
+          ): any => {
+            return { func, args, scheduleFor, discardAfter };
+          }
+        );
+
+      const now = new Date();
+      const myFunc = async () => console.log("the cake is a lie");
+      const myDeferedFunc = defer(myFunc);
+      const myDeferedFuncWithOptions = assignOptions(myDeferedFunc, {
+        delay: now,
+        metadata: { foo: "bar" },
+      });
+
+      await myDeferedFuncWithOptions();
+      expect(spy).toHaveBeenCalledWith(
+        myDeferedFuncWithOptions,
+        [],
+        now,
+        undefined,
+        { foo: "bar" }
+      );
     });
   });
 });

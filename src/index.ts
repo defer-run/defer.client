@@ -156,7 +156,16 @@ async function enqueue<F extends DeferableFunction>(
     discardAfter = fromDurationToDate(now, after);
   }
 
-  const response = await backend.enqueue(func, args, scheduleFor, discardAfter);
+  const metadata = func.__execOptions?.metadata
+    ? func.__execOptions?.metadata
+    : undefined;
+  const response = await backend.enqueue(
+    func,
+    args,
+    scheduleFor,
+    discardAfter,
+    metadata
+  );
 
   info("execution enqueued", { id: response.id, function: func.__fn.name });
 

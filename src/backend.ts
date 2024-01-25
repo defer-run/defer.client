@@ -139,7 +139,8 @@ export interface Backend {
     func: DeferredFunction<F>,
     args: Parameters<F>,
     scheduleFor: Date,
-    discardAfter?: Date
+    discardAfter: Date | undefined,
+    metadata: { [key: string]: string } | undefined
   ): Promise<EnqueueResult>;
   getExecution(id: string): Promise<GetExecutionResult>;
   cancelExecution(id: string, force: boolean): Promise<CancelExecutionResult>;

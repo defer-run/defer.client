@@ -314,7 +314,8 @@ export async function enqueue<F extends DeferableFunction>(
   func: DeferredFunction<F>,
   args: Parameters<F>,
   scheduleFor: Date,
-  discardAfter?: Date
+  discardAfter: Date | undefined,
+  metadata: { [key: string]: string } | undefined
 ): Promise<EnqueueResult> {
   let functionId = functionIdMapping.get(func.name);
   if (functionId === undefined) {
@@ -330,7 +331,7 @@ export async function enqueue<F extends DeferableFunction>(
     functionName: func.__fn.name,
     func,
     args: stringify(args),
-    metadata: func.__execOptions?.metadata || {},
+    metadata: metadata || {},
     scheduleFor,
     discardAfter,
     createdAt: now,
