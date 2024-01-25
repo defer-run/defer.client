@@ -486,15 +486,30 @@ describe("cancelExecution/2", () => {
     jest.resetModules();
   });
 
-  it("calls the backend", async () => {
-    const spy = jest
-      .spyOn(backend, "cancelExecution")
-      .mockImplementation((id: string, force: boolean): any => {
-        return { id, force };
-      });
-    const response = await cancelExecution("the cake is a lie");
-    expect(spy).toHaveBeenCalledWith("the cake is a lie", false);
-    expect(response).toStrictEqual({ id: "the cake is a lie", force: false });
+  describe("when force option is not set", () => {
+    it("calls the backend", async () => {
+      const spy = jest
+        .spyOn(backend, "cancelExecution")
+        .mockImplementation((id: string, force: boolean): any => {
+          return { id, force };
+        });
+      const response = await cancelExecution("the cake is a lie");
+      expect(spy).toHaveBeenCalledWith("the cake is a lie", false);
+      expect(response).toStrictEqual({ id: "the cake is a lie", force: false });
+    });
+  });
+
+  describe("when force option is set", () => {
+    it("calls the backend", async () => {
+      const spy = jest
+        .spyOn(backend, "cancelExecution")
+        .mockImplementation((id: string, force: boolean): any => {
+          return { id, force };
+        });
+      const response = await cancelExecution("the cake is a lie", true);
+      expect(spy).toHaveBeenCalledWith("the cake is a lie", true);
+      expect(response).toStrictEqual({ id: "the cake is a lie", force: true });
+    });
   });
 });
 
