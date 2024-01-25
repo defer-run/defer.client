@@ -21,8 +21,28 @@ describe("makeHttpclient/3", () => {
     jest.resetModules();
   });
 
+  describe("when endpoint is not valid", () => {
+    it("throws an error", () => {
+      const client = makeHTTPClient("", fakeAccessToken);
+      expect(() => client("GET", "/hello")).rejects.toThrow(ClientError);
+    });
+  });
+
+  describe("when fetch throw an error", () => {
+    it("throws client error", async () => {
+      (global.fetch as jest.Mock).mockImplementation(() => {
+        throw "fetch error";
+      });
+      await expect(
+        async () => await httpClient("GET", "/hello")
+      ).rejects.toThrow(ClientError);
+
+      expect(fetch).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe("when server respond with non json body", () => {
-    it("should throw", async () => {
+    it("throws an error", async () => {
       const mockResponse = new Response("{", { status: 500 });
       (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
       await expect(
