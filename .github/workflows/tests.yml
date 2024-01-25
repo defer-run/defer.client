@@ -29,6 +29,8 @@ jobs:
       - run: "bun run test"
       - run: "bun run build"
       - run: "bunx bob check"
+        env:
+          DEFER_NO_LOCAL_SCHEDULER: 1
 
   test-node:
     name: "Node ${{matrix.node-version}}"
@@ -49,3 +51,5 @@ jobs:
       - run: "npm run test"
       - run: "npm run build"
       - run: "npx bob check"
+        env:
+          DEFER_NO_LOCAL_SCHEDULER: 1
