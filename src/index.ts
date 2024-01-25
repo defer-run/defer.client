@@ -31,21 +31,6 @@ export interface ExecutionMetadata {
   [key: string]: string;
 }
 
-// https://stackoverflow.com/questions/39494689/is-it-possible-to-restrict-number-to-a-certain-range/70307091#70307091
-type Enumerate<
-  N extends number,
-  Acc extends number[] = []
-> = Acc["length"] extends N
-  ? Acc[number]
-  : Enumerate<N, [...Acc, Acc["length"]]>;
-
-type Range<F extends number, T extends number> = Exclude<
-  Enumerate<T>,
-  Enumerate<F>
->;
-
-export type Concurrency = Range<0, 51>;
-
 export type NextRouteString = `/api/${string}`;
 
 export interface Manifest {
@@ -53,7 +38,7 @@ export interface Manifest {
   version: number;
   cron?: string;
   retry?: RetryPolicy;
-  concurrency?: Concurrency | undefined;
+  concurrency?: number | undefined;
   maxDuration?: number | undefined;
   maxConcurrencyAction: "keep" | "cancel" | undefined;
 }
@@ -83,7 +68,7 @@ export interface DeferredFunction<F extends DeferableFunction> {
 
 export interface DeferredFunctionConfiguration {
   retry?: boolean | number | Partial<RetryPolicy>;
-  concurrency?: Concurrency;
+  concurrency?: number;
   maxDuration?: number;
   maxConcurrencyAction?: "keep" | "cancel";
 }
