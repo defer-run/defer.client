@@ -159,7 +159,7 @@ export async function enqueue<F extends DeferableFunction>(
   try {
     const response = await httpClient<CreateExecutionResponse>(
       "PUT",
-      "/public/v2/enqueue",
+      "/public/v2/executions",
       stringify(request)
     );
     return newExecution(response.data);
