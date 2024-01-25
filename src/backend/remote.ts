@@ -181,7 +181,9 @@ export async function getExecution(id: string): Promise<GetExecutionResult> {
   else if (status === 404) throw new ExecutionNotFound(id);
 
   throw new DeferError(
-    `backend responds with "${status}" and message "$(response as any).message"`
+    `backend responds with "${status}" and message "${
+      (response as any).message
+    }"`
   );
 }
 
@@ -200,7 +202,9 @@ export async function cancelExecution(
   if (status === 200) return newExecution(response.data);
 
   throw new DeferError(
-    `backend responds with "${status}" and message "$(response as any).message"`
+    `backend responds with "${status}" and message "${
+      (response as any).message
+    }"`
   );
 }
 
@@ -223,7 +227,9 @@ export async function rescheduleExecution(
   else if (status === 409) throw new ExecutionNotCancellable("");
 
   throw new DeferError(
-    `backend responds with "${status}" and message "$(response as any).message"`
+    `backend responds with "${status}" and message "${
+      (response as any).message
+    }"`
   );
 }
 
@@ -242,7 +248,9 @@ export async function reRunExecution(
   else if (status === 404) throw new ExecutionNotFound(id);
 
   throw new DeferError(
-    `backend responds with "${status}" and message "$(response as any).message"`
+    `backend responds with "${status}" and message "${
+      (response as any).message
+    }"`
   );
 }
 
@@ -287,7 +295,9 @@ export async function listExecutions(
   }
 
   throw new DeferError(
-    `backend responds with "${status}" and message "$(response as any).message"`
+    `backend responds with "${status}" and message "${
+      (response as any).message
+    }"`
   );
 }
 
@@ -333,6 +343,8 @@ export async function listExecutionAttempts(
   }
 
   throw new DeferError(
-    `backend responds with "${status}" and message "$(response as any).message"`
+    `backend responds with "${status}" and message "${
+      (response as any).message
+    }"`
   );
 }
