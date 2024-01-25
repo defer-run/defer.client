@@ -167,7 +167,9 @@ export async function enqueue<F extends DeferableFunction>(
   if (status === 200) return newExecution(response.data);
 
   throw new DeferError(
-    `backend responds with "${status}" and message "$(response as any).message"`
+    `backend responds with "${status}" and message "${
+      (response as any).message
+    }"`
   );
 }
 
