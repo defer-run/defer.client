@@ -4,9 +4,14 @@ process.env["DEFER_NO_BANNER"] = "1";
 import {
   addMetadata,
   assignOptions,
+  backend,
+  cancelExecution,
   defer,
   delay,
   discardAfter,
+  getExecution,
+  reRunExecution,
+  rescheduleExecution,
 } from "../src/index.js";
 
 describe("defer/2", () => {
@@ -456,5 +461,120 @@ describe("assignOptions/2", () => {
 
       expect(myDeferedAssignFunc.__execOptions).toStrictEqual({});
     });
+  });
+});
+
+describe("getExecution/1", () => {
+  beforeEach(() => {
+    jest.resetModules();
+  });
+
+  it("calls the backend", async () => {
+    const spy = jest
+      .spyOn(backend, "getExecution")
+      .mockImplementation((id: string): any => {
+        return { id };
+      });
+    const response = await getExecution("the cake is a lie");
+    expect(spy).toHaveBeenCalledWith("the cake is a lie");
+    expect(response).toStrictEqual({ id: "the cake is a lie" });
+  });
+});
+
+describe("cancelExecution/2", () => {
+  beforeEach(() => {
+    jest.resetModules();
+  });
+
+  it("calls the backend", async () => {
+    const spy = jest
+      .spyOn(backend, "cancelExecution")
+      .mockImplementation((id: string, force: boolean): any => {
+        return { id, force };
+      });
+    const response = await cancelExecution("the cake is a lie");
+    expect(spy).toHaveBeenCalledWith("the cake is a lie", false);
+    expect(response).toStrictEqual({ id: "the cake is a lie", force: false });
+  });
+});
+
+describe("rescheduleExecution/2", () => {
+  beforeEach(() => {
+    jest.resetModules();
+    jest.useFakeTimers();
+  });
+
+  describe("when scheduleFor is a Date", () => {
+    it("calls the backend", async () => {
+      const now = new Date();
+      const spy = jest
+        .spyOn(backend, "rescheduleExecution")
+        .mockImplementation((id: string, scheduleFor: Date): any => {
+          return { id, scheduleFor };
+        });
+      const response = await rescheduleExecution("the cake is a lie", now);
+      expect(spy).toHaveBeenCalledWith("the cake is a lie", now);
+      expect(response).toStrictEqual({
+        id: "the cake is a lie",
+        scheduleFor: now,
+      });
+    });
+  });
+
+  describe("when scheduleFor is a duration", () => {
+    it("calls the backend", async () => {
+      const now = new Date();
+      jest.setSystemTime(now);
+      const expectedSheduleFor = new Date();
+      expectedSheduleFor.setHours(expectedSheduleFor.getHours() + 1);
+
+      const spy = jest
+        .spyOn(backend, "rescheduleExecution")
+        .mockImplementation((id: string, scheduleFor: Date): any => {
+          return { id, scheduleFor };
+        });
+      const response = await rescheduleExecution("the cake is a lie", "1h");
+      expect(spy).toHaveBeenCalledWith("the cake is a lie", expectedSheduleFor);
+      expect(response).toStrictEqual({
+        id: "the cake is a lie",
+        scheduleFor: expectedSheduleFor,
+      });
+    });
+  });
+
+  describe("when scheduleFor is undefined", () => {
+    it("calls the backend", async () => {
+      const now = new Date();
+      jest.setSystemTime(now);
+
+      const spy = jest
+        .spyOn(backend, "rescheduleExecution")
+        .mockImplementation((id: string, scheduleFor: Date): any => {
+          return { id, scheduleFor };
+        });
+      const response = await rescheduleExecution("the cake is a lie");
+      expect(spy).toHaveBeenCalledWith("the cake is a lie", now);
+      expect(response).toStrictEqual({
+        id: "the cake is a lie",
+        scheduleFor: now,
+      });
+    });
+  });
+});
+
+describe("reRunExecution/1", () => {
+  beforeEach(() => {
+    jest.resetModules();
+  });
+
+  it("calls the backend", async () => {
+    const spy = jest
+      .spyOn(backend, "reRunExecution")
+      .mockImplementation((id: string): any => {
+        return { id };
+      });
+    const response = await reRunExecution("the cake is a lie");
+    expect(spy).toHaveBeenCalledWith("the cake is a lie");
+    expect(response).toStrictEqual({ id: "the cake is a lie" });
   });
 });

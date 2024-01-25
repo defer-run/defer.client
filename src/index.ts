@@ -290,7 +290,7 @@ export async function cancelExecution(
 
 export async function rescheduleExecution(
   id: string,
-  value: Duration | Date | undefined
+  value?: Duration | Date | undefined
 ): Promise<RescheduleExecutionResult> {
   const now = new Date();
   let scheduleFor: Date;
