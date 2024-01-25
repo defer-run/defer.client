@@ -18,6 +18,7 @@ import {
   DeferError,
   EnqueueResult,
   Execution,
+  ExecutionAbortingAlreadyInProgress,
   ExecutionErrorCode,
   ExecutionFilters,
   ExecutionNotCancellable,
@@ -201,6 +202,12 @@ export async function cancelExecution(
   );
 
   if (status === 200) return newExecution(response.data);
+  else if (status === 202)
+    throw new ExecutionAbortingAlreadyInProgress((response as any).message);
+  else if (status === 404)
+    throw new ExecutionNotFound((response as any).message);
+  else if (status === 409)
+    throw new ExecutionNotCancellable((response as any).message);
 
   throw new DeferError(
     `backend responds with "${status}" and message "${
