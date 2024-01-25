@@ -10,6 +10,7 @@ import {
   delay,
   discardAfter,
   getExecution,
+  getExecutionTries,
   reRunExecution,
   rescheduleExecution,
 } from "../src/index.js";
@@ -593,3 +594,36 @@ describe("reRunExecution/1", () => {
     expect(response).toStrictEqual({ id: "the cake is a lie" });
   });
 });
+
+describe("getExecutionTries/1", () => {
+  it("calls listExecutionAttempts/2", async () => {
+    const spy = jest
+      .spyOn(backend, "listExecutionAttempts")
+      .mockImplementation((id: string, page: any, filters: any): any => {
+        return { id, page, filters };
+      });
+    const response = await getExecutionTries("the cake is a lie");
+    expect(spy).toHaveBeenCalledWith("the cake is a lie");
+    expect(response).toStrictEqual({
+      id: "the cake is a lie",
+      filters: undefined,
+      page: undefined,
+    });
+  });
+
+  it("log deprecated warning", async () => {
+    const logSpy = jest.spyOn(console, "log");
+    const spy = jest
+      .spyOn(backend, "listExecutionAttempts")
+      .mockImplementation((): any => {
+        return;
+      });
+
+    await getExecutionTries("the cake is a lie");
+    expect(spy).toHaveBeenCalledWith("the cake is a lie");
+    expect(logSpy).toHaveBeenCalledWith(
+      'level=warn message="\\"getExecutionTries/1\\" is deprecated and will be removed in future versions. Please use \\"listExecutionAttempts/2\\" instead."'
+    );
+  });
+});
+
