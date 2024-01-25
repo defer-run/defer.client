@@ -316,7 +316,7 @@ export async function getExecutionTries(id: string): Promise<any> {
   warn(
     `"getExecutionTries/1" is deprecated and will be removed in future versions. Please use "listExecutionAttempts/2" instead.`
   );
-  listExecutionAttempts(id);
+  return listExecutionAttempts(id);
 }
 
 export async function listExecutionAttempts(
