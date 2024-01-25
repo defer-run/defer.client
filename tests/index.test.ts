@@ -12,6 +12,7 @@ import {
   getExecution,
   getExecutionTries,
   listExecutionAttempts,
+  listExecutions,
   reRunExecution,
   rescheduleExecution,
 } from "../src/index.js";
@@ -730,3 +731,79 @@ describe("listExecutionAttempts/3", () => {
   });
 });
 
+describe("listExecutions/2", () => {
+  beforeEach(() => {
+    jest.resetModules();
+  });
+
+  describe("when both page and filters are not set", () => {
+    it("calls the backend", async () => {
+      const spy = jest
+        .spyOn(backend, "listExecutions")
+        .mockImplementation((page: any, filters: any): any => {
+          return { page, filters };
+        });
+      const response = await listExecutions();
+      expect(spy).toHaveBeenCalledWith(undefined, undefined);
+      expect(response).toStrictEqual({
+        filters: undefined,
+        page: undefined,
+      });
+    });
+  });
+
+  describe("when page is set", () => {
+    it("calls the backend", async () => {
+      const spy = jest
+        .spyOn(backend, "listExecutions")
+        .mockImplementation((page: any, filters: any): any => {
+          return { page, filters };
+        });
+      const response = await listExecutions({
+        first: 25,
+      });
+      expect(spy).toHaveBeenCalledWith({ first: 25 }, undefined);
+      expect(response).toStrictEqual({
+        filters: undefined,
+        page: { first: 25 },
+      });
+    });
+  });
+
+  describe("when filter is set", () => {
+    it("calls the backend", async () => {
+      const spy = jest
+        .spyOn(backend, "listExecutions")
+        .mockImplementation((page: any, filters: any): any => {
+          return { page, filters };
+        });
+      const response = await listExecutions(undefined, { states: ["succeed"] });
+      expect(spy).toHaveBeenCalledWith(undefined, {
+        states: ["succeed"],
+      });
+      expect(response).toStrictEqual({
+        filters: { states: ["succeed"] },
+        page: undefined,
+      });
+    });
+  });
+
+  describe("when both page and filters is set", () => {
+    it("calls the backend", async () => {
+      const spy = jest
+        .spyOn(backend, "listExecutions")
+        .mockImplementation((page: any, filters: any): any => {
+          return { page, filters };
+        });
+      const response = await listExecutions(
+        { first: 25 },
+        { states: ["succeed"] }
+      );
+      expect(spy).toHaveBeenCalledWith({ first: 25 }, { states: ["succeed"] });
+      expect(response).toStrictEqual({
+        filters: { states: ["succeed"] },
+        page: { first: 25 },
+      });
+    });
+  });
+});
