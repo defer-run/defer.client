@@ -11,6 +11,7 @@ import {
   discardAfter,
   getExecution,
   getExecutionTries,
+  listExecutionAttempts,
   reRunExecution,
   rescheduleExecution,
 } from "../src/index.js";
@@ -596,6 +597,10 @@ describe("reRunExecution/1", () => {
 });
 
 describe("getExecutionTries/1", () => {
+  beforeEach(() => {
+    jest.resetModules();
+  });
+
   it("calls listExecutionAttempts/2", async () => {
     const spy = jest
       .spyOn(backend, "listExecutionAttempts")
@@ -603,7 +608,7 @@ describe("getExecutionTries/1", () => {
         return { id, page, filters };
       });
     const response = await getExecutionTries("the cake is a lie");
-    expect(spy).toHaveBeenCalledWith("the cake is a lie");
+    expect(spy).toHaveBeenCalledWith("the cake is a lie", undefined, undefined);
     expect(response).toStrictEqual({
       id: "the cake is a lie",
       filters: undefined,
@@ -620,10 +625,108 @@ describe("getExecutionTries/1", () => {
       });
 
     await getExecutionTries("the cake is a lie");
-    expect(spy).toHaveBeenCalledWith("the cake is a lie");
+    expect(spy).toHaveBeenCalledWith("the cake is a lie", undefined, undefined);
     expect(logSpy).toHaveBeenCalledWith(
       'level=warn message="\\"getExecutionTries/1\\" is deprecated and will be removed in future versions. Please use \\"listExecutionAttempts/2\\" instead."'
     );
+  });
+});
+
+describe("listExecutionAttempts/3", () => {
+  beforeEach(() => {
+    jest.resetModules();
+  });
+
+  describe("when both page and filters are not set", () => {
+    it("calls the backend", async () => {
+      const spy = jest
+        .spyOn(backend, "listExecutionAttempts")
+        .mockImplementation((id: string, page: any, filters: any): any => {
+          return { id, page, filters };
+        });
+      const response = await listExecutionAttempts("the cake is a lie");
+      expect(spy).toHaveBeenCalledWith(
+        "the cake is a lie",
+        undefined,
+        undefined
+      );
+      expect(response).toStrictEqual({
+        id: "the cake is a lie",
+        filters: undefined,
+        page: undefined,
+      });
+    });
+  });
+
+  describe("when page is set", () => {
+    it("calls the backend", async () => {
+      const spy = jest
+        .spyOn(backend, "listExecutionAttempts")
+        .mockImplementation((id: string, page: any, filters: any): any => {
+          return { id, page, filters };
+        });
+      const response = await listExecutionAttempts("the cake is a lie", {
+        first: 25,
+      });
+      expect(spy).toHaveBeenCalledWith(
+        "the cake is a lie",
+        { first: 25 },
+        undefined
+      );
+      expect(response).toStrictEqual({
+        id: "the cake is a lie",
+        filters: undefined,
+        page: { first: 25 },
+      });
+    });
+  });
+
+  describe("when filter is set", () => {
+    it("calls the backend", async () => {
+      const spy = jest
+        .spyOn(backend, "listExecutionAttempts")
+        .mockImplementation((id: string, page: any, filters: any): any => {
+          return { id, page, filters };
+        });
+      const response = await listExecutionAttempts(
+        "the cake is a lie",
+        undefined,
+        { states: ["succeed"] }
+      );
+      expect(spy).toHaveBeenCalledWith("the cake is a lie", undefined, {
+        states: ["succeed"],
+      });
+      expect(response).toStrictEqual({
+        id: "the cake is a lie",
+        filters: { states: ["succeed"] },
+        page: undefined,
+      });
+    });
+  });
+
+  describe("when both page and filters is set", () => {
+    it("calls the backend", async () => {
+      const spy = jest
+        .spyOn(backend, "listExecutionAttempts")
+        .mockImplementation((id: string, page: any, filters: any): any => {
+          return { id, page, filters };
+        });
+      const response = await listExecutionAttempts(
+        "the cake is a lie",
+        { first: 25 },
+        { states: ["succeed"] }
+      );
+      expect(spy).toHaveBeenCalledWith(
+        "the cake is a lie",
+        { first: 25 },
+        { states: ["succeed"] }
+      );
+      expect(response).toStrictEqual({
+        id: "the cake is a lie",
+        filters: { states: ["succeed"] },
+        page: { first: 25 },
+      });
+    });
   });
 });
 
