@@ -322,9 +322,11 @@ export async function getExecutionTries(
 }
 
 export async function listExecutionAttempts(
-  id: string
+  id: string,
+  page?: PageRequest,
+  filters?: ExecutionFilters
 ): Promise<ListExecutionAttemptsResult> {
-  return backend.listExecutionAttempts(id);
+  return backend.listExecutionAttempts(id, page, filters);
 }
 
 export async function listExecutions(
