@@ -15,10 +15,13 @@
 import {
   CancelExecutionResult,
   DateInterval,
+  DeferError,
   EnqueueResult,
   Execution,
   ExecutionErrorCode,
   ExecutionFilters,
+  ExecutionNotCancellable,
+  ExecutionNotFound,
   ExecutionState,
   GetExecutionResult,
   ListExecutionAttemptsResult,
@@ -154,21 +157,32 @@ export async function enqueue<F extends DeferableFunction>(
     metadata: metadata,
   };
 
-  const { response } = await httpClient<CreateExecutionResponse>(
+  const { status, response } = await httpClient<CreateExecutionResponse>(
     "PUT",
     "/public/v2/executions",
     stringify(request)
   );
-  return newExecution(response.data);
+
+  if (status === 200) return newExecution(response.data);
+
+  throw new DeferError(
+    `backend responds with "${status}" and message "$(response as any).message"`
+  );
 }
 
 export async function getExecution(id: string): Promise<GetExecutionResult> {
   const httpClient = newClientFromEnv();
-  const { response } = await httpClient<GetExecutionResponse>(
+  const { status, response } = await httpClient<GetExecutionResponse>(
     "GET",
     `/public/v2/executions/${id}`
   );
-  return newExecution(response.data);
+
+  if (status === 200) return newExecution(response.data);
+  else if (status === 404) throw new ExecutionNotFound(id);
+
+  throw new DeferError(
+    `backend responds with "${status}" and message "$(response as any).message"`
+  );
 }
 
 export async function cancelExecution(
@@ -177,12 +191,17 @@ export async function cancelExecution(
 ): Promise<CancelExecutionResult> {
   const httpClient = newClientFromEnv();
   const request: CancelExecutionRequest = { force: force };
-  const { response } = await httpClient<CancelExecutionResponse>(
+  const { status, response } = await httpClient<CancelExecutionResponse>(
     "POST",
     `/public/v2/executions/${id}/cancellation`,
     stringify(request)
   );
-  return newExecution(response.data);
+
+  if (status === 200) return newExecution(response.data);
+
+  throw new DeferError(
+    `backend responds with "${status}" and message "$(response as any).message"`
+  );
 }
 
 export async function rescheduleExecution(
@@ -193,12 +212,19 @@ export async function rescheduleExecution(
   const request: RescheduleExecutionRequest = {
     schedule_for: scheduleFor.toISOString(),
   };
-  const { response } = await httpClient<RescheduleExecutionResponse>(
+  const { status, response } = await httpClient<RescheduleExecutionResponse>(
     "PATCH",
     `/public/v2/executions/${id}/schedule`,
     stringify(request)
   );
-  return newExecution(response.data);
+
+  if (status === 200) return newExecution(response.data);
+  else if (status === 404) throw new ExecutionNotFound(id);
+  else if (status === 409) throw new ExecutionNotCancellable("");
+
+  throw new DeferError(
+    `backend responds with "${status}" and message "$(response as any).message"`
+  );
 }
 
 export async function reRunExecution(
@@ -206,12 +232,18 @@ export async function reRunExecution(
 ): Promise<ReRunExecutionResult> {
   const httpClient = newClientFromEnv();
   const request: ReRunExecutionRequest = {};
-  const { response } = await httpClient<ReRunExecutionResponse>(
+  const { status, response } = await httpClient<ReRunExecutionResponse>(
     "POST",
     `/public/v2/executions/${id}/reruns`,
     stringify(request)
   );
-  return newExecution(response.data);
+
+  if (status === 200) return newExecution(response.data);
+  else if (status === 404) throw new ExecutionNotFound(id);
+
+  throw new DeferError(
+    `backend responds with "${status}" and message "$(response as any).message"`
+  );
 }
 
 export async function listExecutions(
@@ -233,24 +265,30 @@ export async function listExecutions(
         }
       : undefined,
   };
-  const { response } = await httpClient<ListExecutionsResponse>(
+  const { status, response } = await httpClient<ListExecutionsResponse>(
     "POST",
     `/public/v2/executions`,
     stringify(request)
   );
 
-  const executions: Execution[] = [];
-  for (const data of response.data) executions.push(newExecution(data));
+  if (status === 200) {
+    const executions: Execution[] = [];
+    for (const data of response.data) executions.push(newExecution(data));
 
-  return {
-    pageInfo: {
-      hasPrevPage: response.page_info.has_prev_page,
-      hasNextPage: response.page_info.has_next_page,
-      startCursor: response.page_info.start_cursor,
-      endCursor: response.page_info.end_cursor,
-    },
-    data: executions,
-  };
+    return {
+      pageInfo: {
+        hasPrevPage: response.page_info.has_prev_page,
+        hasNextPage: response.page_info.has_next_page,
+        startCursor: response.page_info.start_cursor,
+        endCursor: response.page_info.end_cursor,
+      },
+      data: executions,
+    };
+  }
+
+  throw new DeferError(
+    `backend responds with "${status}" and message "$(response as any).message"`
+  );
 }
 
 export async function listExecutionAttempts(
@@ -273,22 +311,28 @@ export async function listExecutionAttempts(
         }
       : undefined,
   };
-  const { response } = await httpClient<ListExecutionAttemptsResponse>(
+  const { status, response } = await httpClient<ListExecutionAttemptsResponse>(
     "POST",
     `/public/v2/executions/${id}/attempts`,
     stringify(request)
   );
 
-  const executions: Execution[] = [];
-  for (const data of response.data) executions.push(newExecution(data));
+  if (status === 200) {
+    const executions: Execution[] = [];
+    for (const data of response.data) executions.push(newExecution(data));
 
-  return {
-    pageInfo: {
-      hasPrevPage: response.page_info.has_prev_page,
-      hasNextPage: response.page_info.has_next_page,
-      startCursor: response.page_info.start_cursor,
-      endCursor: response.page_info.end_cursor,
-    },
-    data: executions,
-  };
+    return {
+      pageInfo: {
+        hasPrevPage: response.page_info.has_prev_page,
+        hasNextPage: response.page_info.has_next_page,
+        startCursor: response.page_info.start_cursor,
+        endCursor: response.page_info.end_cursor,
+      },
+      data: executions,
+    };
+  }
+
+  throw new DeferError(
+    `backend responds with "${status}" and message "$(response as any).message"`
+  );
 }
