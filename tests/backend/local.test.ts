@@ -6,6 +6,7 @@ import {
   cancelExecution,
   enqueue,
   getExecution,
+  rescheduleExecution,
 } from "../../src/backend/local.js";
 import { defer } from "../../src/index.js";
 
@@ -116,3 +117,12 @@ describe("cancelExecution/2", () => {
   });
 });
 
+describe("rescheduleExecution", () => {
+  describe("when execution not exist", () => {
+    it("throws an error", async () => {
+      await expect(
+        async () => await rescheduleExecution("fake id", new Date())
+      ).rejects.toThrowError(ExecutionNotFound);
+    });
+  });
+});
