@@ -34,6 +34,7 @@ function newExecutionAPIResponse(o?: any): string {
       id: "fake-id",
       state: "created",
       function_name: "sayHello",
+      scheduledAt: new Date(),
       function_id: "fake-id",
       updated_at: new Date(),
       created_at: new Date(),
@@ -54,7 +55,11 @@ describe("enqueue/5", () => {
     it("returns execution object", async () => {
       const now = new Date();
       const mockResponse = new Response(
-        newExecutionAPIResponse({ updated_at: now, created_at: now }),
+        newExecutionAPIResponse({
+          updated_at: now,
+          created_at: now,
+          scheduled_at: now,
+        }),
         { status: 200 }
       );
       (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
@@ -81,6 +86,7 @@ describe("enqueue/5", () => {
         functionId: "fake-id",
         updatedAt: now,
         createdAt: now,
+        scheduledAt: now,
       });
     });
   });
@@ -163,7 +169,11 @@ describe("getExecution/1", () => {
     it("returns execution object", async () => {
       const now = new Date();
       const mockResponse = new Response(
-        newExecutionAPIResponse({ updated_at: now, created_at: now }),
+        newExecutionAPIResponse({
+          updated_at: now,
+          created_at: now,
+          scheduled_at: now,
+        }),
         { status: 200 }
       );
       (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
@@ -185,6 +195,7 @@ describe("getExecution/1", () => {
         functionId: "fake-id",
         updatedAt: now,
         createdAt: now,
+        scheduledAt: now,
       });
     });
   });
@@ -255,7 +266,11 @@ describe("cancelExecution/2", () => {
     it("returns execution object", async () => {
       const now = new Date();
       const mockResponse = new Response(
-        newExecutionAPIResponse({ updated_at: now, created_at: now }),
+        newExecutionAPIResponse({
+          updated_at: now,
+          created_at: now,
+          scheduled_at: now,
+        }),
         { status: 200 }
       );
       (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
@@ -277,6 +292,7 @@ describe("cancelExecution/2", () => {
         functionId: "fake-id",
         updatedAt: now,
         createdAt: now,
+        scheduledAt: now,
       });
     });
   });
@@ -397,7 +413,11 @@ describe("rescheduleExecution/2", () => {
     it("returns execution object", async () => {
       const now = new Date();
       const mockResponse = new Response(
-        newExecutionAPIResponse({ updated_at: now, created_at: now }),
+        newExecutionAPIResponse({
+          updated_at: now,
+          created_at: now,
+          scheduled_at: now,
+        }),
         { status: 200 }
       );
       (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
@@ -419,6 +439,7 @@ describe("rescheduleExecution/2", () => {
         functionId: "fake-id",
         updatedAt: now,
         createdAt: now,
+        scheduledAt: now,
       });
     });
   });
@@ -520,7 +541,11 @@ describe("reRunExecution/1", () => {
     it("returns execution object", async () => {
       const now = new Date();
       const mockResponse = new Response(
-        newExecutionAPIResponse({ updated_at: now, created_at: now }),
+        newExecutionAPIResponse({
+          updated_at: now,
+          created_at: now,
+          scheduled_at: now,
+        }),
         { status: 200 }
       );
       (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
@@ -542,6 +567,7 @@ describe("reRunExecution/1", () => {
         functionId: "fake-id",
         updatedAt: now,
         createdAt: now,
+        scheduledAt: now,
       });
     });
   });
@@ -627,6 +653,7 @@ describe("listExecutions/2", () => {
               function_id: "fake-id",
               updated_at: now,
               created_at: now,
+              scheduled_at: now,
             },
           ],
         }),
@@ -659,6 +686,7 @@ describe("listExecutions/2", () => {
             functionId: "fake-id",
             updatedAt: now,
             createdAt: now,
+            scheduledAt: now,
           },
         ],
         pageInfo: {

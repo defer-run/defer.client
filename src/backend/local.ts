@@ -187,6 +187,18 @@ function isExecutionMatchFilter(
   return true;
 }
 
+function buildExecution(execution: InternalExecution): Execution {
+  return {
+    id: execution.id,
+    state: execution.state,
+    functionName: execution.functionName,
+    scheduledAt: execution.scheduleFor,
+    functionId: execution.functionId,
+    createdAt: execution.createdAt,
+    updatedAt: execution.updatedAt,
+  };
+}
+
 export function start(): () => Promise<void> {
   if (getEnv("DEFER_NO_BANNER") === undefined) {
     console.log(banner);
@@ -339,15 +351,7 @@ export async function enqueue<F extends DeferableFunction>(
   };
 
   await executionsStore.set(execution.id, execution);
-
-  return {
-    id: execution.id,
-    state: execution.state,
-    functionName: execution.functionName,
-    functionId: execution.functionId,
-    createdAt: execution.createdAt,
-    updatedAt: execution.updatedAt,
-  };
+  return buildExecution(execution);
 }
 
 export async function getExecution(id: string): Promise<GetExecutionResult> {
@@ -355,14 +359,7 @@ export async function getExecution(id: string): Promise<GetExecutionResult> {
   if (execution === undefined)
     throw new ExecutionNotFound(`cannot find execution "${id}"`);
 
-  return {
-    id,
-    state: execution.state,
-    functionName: execution.functionName,
-    functionId: execution.functionId,
-    createdAt: execution.createdAt,
-    updatedAt: execution.updatedAt,
-  };
+  return buildExecution(execution);
 }
 
 export async function cancelExecution(
@@ -407,14 +404,7 @@ export async function cancelExecution(
     return execution;
   });
 
-  return {
-    id,
-    state: execution.state,
-    functionName: execution.functionName,
-    functionId: execution.functionId,
-    createdAt: execution.createdAt,
-    updatedAt: execution.updatedAt,
-  };
+  return buildExecution(execution);
 }
 
 export async function rescheduleExecution(
@@ -434,14 +424,7 @@ export async function rescheduleExecution(
     return execution;
   });
 
-  return {
-    id,
-    state: execution.state,
-    functionName: execution.functionName,
-    functionId: execution.functionId,
-    createdAt: execution.createdAt,
-    updatedAt: execution.updatedAt,
-  };
+  return buildExecution(execution);
 }
 
 export async function reRunExecution(
@@ -467,14 +450,7 @@ export async function reRunExecution(
 
   await executionsStore.set(newExecution.id, newExecution);
 
-  return {
-    id: newExecution.id,
-    state: newExecution.state,
-    functionName: newExecution.func.name,
-    functionId: newExecution.functionId,
-    createdAt: newExecution.createdAt,
-    updatedAt: newExecution.updatedAt,
-  };
+  return buildExecution(execution);
 }
 
 export async function listExecutions(
@@ -490,14 +466,7 @@ export async function listExecutions(
     )) as InternalExecution;
 
     if (isExecutionMatchFilter(filters, execution))
-      data.set(executionId, {
-        id: execution.id,
-        state: execution.state,
-        functionName: execution.functionName,
-        functionId: execution.functionId,
-        createdAt: execution.createdAt,
-        updatedAt: execution.updatedAt,
-      });
+      data.set(executionId, buildExecution(execution));
   }
 
   return paginate(pageRequest, data);
@@ -520,14 +489,7 @@ export async function listExecutionAttempts(
       (execution.id === id || execution.retryOf === id) &&
       isExecutionMatchFilter(filters, execution)
     )
-      data.set(executionId, {
-        id: execution.id,
-        state: execution.state,
-        functionName: execution.functionName,
-        functionId: execution.functionId,
-        createdAt: execution.createdAt,
-        updatedAt: execution.updatedAt,
-      });
+      data.set(executionId, buildExecution(execution));
   }
 
   return paginate(pageRequest, data);

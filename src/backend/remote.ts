@@ -69,6 +69,8 @@ export interface APIExecution {
   state: ExecutionState;
   function_name: string;
   function_id: string;
+  schedule_for: string;
+  scheduled_at: string;
   created_at: string;
   updated_at: string;
 }
@@ -131,6 +133,7 @@ function newExecution(o: APIExecution): Execution {
     state: o.state,
     functionName: o.function_name,
     functionId: o.function_id,
+    scheduledAt: new Date(Date.parse(o.scheduled_at)),
     updatedAt: new Date(Date.parse(o.updated_at)),
     createdAt: new Date(Date.parse(o.created_at)),
   };
