@@ -354,7 +354,8 @@ export async function listExecutionAttempts(
       },
       data: executions,
     };
-  }
+  } else if (status === 404)
+    throw new ExecutionNotFound((response as any).message);
 
   throw new DeferError(
     `backend responds with "${status}" and message "${

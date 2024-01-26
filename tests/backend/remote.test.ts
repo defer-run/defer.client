@@ -12,6 +12,7 @@ import {
   cancelExecution,
   enqueue,
   getExecution,
+  listExecutionAttempts,
   listExecutions,
   reRunExecution,
   rescheduleExecution,
@@ -699,4 +700,64 @@ describe("listExecutions/2", () => {
   });
 });
 
-describe("listExecutionAttempts/3", () => {});
+describe("listExecutionAttempts/3", () => {
+  beforeEach(() => {
+    jest.resetModules();
+  });
+
+  describe("when API respond with 400 status code", () => {
+    it("throws error", async () => {
+      const mockResponse = new Response(
+        JSON.stringify({
+          error: "bad_request",
+          message: "cannot decode body",
+        }),
+        { status: 400 }
+      );
+      (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
+
+      await expect(
+        async () => await listExecutionAttempts("fake-id")
+      ).rejects.toThrow(DeferError);
+
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(
+        "https://api.defer.run/public/v2/executions/fake-id/attempts",
+        {
+          method: "POST",
+          body: JSON.stringify({}),
+          cache: "no-store",
+          headers: expectedHeaderFields,
+        }
+      );
+    });
+  });
+
+  describe("when API respond with 404 status code", () => {
+    it("throws error", async () => {
+      const mockResponse = new Response(
+        JSON.stringify({
+          error: "bad_request",
+          message: "cannot decode body",
+        }),
+        { status: 404 }
+      );
+      (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
+
+      await expect(
+        async () => await listExecutionAttempts("fake-id")
+      ).rejects.toThrow(ExecutionNotFound);
+
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(
+        "https://api.defer.run/public/v2/executions/fake-id/attempts",
+        {
+          method: "POST",
+          body: JSON.stringify({}),
+          cache: "no-store",
+          headers: expectedHeaderFields,
+        }
+      );
+    });
+  });
+});
