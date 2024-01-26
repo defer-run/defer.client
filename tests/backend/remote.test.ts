@@ -6,11 +6,13 @@ import {
   ExecutionAbortingAlreadyInProgress,
   ExecutionNotCancellable,
   ExecutionNotFound,
+  ExecutionNotReschedulable,
 } from "../../src/backend.js";
 import {
   cancelExecution,
   enqueue,
   getExecution,
+  rescheduleExecution,
 } from "../../src/backend/remote.js";
 import { defer } from "../../src/index.js";
 
@@ -382,3 +384,132 @@ describe("cancelExecution/2", () => {
     });
   });
 });
+
+describe("rescheduleExecution/2", () => {
+  beforeEach(() => {
+    jest.resetModules();
+  });
+
+  describe("when API respond with 200 status code", () => {
+    it("returns execution object", async () => {
+      const now = new Date();
+      const mockResponse = new Response(
+        newExecutionAPIResponse({ updated_at: now, created_at: now }),
+        { status: 200 }
+      );
+      (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
+      const result = await rescheduleExecution("fake-id", now);
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(
+        "https://api.defer.run/public/v2/executions/fake-id/schedule",
+        {
+          method: "PATCH",
+          body: JSON.stringify({ schedule_for: now }),
+          cache: "no-store",
+          headers: expectedHeaderFields,
+        }
+      );
+      expect(result).toStrictEqual({
+        id: "fake-id",
+        state: "created",
+        functionName: "sayHello",
+        functionId: "fake-id",
+        updatedAt: now,
+        createdAt: now,
+      });
+    });
+  });
+
+  describe("when API respond with 400 status code", () => {
+    it("throws error", async () => {
+      const now = new Date();
+      const mockResponse = new Response(
+        JSON.stringify({
+          error: "bad_request",
+          message: "cannot decode body",
+        }),
+        { status: 400 }
+      );
+      (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
+
+      await expect(
+        async () => await rescheduleExecution("fake-id", now)
+      ).rejects.toThrow(DeferError);
+
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(
+        "https://api.defer.run/public/v2/executions/fake-id/schedule",
+        {
+          method: "PATCH",
+          body: JSON.stringify({ schedule_for: now }),
+          cache: "no-store",
+          headers: expectedHeaderFields,
+        }
+      );
+    });
+  });
+
+  describe("when API respond with 404 status code", () => {
+    it("throws error", async () => {
+      const now = new Date();
+      const mockResponse = new Response(
+        JSON.stringify({
+          error: "bad_request",
+          message: 'cannot find execution "fake-id"',
+        }),
+        { status: 404 }
+      );
+      (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
+
+      await expect(
+        async () => await rescheduleExecution("fake-id", now)
+      ).rejects.toThrow(ExecutionNotFound);
+
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(
+        "https://api.defer.run/public/v2/executions/fake-id/schedule",
+        {
+          method: "PATCH",
+          body: JSON.stringify({ schedule_for: now }),
+          cache: "no-store",
+          headers: expectedHeaderFields,
+        }
+      );
+    });
+  });
+
+  describe("when API respond with 409 status code", () => {
+    it("throws error", async () => {
+      const now = new Date();
+      const mockResponse = new Response(
+        JSON.stringify({
+          error: "conflict",
+          message: "cannot resechedule execution in started state",
+        }),
+        { status: 409 }
+      );
+      (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
+
+      await expect(
+        async () => await rescheduleExecution("fake-id", now)
+      ).rejects.toThrow(ExecutionNotReschedulable);
+
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(
+        "https://api.defer.run/public/v2/executions/fake-id/schedule",
+        {
+          method: "PATCH",
+          body: JSON.stringify({ schedule_for: now }),
+          cache: "no-store",
+          headers: expectedHeaderFields,
+        }
+      );
+    });
+  });
+});
+
+describe("reRunExecution/1", () => {});
+
+describe("listExecutions/2", () => {});
+
+describe("listExecutionAttempts/3", () => {});

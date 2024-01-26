@@ -23,6 +23,7 @@ import {
   ExecutionFilters,
   ExecutionNotCancellable,
   ExecutionNotFound,
+  ExecutionNotReschedulable,
   ExecutionState,
   GetExecutionResult,
   ListExecutionAttemptsResult,
@@ -236,7 +237,7 @@ export async function rescheduleExecution(
   else if (status === 404)
     throw new ExecutionNotFound((response as any).message);
   else if (status === 409)
-    throw new ExecutionNotCancellable((response as any).message);
+    throw new ExecutionNotReschedulable((response as any).message);
 
   throw new DeferError(
     `backend responds with "${status}" and message "${
