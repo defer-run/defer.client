@@ -1,16 +1,17 @@
 process.env["DEFER_NO_LOCAL_SCHEDULER"] = "1";
 process.env["DEFER_NO_BANNER"] = "1";
 
-import { enqueue } from "../../src/backend/local.js";
+import { ExecutionNotFound } from "../../src/backend.js";
+import { enqueue, getExecution } from "../../src/backend/local.js";
 import { defer } from "../../src/index.js";
+
+const myFunc = async () => console.log("the cake is a lie");
+const myDeferedFunc = defer(myFunc);
 
 describe("enqueue/5", () => {
   beforeEach(() => {
     jest.resetModules();
   });
-
-  const myFunc = async () => console.log("the cake is a lie");
-  const myDeferedFunc = defer(myFunc);
 
   it("returns the execution object", async () => {
     const now = new Date();
@@ -41,5 +42,35 @@ describe("enqueue/5", () => {
     expect(result.id).not.toBe(result2.id);
     expect(result.functionName).toBe(result2.functionName);
     expect(result.functionId).toBe(result2.functionId);
+  });
+});
+
+describe("getExecution/1", () => {
+  beforeEach(() => {
+    jest.resetModules();
+  });
+
+  describe("when execution exist", () => {
+    it("returns the execution", async () => {
+      const now = new Date();
+      const enqueueResult = await enqueue(
+        myDeferedFunc,
+        [],
+        now,
+        now,
+        undefined
+      );
+      const getResult = await getExecution(enqueueResult.id);
+
+      expect(getResult).toStrictEqual(enqueueResult);
+    });
+  });
+
+  describe("when the execution does not exist", () => {
+    it("throws error", async () => {
+      await expect(
+        async () => await getExecution("fake id")
+      ).rejects.toThrowError(ExecutionNotFound);
+    });
   });
 });
