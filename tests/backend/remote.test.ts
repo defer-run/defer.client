@@ -12,6 +12,7 @@ import {
   cancelExecution,
   enqueue,
   getExecution,
+  reRunExecution,
   rescheduleExecution,
 } from "../../src/backend/remote.js";
 import { defer } from "../../src/index.js";
@@ -508,7 +509,97 @@ describe("rescheduleExecution/2", () => {
   });
 });
 
-describe("reRunExecution/1", () => {});
+describe("reRunExecution/1", () => {
+  beforeEach(() => {
+    jest.resetModules();
+  });
+
+  describe("when API respond with 200 status code", () => {
+    it("returns execution object", async () => {
+      const now = new Date();
+      const mockResponse = new Response(
+        newExecutionAPIResponse({ updated_at: now, created_at: now }),
+        { status: 200 }
+      );
+      (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
+      const result = await reRunExecution("fake-id");
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(
+        "https://api.defer.run/public/v2/executions/fake-id/reruns",
+        {
+          method: "POST",
+          body: JSON.stringify({}),
+          cache: "no-store",
+          headers: expectedHeaderFields,
+        }
+      );
+      expect(result).toStrictEqual({
+        id: "fake-id",
+        state: "created",
+        functionName: "sayHello",
+        functionId: "fake-id",
+        updatedAt: now,
+        createdAt: now,
+      });
+    });
+  });
+
+  describe("when API respond with 400 status code", () => {
+    it("throws error", async () => {
+      const mockResponse = new Response(
+        JSON.stringify({
+          error: "bad_request",
+          message: "cannot decode body",
+        }),
+        { status: 400 }
+      );
+      (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
+
+      await expect(async () => await reRunExecution("fake-id")).rejects.toThrow(
+        DeferError
+      );
+
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(
+        "https://api.defer.run/public/v2/executions/fake-id/reruns",
+        {
+          method: "POST",
+          body: JSON.stringify({}),
+          cache: "no-store",
+          headers: expectedHeaderFields,
+        }
+      );
+    });
+  });
+
+  describe("when API respond with 404 status code", () => {
+    it("throws error", async () => {
+      const mockResponse = new Response(
+        JSON.stringify({
+          error: "bad_request",
+          message: 'cannot find execution "fake-id"',
+        }),
+        { status: 404 }
+      );
+      (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
+
+      await expect(async () => await reRunExecution("fake-id")).rejects.toThrow(
+        ExecutionNotFound
+      );
+
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(
+        "https://api.defer.run/public/v2/executions/fake-id/reruns",
+        {
+          method: "POST",
+          body: JSON.stringify({}),
+          cache: "no-store",
+          headers: expectedHeaderFields,
+        }
+      );
+    });
+  });
+});
 
 describe("listExecutions/2", () => {});
 
