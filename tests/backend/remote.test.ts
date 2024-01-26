@@ -12,6 +12,7 @@ import {
   cancelExecution,
   enqueue,
   getExecution,
+  listExecutions,
   reRunExecution,
   rescheduleExecution,
 } from "../../src/backend/remote.js";
@@ -601,6 +602,101 @@ describe("reRunExecution/1", () => {
   });
 });
 
-describe("listExecutions/2", () => {});
+describe("listExecutions/2", () => {
+  beforeEach(() => {
+    jest.resetModules();
+  });
+
+  describe("when API respond with 200 status code", () => {
+    it("returns execution object", async () => {
+      const now = new Date();
+      const mockResponse = new Response(
+        JSON.stringify({
+          page_info: {
+            end_cursor: "endCursor",
+            has_next_page: true,
+            has_prev_page: true,
+            start_cursor: "startCursor",
+          },
+          data: [
+            {
+              id: "fake-id",
+              state: "created",
+              function_name: "sayHello",
+              function_id: "fake-id",
+              updated_at: now,
+              created_at: now,
+            },
+          ],
+        }),
+        { status: 200 }
+      );
+      (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
+      const result = await listExecutions(
+        { first: 25 },
+        { states: ["created"] }
+      );
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(
+        "https://api.defer.run/public/v2/executions",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            page: { first: 25 },
+            filters: { states: ["created"] },
+          }),
+          cache: "no-store",
+          headers: expectedHeaderFields,
+        }
+      );
+      expect(result).toStrictEqual({
+        data: [
+          {
+            id: "fake-id",
+            state: "created",
+            functionName: "sayHello",
+            functionId: "fake-id",
+            updatedAt: now,
+            createdAt: now,
+          },
+        ],
+        pageInfo: {
+          endCursor: "endCursor",
+          startCursor: "startCursor",
+          hasPrevPage: true,
+          hasNextPage: true,
+        },
+      });
+    });
+  });
+
+  describe("when API respond with 400 status code", () => {
+    it("throws error", async () => {
+      const mockResponse = new Response(
+        JSON.stringify({
+          error: "bad_request",
+          message: "cannot decode body",
+        }),
+        { status: 400 }
+      );
+      (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
+
+      await expect(async () => await listExecutions()).rejects.toThrow(
+        DeferError
+      );
+
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(
+        "https://api.defer.run/public/v2/executions",
+        {
+          method: "POST",
+          body: JSON.stringify({}),
+          cache: "no-store",
+          headers: expectedHeaderFields,
+        }
+      );
+    });
+  });
+});
 
 describe("listExecutionAttempts/3", () => {});
