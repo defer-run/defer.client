@@ -26,6 +26,7 @@ describe("enqueue/5", () => {
     const result = await enqueue(myDeferedFunc, [], now, now, undefined);
     expect(result.createdAt).toStrictEqual(now);
     expect(result.updatedAt).toStrictEqual(now);
+    expect(result.scheduledAt).toStrictEqual(now);
     expect(result.functionId).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
     );
@@ -118,6 +119,33 @@ describe("cancelExecution/2", () => {
 });
 
 describe("rescheduleExecution", () => {
+  describe("when execution state is created", () => {
+    it("returns an execution with new schedule date", async () => {
+      const now = new Date();
+      const enqueueResult = await enqueue(
+        myDeferedFunc,
+        [],
+        now,
+        now,
+        undefined
+      );
+
+      jest.useFakeTimers();
+      jest.setSystemTime();
+
+      const cancelResult = await rescheduleExecution(
+        enqueueResult.id,
+        new Date("December 17, 1995 03:24:00")
+      );
+      expect(cancelResult).toStrictEqual({
+        ...enqueueResult,
+        updatedAt: new Date(),
+        scheduledAt: new Date("December 17, 1995 03:24:00"),
+        state: "created",
+      });
+    });
+  });
+
   describe("when execution not exist", () => {
     it("throws an error", async () => {
       await expect(
