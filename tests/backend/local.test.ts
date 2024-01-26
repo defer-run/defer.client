@@ -2,7 +2,11 @@ process.env["DEFER_NO_LOCAL_SCHEDULER"] = "1";
 process.env["DEFER_NO_BANNER"] = "1";
 
 import { ExecutionNotFound } from "../../src/backend.js";
-import { enqueue, getExecution } from "../../src/backend/local.js";
+import {
+  cancelExecution,
+  enqueue,
+  getExecution,
+} from "../../src/backend/local.js";
 import { defer } from "../../src/index.js";
 
 const myFunc = async () => console.log("the cake is a lie");
@@ -74,3 +78,41 @@ describe("getExecution/1", () => {
     });
   });
 });
+
+describe("cancelExecution/2", () => {
+  beforeEach(() => {
+    jest.resetModules();
+  });
+
+  describe("when execution state is created", () => {
+    it("returns an execution in a cancelled state", async () => {
+      const now = new Date();
+      const enqueueResult = await enqueue(
+        myDeferedFunc,
+        [],
+        now,
+        now,
+        undefined
+      );
+
+      jest.useFakeTimers();
+      jest.setSystemTime();
+
+      const cancelResult = await cancelExecution(enqueueResult.id, false);
+      expect(cancelResult).toStrictEqual({
+        ...enqueueResult,
+        updatedAt: new Date(),
+        state: "cancelled",
+      });
+    });
+  });
+
+  describe("when execution not exist", () => {
+    it("throws an error", async () => {
+      await expect(
+        async () => await cancelExecution("fake id", false)
+      ).rejects.toThrowError(ExecutionNotFound);
+    });
+  });
+});
+
