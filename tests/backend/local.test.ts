@@ -6,6 +6,7 @@ import {
   cancelExecution,
   enqueue,
   getExecution,
+  reRunExecution,
   rescheduleExecution,
 } from "../../src/backend/local.js";
 import { defer } from "../../src/index.js";
@@ -133,11 +134,11 @@ describe("rescheduleExecution", () => {
       jest.useFakeTimers();
       jest.setSystemTime();
 
-      const cancelResult = await rescheduleExecution(
+      const rescheduleResult = await rescheduleExecution(
         enqueueResult.id,
         new Date("December 17, 1995 03:24:00")
       );
-      expect(cancelResult).toStrictEqual({
+      expect(rescheduleResult).toStrictEqual({
         ...enqueueResult,
         updatedAt: new Date(),
         scheduledAt: new Date("December 17, 1995 03:24:00"),
@@ -150,6 +151,43 @@ describe("rescheduleExecution", () => {
     it("throws an error", async () => {
       await expect(
         async () => await rescheduleExecution("fake id", new Date())
+      ).rejects.toThrowError(ExecutionNotFound);
+    });
+  });
+});
+
+describe("reRunExecution", () => {
+  describe("when execution state is created", () => {
+    it("returns an execution with new schedule date", async () => {
+      jest.useFakeTimers();
+      jest.setSystemTime();
+
+      const enqueueResult = await enqueue(
+        myDeferedFunc,
+        [],
+        new Date("December 17, 1995 03:24:00"),
+        undefined,
+        undefined
+      );
+      expect(enqueueResult.scheduledAt).toStrictEqual(
+        new Date("December 17, 1995 03:24:00")
+      );
+
+      const reRunResult = await reRunExecution(enqueueResult.id);
+      expect(reRunResult).toStrictEqual({
+        ...enqueueResult,
+        id: reRunResult.id,
+        updatedAt: new Date(),
+        scheduledAt: new Date(),
+        state: "created",
+      });
+    });
+  });
+
+  describe("when execution not exist", () => {
+    it("throws an error", async () => {
+      await expect(
+        async () => await reRunExecution("fake id")
       ).rejects.toThrowError(ExecutionNotFound);
     });
   });

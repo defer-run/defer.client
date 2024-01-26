@@ -450,7 +450,7 @@ export async function reRunExecution(
 
   await executionsStore.set(newExecution.id, newExecution);
 
-  return buildExecution(execution);
+  return buildExecution(newExecution);
 }
 
 export async function listExecutions(
