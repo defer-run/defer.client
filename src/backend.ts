@@ -32,7 +32,6 @@ export interface Execution {
   functionName: string;
   functionId: string;
   scheduledAt: Date;
-  result?: any;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -76,7 +75,9 @@ export interface ExecutionFilters {
 
 export type EnqueueResult = Execution;
 
-export type GetExecutionResult = Execution;
+export interface GetExecutionResult extends Execution {
+  result?: any;
+}
 
 export type CancelExecutionResult = Execution;
 
