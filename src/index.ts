@@ -362,16 +362,19 @@ export function awaitResult<F extends DeferableFunction>(
       const response = await getExecution(enqueueResponse.id);
       switch (response.state) {
         case "failed":
-          let error = new DeferError("Defer execution failed");
-          if (response.result?.message) {
-            error = new DeferError(response.result.message);
-            error.stack = response.result.stack;
-          } else if (response.result) {
-            error = response.result;
+          const result = await getExecutionResult(enqueueResponse.id);
+          let error = new DeferError(
+            `execution ${enqueueResponse.id} has failed`
+          );
+          if (result?.message) {
+            error = new DeferError(result.message);
+            error.stack = result.stack;
+          } else if (result) {
+            error = result;
           }
           throw error;
         case "succeed":
-          return response.result;
+          return await getExecutionResult<Awaited<F>>(enqueueResponse.id);
         case "aborted":
         case "cancelled":
         case "discarded":
