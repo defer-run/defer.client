@@ -1,6 +1,10 @@
 import type { NextRequest, NextResponse } from "next/server";
 import { DeferError } from "../backend.js";
-import { DeferredFunction, getExecution } from "../index.js";
+import {
+  DeferredFunction,
+  getExecution,
+  getExecutionResult,
+} from "../index.js";
 
 export interface DeferNextRoute {
   GetHandler: (request: NextRequest) => Promise<NextResponse | Response>;
@@ -25,7 +29,12 @@ export function asNextRoute<F extends (...args: any) => Promise<any>>(
       const id = request.nextUrl.searchParams.get("id");
       if (id) {
         try {
-          const { state, result } = await getExecution(id);
+          let result: any = undefined;
+          const { state } = await getExecution(id);
+          if (state === "succeed" || state === "failed") {
+            result = await getExecutionResult(id);
+          }
+
           return ResponseJSON({ id, state, result });
         } catch (e: unknown) {
           if (e instanceof DeferError) {

@@ -40,7 +40,7 @@ export const useDeferRoute = <
     const res = await fetch(`${routePath}?id=${executionId}`, {
       method: "GET",
     });
-    const data = (await res.json()) as EnqueueResult;
+    const data = (await res.json()) as any;
     setStatus(data.state);
     if (["succeed", "failed"].includes(data.state) && intervalRef.current) {
       clearInterval(intervalRef.current);
