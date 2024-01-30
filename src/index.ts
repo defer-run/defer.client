@@ -27,8 +27,9 @@ import {
 } from "./backend.js";
 import * as localBackend from "./backend/local.js";
 import * as remoteBackend from "./backend/remote.js";
+import { jitter } from "./jitter.js";
 import { info, warn } from "./logger.js";
-import { Duration, fromDurationToDate, getEnv } from "./utils.js";
+import { Duration, fromDurationToDate, getEnv, sleep } from "./utils.js";
 
 const INTERNAL_VERSION = 6;
 const RETRY_MAX_ATTEMPTS_PLACEHOLDER = 13;
@@ -348,18 +349,34 @@ export function awaitResult<F extends DeferableFunction>(
   func: DeferredFunction<F>
 ): (...args: Parameters<F>) => Promise<Awaited<F>> {
   return async function (...args: Parameters<F>): Promise<Awaited<F>> {
-    const response = await enqueue(func, ...args);
-    if (response.state === "failed") {
-      let error = new DeferError("Defer execution failed");
-      if (response.result?.message) {
-        error = new DeferError(response.result.message);
-        error.stack = response.result.stack;
-      } else if (response.result) {
-        error = response.result;
-      }
-      throw error;
-    }
+    const enqueueResponse = await enqueue(func, ...args);
+    sleep(1000);
 
-    return response.result;
+    let i = 0;
+    while (true) {
+      i++;
+      const response = await getExecution(enqueueResponse.id);
+      switch (response.state) {
+        case "failed":
+          let error = new DeferError("Defer execution failed");
+          if (response.result?.message) {
+            error = new DeferError(response.result.message);
+            error.stack = response.result.stack;
+          } else if (response.result) {
+            error = response.result;
+          }
+          throw error;
+        case "succeed":
+          return response.result;
+        case "aborted":
+        case "cancelled":
+        case "discarded":
+          throw new DeferError(
+            `execution "${enqueueResponse.id}" was "${response.state}"`
+          );
+        default:
+          sleep(jitter(i) * 1000);
+      }
+    }
   };
 }
