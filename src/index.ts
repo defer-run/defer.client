@@ -290,6 +290,10 @@ export async function getExecution(id: string): Promise<GetExecutionResult> {
   return backend.getExecution(id);
 }
 
+export async function getExecutionResult<T = any>(id: string): Promise<T> {
+  return backend.getExecutionResult(id) as T;
+}
+
 export async function cancelExecution(
   id: string,
   force = false

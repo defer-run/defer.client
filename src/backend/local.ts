@@ -22,6 +22,8 @@ import {
   ExecutionNotCancellable,
   ExecutionNotFound,
   ExecutionNotReschedulable,
+  ExecutionResultNotAvailable,
+  ExecutionResultNotAvailableYet,
   ExecutionState,
   GetExecutionResult,
   ListExecutionAttemptsResult,
@@ -360,6 +362,23 @@ export async function getExecution(id: string): Promise<GetExecutionResult> {
     throw new ExecutionNotFound(`cannot find execution "${id}"`);
 
   return buildExecution(execution);
+}
+
+export async function getExecutionResult(id: string): Promise<any> {
+  const execution = await executionsStore.get(id);
+  if (execution === undefined)
+    throw new ExecutionNotFound(`cannot find execution "${id}"`);
+
+  switch (execution.state) {
+    case "created":
+    case "started":
+      throw new ExecutionResultNotAvailableYet();
+    case "failed":
+    case "succeed":
+      return JSON.parse(execution.result!);
+    default:
+      throw new ExecutionResultNotAvailable();
+  }
 }
 
 export async function cancelExecution(

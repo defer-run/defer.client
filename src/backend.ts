@@ -75,9 +75,7 @@ export interface ExecutionFilters {
 
 export type EnqueueResult = Execution;
 
-export interface GetExecutionResult extends Execution {
-  result?: any;
-}
+export type GetExecutionResult = Execution;
 
 export type CancelExecutionResult = Execution;
 
@@ -136,6 +134,20 @@ export class ExecutionNotReschedulable extends DeferError {
   }
 }
 
+export class ExecutionResultNotAvailable extends DeferError {
+  constructor() {
+    super("result is not available");
+    Object.setPrototypeOf(this, ExecutionResultNotAvailable.prototype);
+  }
+}
+
+export class ExecutionResultNotAvailableYet extends DeferError {
+  constructor() {
+    super("result is not available yet");
+    Object.setPrototypeOf(this, ExecutionResultNotAvailableYet.prototype);
+  }
+}
+
 export interface Backend {
   enqueue<F extends DeferableFunction>(
     func: DeferredFunction<F>,
@@ -145,6 +157,7 @@ export interface Backend {
     metadata: { [key: string]: string } | undefined
   ): Promise<EnqueueResult>;
   getExecution(id: string): Promise<GetExecutionResult>;
+  getExecutionResult(id: string): Promise<any>;
   cancelExecution(id: string, force: boolean): Promise<CancelExecutionResult>;
   reRunExecution(id: string): Promise<ReRunExecutionResult>;
   rescheduleExecution(

@@ -24,6 +24,8 @@ import {
   ExecutionNotCancellable,
   ExecutionNotFound,
   ExecutionNotReschedulable,
+  ExecutionResultNotAvailable,
+  ExecutionResultNotAvailableYet,
   ExecutionState,
   GetExecutionResult,
   ListExecutionAttemptsResult,
@@ -185,6 +187,26 @@ export async function getExecution(id: string): Promise<GetExecutionResult> {
   );
 
   if (status === 200) return newExecution(response.data);
+  else if (status === 404)
+    throw new ExecutionNotFound((response as any).message);
+
+  throw new DeferError(
+    `backend responds with "${status}" and message "${
+      (response as any).message
+    }"`
+  );
+}
+
+export async function getExecutionResult(id: string): Promise<any> {
+  const httpClient = newClientFromEnv();
+  const { status, response } = await httpClient<GetExecutionResponse>(
+    "GET",
+    `/public/v2/executions/${id}/results`
+  );
+
+  if (status === 200) return response;
+  else if (status === 202) throw new ExecutionResultNotAvailableYet();
+  else if (status === 204) throw new ExecutionResultNotAvailable();
   else if (status === 404)
     throw new ExecutionNotFound((response as any).message);
 
