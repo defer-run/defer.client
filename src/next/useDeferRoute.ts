@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useRef, useState } from "react";
-import type { EnqueueResult, ExecutionState } from "../backend.js";
+import type { ExecutionState } from "../backend.js";
 import type { DeferredFunction } from "../index.js";
 
 export type UseDeferRoute<ARA extends boolean, A extends any[], R> = [
