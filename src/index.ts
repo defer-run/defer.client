@@ -354,14 +354,14 @@ export function awaitResult<F extends DeferableFunction>(
 ): (...args: Parameters<F>) => Promise<Awaited<F>> {
   return async function (...args: Parameters<F>): Promise<Awaited<F>> {
     const enqueueResponse = await enqueue(func, ...args);
-    sleep(1000);
+    await sleep(1000);
 
     let i = 0;
-    while (true) {
+    for (;;) {
       i++;
       const response = await getExecution(enqueueResponse.id);
       switch (response.state) {
-        case "failed":
+        case "failed": {
           const result = await getExecutionResult(enqueueResponse.id);
           let error = new DeferError(
             `execution ${enqueueResponse.id} has failed`
@@ -373,6 +373,7 @@ export function awaitResult<F extends DeferableFunction>(
             error = result;
           }
           throw error;
+        }
         case "succeed":
           return await getExecutionResult<Awaited<F>>(enqueueResponse.id);
         case "aborted":
@@ -382,7 +383,7 @@ export function awaitResult<F extends DeferableFunction>(
             `execution "${enqueueResponse.id}" was "${response.state}"`
           );
         default:
-          sleep(jitter(i) * 1000);
+          await sleep(jitter(i) * 1000);
       }
     }
   };
