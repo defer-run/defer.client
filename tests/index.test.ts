@@ -628,7 +628,7 @@ describe("getExecutionTries/1", () => {
     await getExecutionTries("the cake is a lie");
     expect(spy).toHaveBeenCalledWith("the cake is a lie", undefined, undefined);
     expect(logSpy).toHaveBeenCalledWith(
-      'level=warn message="\\"getExecutionTries/1\\" is deprecated and will be removed in future versions. Please use \\"listExecutionAttempts/2\\" instead."'
+      'level=warn message="\\"getExecutionTries\\" is deprecated and will be removed in future versions. Please use \\"listExecutionAttempts\\" instead."'
     );
   });
 });
