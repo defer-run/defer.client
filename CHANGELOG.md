@@ -1,5 +1,32 @@
 # @defer/client
 
+## 2.0.0
+
+### Major Changes
+
+- [#116](https://github.com/defer-run/defer.client/pull/116) [`2276048`](https://github.com/defer-run/defer.client/commit/2276048c6f796a0f3177eff2e9cf99f96c73bf50) Thanks [@gearnode](https://github.com/gearnode)! - This new major version brings scheduling features to the local developer experience.
+
+  Features:
+
+  - concurrency
+  - delay
+  - reschedule
+  - cancel
+  - discard
+  - `DeferError` has been replaced with respective errors for each client method.
+
+  Breaking changes:
+
+  - `getExecution` does not return the result anymore. To do so, one must use `getExecutionResult`.
+
+### Minor Changes
+
+- [#116](https://github.com/defer-run/defer.client/pull/116) [`b62b04b`](https://github.com/defer-run/defer.client/commit/b62b04b39af81b66b13766bc33ba6c9da72cede1) Thanks [@gearnode](https://github.com/gearnode)! - Add option to hide defer starting banner
+
+- [#116](https://github.com/defer-run/defer.client/pull/116) [`b62b04b`](https://github.com/defer-run/defer.client/commit/b62b04b39af81b66b13766bc33ba6c9da72cede1) Thanks [@gearnode](https://github.com/gearnode)! - Add option to not start local execution scheduler
+
+- [#116](https://github.com/defer-run/defer.client/pull/116) [`2276048`](https://github.com/defer-run/defer.client/commit/2276048c6f796a0f3177eff2e9cf99f96c73bf50) Thanks [@gearnode](https://github.com/gearnode)! - Use Defer public API v2
+
 ## 1.15.0
 
 ### Minor Changes
@@ -265,7 +292,7 @@
 
   export default async function handler(
     req: NextApiRequest,
-    res: NextApiResponse<Response>
+    res: NextApiResponse<Response>,
   ) {
     const executionId = req.query.id;
     const ret = await getExecution(executionId as string);
