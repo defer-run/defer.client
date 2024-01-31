@@ -190,12 +190,19 @@ async function enqueue<F extends DeferableFunction>(
   return response;
 }
 
+/**
+ * Define a deferred function
+ * @template F
+ * @param {DeferableFunction} fn
+ * @param {DeferredFunctionConfiguration=} config
+ * @returns {DeferredFunction<F>}
+ */
 export function defer<F extends DeferableFunction>(
   fn: F,
   config?: DeferredFunctionConfiguration
 ): DeferredFunction<F> {
   const wrapped: DeferredFunction<F> = async (
-    ...args: Parameters<typeof fn>
+    ...args: Parameters<F>
   ): Promise<EnqueueResult> => enqueue(wrapped, ...args);
   wrapped.__fn = fn;
   wrapped.__metadata = {
@@ -210,13 +217,21 @@ export function defer<F extends DeferableFunction>(
   return wrapped;
 }
 
-defer.cron = function (
-  fn: DeferableFunction,
+/**
+ * Define a defer cron
+ * @template F
+ * @param {DeferableFunction} fn
+ * @param {string} cronExpr
+ * @param {DeferredFunctionConfiguration=} config
+ * @returns {DeferredFunction<F>}
+ */
+defer.cron = function <F extends DeferableFunction>(
+  fn: F,
   cronExpr: string,
   config?: DeferredFunctionConfiguration
-): DeferredFunction<typeof fn> {
-  const wrapped: DeferredFunction<typeof fn> = async (
-    ...args: Parameters<typeof fn>
+): DeferredFunction<F> {
+  const wrapped: DeferredFunction<F> = async (
+    ...args: Parameters<F>
   ): Promise<EnqueueResult> => enqueue(wrapped, ...args);
 
   wrapped.__fn = fn;
@@ -235,10 +250,11 @@ defer.cron = function (
 
 /**
  * Delay an execution
- * @param fn Duration
- * @param delay Duration | Date
+ * @template F
+ * @param {DeferredFunction<F>} fn
+ * @param {Duration | Date} delay
  * @deprecated Prefer `assignOptions()` (https://www.defer.run/docs/references/defer-client/assign-options)
- * @returns
+ * @returns {DeferredFunction<F>}
  */
 export function delay<F extends DeferableFunction>(
   fn: DeferredFunction<F>,
@@ -249,10 +265,11 @@ export function delay<F extends DeferableFunction>(
 
 /**
  * Add metadata to an execution
- * @param fn Duration
- * @param metadata Object
+ * @template F
+ * @param {DeferredFunction<F>} fn
+ * @param {ExecutionMetadata} metadata
  * @deprecated Prefer `assignOptions()` (https://www.defer.run/docs/references/defer-client/assign-options)
- * @returns
+ * @returns {DeferredFunction<F>}
  */
 export function addMetadata<F extends DeferableFunction>(
   fn: DeferredFunction<F>,
@@ -263,10 +280,11 @@ export function addMetadata<F extends DeferableFunction>(
 
 /**
  * Discard an execution if not started after a given interval
- * @param fn Duration
- * @param value Duration | Date
+ * @template F
+ * @param {DeferredFunction<F>} fn
+ * @param {Duration | Date} value
  * @deprecated Prefer `assignOptions()` (https://www.defer.run/docs/references/defer-client/assign-options)
- * @returns
+ * @returns {DeferredFunction<F>}
  */
 export function discardAfter<F extends DeferableFunction>(
   fn: DeferredFunction<F>,
@@ -275,6 +293,13 @@ export function discardAfter<F extends DeferableFunction>(
   return assignOptions(fn, { discardAfter: value });
 }
 
+/**
+ * Assign execution options to a deferred function
+ * @template F
+ * @param {DeferredFunction<F>} fn
+ * @param {ExecutionOptions} options
+ * @returns {DeferredFunction<F>}
+ */
 export function assignOptions<F extends DeferableFunction>(
   fn: DeferredFunction<F>,
   options: ExecutionOptions
@@ -289,21 +314,61 @@ export function assignOptions<F extends DeferableFunction>(
   return wrapped;
 }
 
+/**
+ * Get an execution
+ * @async
+ * @param {string} id
+ * @returns {Promise<GetExecutionResult>}
+ * @throws {ExecutionNotFound} when execution does not exists
+ * @throws {DeferError} when error is unknown
+ */
 export async function getExecution(id: string): Promise<GetExecutionResult> {
   return backend.getExecution(id);
 }
 
+/**
+ * Get an execution result
+ * @async
+ * @template T
+ * @param {string} id
+ * @returns {Promise<T>}
+ * @throws {ExecutionNotFound} when execution does not exists
+ * @throws {ExecutionResultNotAvailableYet} when result is not yet available
+ * @throws {ExecutionResultNotAvailable} when there's no result
+ * @throws {DeferError} when error is unknown
+ */
 export async function getExecutionResult<T = any>(id: string): Promise<T> {
   return backend.getExecutionResult(id) as T;
 }
 
+/**
+ * Cancel an execution
+ * @async
+ * @param {string} id
+ * @param {boolean} force
+ * @returns {Promise<CancelExecutionResult>}
+ * @throws {ExecutionNotFound} when execution does not exists
+ * @throws {ExecutionAbortingAlreadyInProgress} when execution is started
+ * @throws {ExecutionNotCancellable} when execution cannot be cancelled
+ * @throws {DeferError} when error is unknown
+ */
 export async function cancelExecution(
   id: string,
-  force = false
+  force: boolean = false
 ): Promise<CancelExecutionResult> {
   return backend.cancelExecution(id, force);
 }
 
+/**
+ * Reschedule an execution
+ * @async
+ * @param {string} id
+ * @param {Duration | Date | undefined} value
+ * @returns {Promise<RescheduleExecutionResult>}
+ * @throws {ExecutionNotFound} when execution does not exists
+ * @throws {ExecutionNotReschedulable} when execution has started and/or completed.
+ * @throws {DeferError} when error is unknown
+ */
 export async function rescheduleExecution(
   id: string,
   value?: Duration | Date | undefined
@@ -322,6 +387,14 @@ export async function rescheduleExecution(
   return backend.rescheduleExecution(id, scheduleFor);
 }
 
+/**
+ * ReRun an execution
+ * @async
+ * @param {string} id
+ * @returns {Promise<ReRunExecutionResult>}
+ * @throws {ExecutionNotFound} when execution does not exists
+ * @throws {DeferError} when error is unknown
+ */
 export async function reRunExecution(
   id: string
 ): Promise<ReRunExecutionResult> {
@@ -329,17 +402,34 @@ export async function reRunExecution(
 }
 
 /**
+ * List an execution attempts
  * @deprecated Prefer `listExecutionAttempts()` (https://www.defer.run/docs/references/defer-client/list-execution-attempts)
+ * @async
+ * @param {string} id
+ * @returns {Promise<ListExecutionAttemptsResult>}
+ * @throws {ExecutionNotFound} when execution does not exists
+ * @throws {DeferError} when error is unknown
  */
 export async function getExecutionTries(
   id: string
 ): Promise<ListExecutionAttemptsResult> {
   warn(
-    `"getExecutionTries/1" is deprecated and will be removed in future versions. Please use "listExecutionAttempts/2" instead.`
+    `"getExecutionTries" is deprecated and will be removed in future versions. Please use "listExecutionAttempts" instead.`
   );
   return listExecutionAttempts(id);
 }
 
+/**
+ * List an execution attempts
+ * @deprecated Prefer `listExecutionAttempts()` (https://www.defer.run/docs/references/defer-client/list-execution-attempts)
+ * @async
+ * @param {string} id
+ * @param {PageRequest=} page
+ * @param {ExecutionFilters=} filters
+ * @returns {Promise<ListExecutionAttemptsResult>}
+ * @throws {ExecutionNotFound} when execution does not exists
+ * @throws {DeferError} when error is unknown
+ */
 export async function listExecutionAttempts(
   id: string,
   page?: PageRequest,
@@ -348,6 +438,14 @@ export async function listExecutionAttempts(
   return backend.listExecutionAttempts(id, page, filters);
 }
 
+/**
+ * List executions
+ * @async
+ * @param {PageRequest=} page
+ * @param {ExecutionFilters=} filters
+ * @returns {Promise<ListExecutionsResult>}
+ * @throws {DeferError} when error is unknown
+ */
 export async function listExecutions(
   page?: PageRequest,
   filters?: ExecutionFilters
@@ -355,11 +453,22 @@ export async function listExecutions(
   return backend.listExecutions(page, filters);
 }
 
+/**
+ * Enqueue and wait for an execution result
+ * @async
+ * @template F
+ * @param {DeferredFunction<F>} fn
+ * @returns {Promise<Awaited<F>>}
+ * @throws {ExecutionNotFound} when execution does not exists
+ * @throws {ExecutionResultNotAvailableYet} when result is not yet available
+ * @throws {ExecutionResultNotAvailable} when there's no result
+ * @throws {DeferError} when error is unknown
+ */
 export function awaitResult<F extends DeferableFunction>(
-  func: DeferredFunction<F>
+  fn: DeferredFunction<F>
 ): (...args: Parameters<F>) => Promise<Awaited<F>> {
   return async function (...args: Parameters<F>): Promise<Awaited<F>> {
-    const enqueueResponse = await enqueue(func, ...args);
+    const enqueueResponse = await enqueue(fn, ...args);
     await sleep(1000);
 
     let i = 0;
