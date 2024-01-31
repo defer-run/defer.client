@@ -284,9 +284,9 @@ async function loop(shouldRun: () => boolean): Promise<void> {
             let state: ExecutionState;
             let errorCode: ExecutionErrorCode;
 
-            info("starting execution", {
+            info("execution started", {
               id: executionId,
-              function: func.__fn.name,
+              function: execution.functionName,
               scheduleFor: execution.scheduleFor,
             });
 
@@ -295,14 +295,14 @@ async function loop(shouldRun: () => boolean): Promise<void> {
               state = "succeed";
               info("execution succeeded", {
                 id: executionId,
-                function: func.__fn.name,
+                function: execution.functionName,
               });
             } catch (e) {
               state = "failed";
               errorCode = "ER0003";
               error("execution failed", {
                 id: executionId,
-                function: func.__fn.name,
+                function: execution.functionName,
                 cause: (e as any).message,
               });
             } finally {

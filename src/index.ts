@@ -182,7 +182,10 @@ async function enqueue<F extends DeferableFunction>(
     metadata
   );
 
-  info("execution enqueued", { id: response.id, function: func.__fn.name });
+  info("execution enqueued", {
+    id: response.id,
+    function: response.functionName,
+  });
 
   return response;
 }
