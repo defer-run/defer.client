@@ -87,7 +87,7 @@ export function makeHTTPClient(
     }
 
     try {
-      const text = await response.text();
+      const text = (await response.text()) || "{}";
       data = JSON.parse(text) as T;
     } catch (error) {
       let message;
