@@ -227,6 +227,7 @@ async function loop(shouldRun: () => boolean): Promise<void> {
       const now = new Date();
       for (const executionId of await executionsStore.keys()) {
         let shouldRun: boolean = false;
+        let shouldDiscard: boolean = false;
 
         const execution = await executionsStore.transaction(
           executionId,
@@ -234,7 +235,8 @@ async function loop(shouldRun: () => boolean): Promise<void> {
             const func = execution.func as DeferredFunction<
               typeof execution.func
             >;
-            const shouldDiscard =
+            shouldDiscard =
+              execution.state === "created" &&
               execution.discardAfter !== undefined &&
               execution.discardAfter > now;
 
@@ -261,6 +263,14 @@ async function loop(shouldRun: () => boolean): Promise<void> {
             return execution;
           }
         );
+
+        if (shouldDiscard) {
+          info("execution discarded", {
+            id: executionId,
+            function: execution.functionName,
+            scheduleFor: execution.scheduleFor,
+          });
+        }
 
         if (shouldRun) {
           const executionId = execution.id;
