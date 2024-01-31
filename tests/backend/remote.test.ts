@@ -51,7 +51,7 @@ describe("enqueue/5", () => {
   const myFunc = async () => console.log("the cake is a lie");
   const myDeferedFunc = defer(myFunc);
 
-  describe("when API respond with 200 status code", () => {
+  describe("when API respond with 201 status code", () => {
     it("returns execution object", async () => {
       const now = new Date();
       const mockResponse = new Response(
@@ -60,7 +60,7 @@ describe("enqueue/5", () => {
           created_at: now,
           scheduled_at: now,
         }),
-        { status: 200 }
+        { status: 201 }
       );
       (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
       const result = await enqueue(myDeferedFunc, [], now, now, undefined);

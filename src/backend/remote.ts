@@ -170,7 +170,7 @@ export async function enqueue<F extends DeferableFunction>(
     stringify(request)
   );
 
-  if (status === 200) return newExecution(response.data);
+  if (status === 201) return newExecution(response.data);
 
   throw new DeferError(
     `backend responds with "${status}" and message "${
