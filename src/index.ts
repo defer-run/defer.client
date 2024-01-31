@@ -328,6 +328,9 @@ export async function reRunExecution(
   return backend.reRunExecution(id);
 }
 
+/**
+ * @deprecated Prefer `listExecutionAttempts()` (https://www.defer.run/docs/references/defer-client/list-execution-attempts)
+ */
 export async function getExecutionTries(
   id: string
 ): Promise<ListExecutionAttemptsResult> {
