@@ -202,7 +202,7 @@ function buildExecution(execution: InternalExecution): Execution {
 }
 
 export function start(): () => Promise<void> {
-  if (getEnv("DEFER_NO_BANNER") === undefined) {
+  if (getEnv("DEFER_NO_BANNER") === undefined || getEnv("CI") !== undefined) {
     console.log(banner);
   }
 
