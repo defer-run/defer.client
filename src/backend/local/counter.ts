@@ -1,4 +1,4 @@
-// Copyright (c) 2021-2023 Defer SAS <hello@defer.run>.
+// Copyright (c) 2023 Defer SAS <hello@defer.run>.
 //
 // Permission to use, copy, modify, and/or distribute this software for any
 // purpose with or without fee is hereby granted, provided that the above
@@ -12,4 +12,24 @@
 // OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 // PERFORMANCE OF THIS SOFTWARE.
 
-export default "unknown";
+export class Counter {
+  private counters: Map<string, number>;
+
+  constructor() {
+    this.counters = new Map<string, number>();
+  }
+
+  async incr(key: string): Promise<void> {
+    const currentCount = this.counters.get(key) || 0;
+    this.counters.set(key, currentCount + 1);
+  }
+
+  async decr(key: string): Promise<void> {
+    const currentCount = this.counters.get(key) || 0;
+    this.counters.set(key, currentCount - 1);
+  }
+
+  getCount(key: string): number {
+    return this.counters.get(key) || 0;
+  }
+}

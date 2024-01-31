@@ -3,7 +3,7 @@ import type { Config } from "@jest/types";
 const config: Config.InitialOptions = {
   moduleFileExtensions: ["js", "json", "ts"],
   rootDir: "../.",
-  testRegex: ".spec.ts$",
+  testRegex: ".test.ts$",
   collectCoverageFrom: ["src/**/*.ts"],
   transform: {
     "^.+\\.(t|j)s$": [

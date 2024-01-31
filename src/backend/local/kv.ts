@@ -1,4 +1,4 @@
-// Copyright (c) 2021-2023 Defer SAS <hello@defer.run>.
+// Copyright (c) 2023 Defer SAS <hello@defer.run>.
 //
 // Permission to use, copy, modify, and/or distribute this software for any
 // purpose with or without fee is hereby granted, provided that the above
@@ -12,4 +12,32 @@
 // OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 // PERFORMANCE OF THIS SOFTWARE.
 
-export default "unknown";
+export class KV<T> {
+  private store: Map<string, T>;
+
+  constructor() {
+    this.store = new Map<string, T>();
+  }
+
+  async get(key: string): Promise<T | undefined> {
+    return this.store.get(key);
+  }
+
+  async set(key: string, value: T): Promise<void> {
+    this.store.set(key, value);
+  }
+
+  async keys(): Promise<string[]> {
+    return Array.from(this.store.keys());
+  }
+
+  async transaction(
+    key: string,
+    setFunc: (value: T) => Promise<T>,
+  ): Promise<T> {
+    const cur = (await this.get(key)) as T;
+    const updated = await setFunc(cur);
+    await this.set(key, updated);
+    return updated;
+  }
+}

@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useRef, useState } from "react";
-import type { ExecutionState, FetchExecutionResponse } from "../client.js";
+import type { ExecutionState } from "../backend.js";
 import type { DeferredFunction } from "../index.js";
 
 export type UseDeferRoute<ARA extends boolean, A extends any[], R> = [
@@ -9,7 +9,7 @@ export type UseDeferRoute<ARA extends boolean, A extends any[], R> = [
     loading: boolean;
     result: R;
     error?: Error | undefined;
-  }
+  },
 ];
 
 // const [uploadFile, { loading, result: fileName, error }] = useDeferRoute<typeof createThumbnails>("/api/upload", { refreshInterval: 1000 });
@@ -22,14 +22,14 @@ export const useDeferRoute = <
     : any,
   HP extends boolean = false,
   R = ReturnType<F> extends Promise<infer RR> ? RR : ReturnType<F>,
-  A extends any[] = Parameters<F>
+  A extends any[] = Parameters<F>,
 >(
   routePath: string,
   { refreshInterval }: { hasProxy: HP; refreshInterval: number } = {
     refreshInterval: 500,
     // @ts-expect-error to refine
     hasProxy: false,
-  }
+  },
 ): UseDeferRoute<HP, A, R> => {
   const [status, setStatus] = useState<ExecutionState>();
   const [result, setResult] = useState<any>();
@@ -40,7 +40,7 @@ export const useDeferRoute = <
     const res = await fetch(`${routePath}?id=${executionId}`, {
       method: "GET",
     });
-    const data = (await res.json()) as FetchExecutionResponse;
+    const data = (await res.json()) as any;
     setStatus(data.state);
     if (["succeed", "failed"].includes(data.state) && intervalRef.current) {
       clearInterval(intervalRef.current);
@@ -70,10 +70,10 @@ export const useDeferRoute = <
       const data = await result.json();
       intervalRef.current = setInterval(
         pollExecution(data.id),
-        Math.max(500, refreshInterval)
+        Math.max(500, refreshInterval),
       ) as unknown as number;
     },
-    [pollExecution, refreshInterval]
+    [pollExecution, refreshInterval],
   );
 
   return [
