@@ -60,7 +60,7 @@ describe("enqueue/5", () => {
           created_at: now,
           scheduled_at: now,
         }),
-        { status: 201 }
+        { status: 201 },
       );
       (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
       const result = await enqueue(myDeferedFunc, [], now, now, undefined);
@@ -77,7 +77,7 @@ describe("enqueue/5", () => {
           }),
           cache: "no-store",
           headers: expectedHeaderFields,
-        }
+        },
       );
       expect(result).toStrictEqual({
         id: "fake-id",
@@ -99,12 +99,12 @@ describe("enqueue/5", () => {
           error: "bad_request",
           message: 'cannot find function "createUser"',
         }),
-        { status: 400 }
+        { status: 400 },
       );
       (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
 
       await expect(
-        async () => await enqueue(myDeferedFunc, [], now, now, undefined)
+        async () => await enqueue(myDeferedFunc, [], now, now, undefined),
       ).rejects.toThrow(DeferError);
 
       expect(fetch).toHaveBeenCalledTimes(1);
@@ -120,7 +120,7 @@ describe("enqueue/5", () => {
           }),
           cache: "no-store",
           headers: expectedHeaderFields,
-        }
+        },
       );
     });
   });
@@ -133,12 +133,12 @@ describe("enqueue/5", () => {
           error: "internal_error",
           message: "oops",
         }),
-        { status: 400 }
+        { status: 400 },
       );
       (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
 
       await expect(
-        async () => await enqueue(myDeferedFunc, [], now, now, undefined)
+        async () => await enqueue(myDeferedFunc, [], now, now, undefined),
       ).rejects.toThrow(DeferError);
 
       expect(fetch).toHaveBeenCalledTimes(1);
@@ -154,7 +154,7 @@ describe("enqueue/5", () => {
           }),
           cache: "no-store",
           headers: expectedHeaderFields,
-        }
+        },
       );
     });
   });
@@ -174,7 +174,7 @@ describe("getExecution/1", () => {
           created_at: now,
           scheduled_at: now,
         }),
-        { status: 200 }
+        { status: 200 },
       );
       (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
       const result = await getExecution("fake-id");
@@ -186,7 +186,7 @@ describe("getExecution/1", () => {
           body: null,
           cache: "no-store",
           headers: expectedHeaderFields,
-        }
+        },
       );
       expect(result).toStrictEqual({
         id: "fake-id",
@@ -207,12 +207,12 @@ describe("getExecution/1", () => {
           error: "bad_request",
           message: "cannot decode body",
         }),
-        { status: 400 }
+        { status: 400 },
       );
       (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
 
       await expect(async () => await getExecution("fake-id")).rejects.toThrow(
-        DeferError
+        DeferError,
       );
 
       expect(fetch).toHaveBeenCalledTimes(1);
@@ -223,7 +223,7 @@ describe("getExecution/1", () => {
           body: null,
           cache: "no-store",
           headers: expectedHeaderFields,
-        }
+        },
       );
     });
   });
@@ -235,12 +235,12 @@ describe("getExecution/1", () => {
           error: "bad_request",
           message: 'cannot find execution "fake-id"',
         }),
-        { status: 404 }
+        { status: 404 },
       );
       (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
 
       await expect(async () => await getExecution("fake-id")).rejects.toThrow(
-        ExecutionNotFound
+        ExecutionNotFound,
       );
 
       expect(fetch).toHaveBeenCalledTimes(1);
@@ -251,7 +251,7 @@ describe("getExecution/1", () => {
           body: null,
           cache: "no-store",
           headers: expectedHeaderFields,
-        }
+        },
       );
     });
   });
@@ -271,7 +271,7 @@ describe("cancelExecution/2", () => {
           created_at: now,
           scheduled_at: now,
         }),
-        { status: 200 }
+        { status: 200 },
       );
       (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
       const result = await cancelExecution("fake-id", true);
@@ -283,7 +283,7 @@ describe("cancelExecution/2", () => {
           body: JSON.stringify({ force: true }),
           cache: "no-store",
           headers: expectedHeaderFields,
-        }
+        },
       );
       expect(result).toStrictEqual({
         id: "fake-id",
@@ -303,7 +303,7 @@ describe("cancelExecution/2", () => {
       (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
 
       await expect(
-        async () => await cancelExecution("fake-id", false)
+        async () => await cancelExecution("fake-id", false),
       ).rejects.toThrow(ExecutionAbortingAlreadyInProgress);
 
       expect(fetch).toHaveBeenCalledTimes(1);
@@ -314,7 +314,7 @@ describe("cancelExecution/2", () => {
           body: JSON.stringify({ force: false }),
           cache: "no-store",
           headers: expectedHeaderFields,
-        }
+        },
       );
     });
   });
@@ -326,12 +326,12 @@ describe("cancelExecution/2", () => {
           error: "bad_request",
           message: "cannot decode body",
         }),
-        { status: 400 }
+        { status: 400 },
       );
       (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
 
       await expect(
-        async () => await cancelExecution("fake-id", false)
+        async () => await cancelExecution("fake-id", false),
       ).rejects.toThrow(DeferError);
 
       expect(fetch).toHaveBeenCalledTimes(1);
@@ -342,7 +342,7 @@ describe("cancelExecution/2", () => {
           body: JSON.stringify({ force: false }),
           cache: "no-store",
           headers: expectedHeaderFields,
-        }
+        },
       );
     });
   });
@@ -354,12 +354,12 @@ describe("cancelExecution/2", () => {
           error: "bad_request",
           message: 'cannot find execution "fake-id"',
         }),
-        { status: 404 }
+        { status: 404 },
       );
       (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
 
       await expect(
-        async () => await cancelExecution("fake-id", false)
+        async () => await cancelExecution("fake-id", false),
       ).rejects.toThrow(ExecutionNotFound);
 
       expect(fetch).toHaveBeenCalledTimes(1);
@@ -370,7 +370,7 @@ describe("cancelExecution/2", () => {
           body: JSON.stringify({ force: false }),
           cache: "no-store",
           headers: expectedHeaderFields,
-        }
+        },
       );
     });
   });
@@ -382,12 +382,12 @@ describe("cancelExecution/2", () => {
           error: "conflict",
           message: "cannot cancel execution in failed state",
         }),
-        { status: 409 }
+        { status: 409 },
       );
       (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
 
       await expect(
-        async () => await cancelExecution("fake-id", false)
+        async () => await cancelExecution("fake-id", false),
       ).rejects.toThrow(ExecutionNotCancellable);
 
       expect(fetch).toHaveBeenCalledTimes(1);
@@ -398,7 +398,7 @@ describe("cancelExecution/2", () => {
           body: JSON.stringify({ force: false }),
           cache: "no-store",
           headers: expectedHeaderFields,
-        }
+        },
       );
     });
   });
@@ -418,7 +418,7 @@ describe("rescheduleExecution/2", () => {
           created_at: now,
           scheduled_at: now,
         }),
-        { status: 200 }
+        { status: 200 },
       );
       (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
       const result = await rescheduleExecution("fake-id", now);
@@ -430,7 +430,7 @@ describe("rescheduleExecution/2", () => {
           body: JSON.stringify({ schedule_for: now }),
           cache: "no-store",
           headers: expectedHeaderFields,
-        }
+        },
       );
       expect(result).toStrictEqual({
         id: "fake-id",
@@ -452,12 +452,12 @@ describe("rescheduleExecution/2", () => {
           error: "bad_request",
           message: "cannot decode body",
         }),
-        { status: 400 }
+        { status: 400 },
       );
       (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
 
       await expect(
-        async () => await rescheduleExecution("fake-id", now)
+        async () => await rescheduleExecution("fake-id", now),
       ).rejects.toThrow(DeferError);
 
       expect(fetch).toHaveBeenCalledTimes(1);
@@ -468,7 +468,7 @@ describe("rescheduleExecution/2", () => {
           body: JSON.stringify({ schedule_for: now }),
           cache: "no-store",
           headers: expectedHeaderFields,
-        }
+        },
       );
     });
   });
@@ -481,12 +481,12 @@ describe("rescheduleExecution/2", () => {
           error: "bad_request",
           message: 'cannot find execution "fake-id"',
         }),
-        { status: 404 }
+        { status: 404 },
       );
       (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
 
       await expect(
-        async () => await rescheduleExecution("fake-id", now)
+        async () => await rescheduleExecution("fake-id", now),
       ).rejects.toThrow(ExecutionNotFound);
 
       expect(fetch).toHaveBeenCalledTimes(1);
@@ -497,7 +497,7 @@ describe("rescheduleExecution/2", () => {
           body: JSON.stringify({ schedule_for: now }),
           cache: "no-store",
           headers: expectedHeaderFields,
-        }
+        },
       );
     });
   });
@@ -510,12 +510,12 @@ describe("rescheduleExecution/2", () => {
           error: "conflict",
           message: "cannot resechedule execution in started state",
         }),
-        { status: 409 }
+        { status: 409 },
       );
       (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
 
       await expect(
-        async () => await rescheduleExecution("fake-id", now)
+        async () => await rescheduleExecution("fake-id", now),
       ).rejects.toThrow(ExecutionNotReschedulable);
 
       expect(fetch).toHaveBeenCalledTimes(1);
@@ -526,7 +526,7 @@ describe("rescheduleExecution/2", () => {
           body: JSON.stringify({ schedule_for: now }),
           cache: "no-store",
           headers: expectedHeaderFields,
-        }
+        },
       );
     });
   });
@@ -546,7 +546,7 @@ describe("reRunExecution/1", () => {
           created_at: now,
           scheduled_at: now,
         }),
-        { status: 200 }
+        { status: 200 },
       );
       (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
       const result = await reRunExecution("fake-id");
@@ -558,7 +558,7 @@ describe("reRunExecution/1", () => {
           body: JSON.stringify({}),
           cache: "no-store",
           headers: expectedHeaderFields,
-        }
+        },
       );
       expect(result).toStrictEqual({
         id: "fake-id",
@@ -579,12 +579,12 @@ describe("reRunExecution/1", () => {
           error: "bad_request",
           message: "cannot decode body",
         }),
-        { status: 400 }
+        { status: 400 },
       );
       (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
 
       await expect(async () => await reRunExecution("fake-id")).rejects.toThrow(
-        DeferError
+        DeferError,
       );
 
       expect(fetch).toHaveBeenCalledTimes(1);
@@ -595,7 +595,7 @@ describe("reRunExecution/1", () => {
           body: JSON.stringify({}),
           cache: "no-store",
           headers: expectedHeaderFields,
-        }
+        },
       );
     });
   });
@@ -607,12 +607,12 @@ describe("reRunExecution/1", () => {
           error: "bad_request",
           message: 'cannot find execution "fake-id"',
         }),
-        { status: 404 }
+        { status: 404 },
       );
       (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
 
       await expect(async () => await reRunExecution("fake-id")).rejects.toThrow(
-        ExecutionNotFound
+        ExecutionNotFound,
       );
 
       expect(fetch).toHaveBeenCalledTimes(1);
@@ -623,7 +623,7 @@ describe("reRunExecution/1", () => {
           body: JSON.stringify({}),
           cache: "no-store",
           headers: expectedHeaderFields,
-        }
+        },
       );
     });
   });
@@ -657,12 +657,12 @@ describe("listExecutions/2", () => {
             },
           ],
         }),
-        { status: 200 }
+        { status: 200 },
       );
       (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
       const result = await listExecutions(
         { first: 25 },
-        { states: ["created"] }
+        { states: ["created"] },
       );
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
@@ -675,7 +675,7 @@ describe("listExecutions/2", () => {
           }),
           cache: "no-store",
           headers: expectedHeaderFields,
-        }
+        },
       );
       expect(result).toStrictEqual({
         data: [
@@ -706,12 +706,12 @@ describe("listExecutions/2", () => {
           error: "bad_request",
           message: "cannot decode body",
         }),
-        { status: 400 }
+        { status: 400 },
       );
       (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
 
       await expect(async () => await listExecutions()).rejects.toThrow(
-        DeferError
+        DeferError,
       );
 
       expect(fetch).toHaveBeenCalledTimes(1);
@@ -722,7 +722,7 @@ describe("listExecutions/2", () => {
           body: JSON.stringify({}),
           cache: "no-store",
           headers: expectedHeaderFields,
-        }
+        },
       );
     });
   });
@@ -740,12 +740,12 @@ describe("listExecutionAttempts/3", () => {
           error: "bad_request",
           message: "cannot decode body",
         }),
-        { status: 400 }
+        { status: 400 },
       );
       (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
 
       await expect(
-        async () => await listExecutionAttempts("fake-id")
+        async () => await listExecutionAttempts("fake-id"),
       ).rejects.toThrow(DeferError);
 
       expect(fetch).toHaveBeenCalledTimes(1);
@@ -756,7 +756,7 @@ describe("listExecutionAttempts/3", () => {
           body: JSON.stringify({}),
           cache: "no-store",
           headers: expectedHeaderFields,
-        }
+        },
       );
     });
   });
@@ -768,12 +768,12 @@ describe("listExecutionAttempts/3", () => {
           error: "bad_request",
           message: "cannot decode body",
         }),
-        { status: 404 }
+        { status: 404 },
       );
       (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
 
       await expect(
-        async () => await listExecutionAttempts("fake-id")
+        async () => await listExecutionAttempts("fake-id"),
       ).rejects.toThrow(ExecutionNotFound);
 
       expect(fetch).toHaveBeenCalledTimes(1);
@@ -784,7 +784,7 @@ describe("listExecutionAttempts/3", () => {
           body: JSON.stringify({}),
           cache: "no-store",
           headers: expectedHeaderFields,
-        }
+        },
       );
     });
   });

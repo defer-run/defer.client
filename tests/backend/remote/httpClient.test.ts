@@ -34,7 +34,7 @@ describe("makeHttpclient/3", () => {
         throw "fetch error";
       });
       await expect(
-        async () => await httpClient("GET", "/hello")
+        async () => await httpClient("GET", "/hello"),
       ).rejects.toThrow(ClientError);
 
       expect(fetch).toHaveBeenCalledTimes(1);
@@ -46,7 +46,7 @@ describe("makeHttpclient/3", () => {
       const mockResponse = new Response("{", { status: 500 });
       (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
       await expect(
-        async () => await httpClient("GET", "/hello")
+        async () => await httpClient("GET", "/hello"),
       ).rejects.toThrow(ClientError);
 
       expect(fetch).toHaveBeenCalledTimes(1);

@@ -86,7 +86,7 @@ const banner = `
 
 function paginate<T>(
   page: PageRequest | undefined,
-  records: Map<string, T>
+  records: Map<string, T>,
 ): PageResult<T> {
   let edges = Array.from(records.keys()).reverse();
   let hasNextPage: boolean = false;
@@ -137,7 +137,7 @@ function paginate<T>(
 
 function isExecutionMatchFilter(
   filters: ExecutionFilters | undefined,
-  execution: InternalExecution
+  execution: InternalExecution,
 ): boolean {
   if (
     filters?.states &&
@@ -166,8 +166,8 @@ function isExecutionMatchFilter(
       .filter((mdFilter) => mdFilter.values.length > 0)
       .some((mdFilter) =>
         mdFilter.values.some(
-          (value) => execution.metadata[mdFilter.key] === value
-        )
+          (value) => execution.metadata[mdFilter.key] === value,
+        ),
       );
   }
 
@@ -261,7 +261,7 @@ async function loop(shouldRun: () => boolean): Promise<void> {
             execution.updatedAt = new Date();
 
             return execution;
-          }
+          },
         );
 
         if (shouldDiscard) {
@@ -317,7 +317,7 @@ async function loop(shouldRun: () => boolean): Promise<void> {
                 execution.updatedAt = new Date();
                 execution.errorCode = errorCode;
                 return execution;
-              }
+              },
             );
           };
 
@@ -339,7 +339,7 @@ export async function enqueue<F extends DeferableFunction>(
   args: Parameters<F>,
   scheduleFor: Date,
   discardAfter: Date | undefined,
-  metadata: { [key: string]: string } | undefined
+  metadata: { [key: string]: string } | undefined,
 ): Promise<EnqueueResult> {
   let functionId = functionIdMapping.get(func.name);
   if (functionId === undefined) {
@@ -393,7 +393,7 @@ export async function getExecutionResult(id: string): Promise<any> {
 
 export async function cancelExecution(
   id: string,
-  force: boolean
+  force: boolean,
 ): Promise<CancelExecutionResult> {
   let execution = await executionsStore.get(id);
   if (execution === undefined)
@@ -404,7 +404,7 @@ export async function cancelExecution(
       switch (execution.state) {
         case "aborting":
           throw new ExecutionAbortingAlreadyInProgress(
-            "aborting execution already in progress"
+            "aborting execution already in progress",
           );
         case "created":
           execution.state = "cancelled";
@@ -414,7 +414,7 @@ export async function cancelExecution(
           break;
         default:
           throw new ExecutionNotCancellable(
-            `cannot cancel execution in "${execution.state}" state`
+            `cannot cancel execution in "${execution.state}" state`,
           );
       }
     } else {
@@ -424,7 +424,7 @@ export async function cancelExecution(
           break;
         default:
           throw new ExecutionNotCancellable(
-            `cannot cancel execution in "${execution.state}" state`
+            `cannot cancel execution in "${execution.state}" state`,
           );
       }
     }
@@ -438,7 +438,7 @@ export async function cancelExecution(
 
 export async function rescheduleExecution(
   id: string,
-  scheduleFor: Date
+  scheduleFor: Date,
 ): Promise<RescheduleExecutionResult> {
   let execution = await executionsStore.get(id);
   if (execution === undefined)
@@ -457,7 +457,7 @@ export async function rescheduleExecution(
 }
 
 export async function reRunExecution(
-  id: string
+  id: string,
 ): Promise<ReRunExecutionResult> {
   const execution = await executionsStore.get(id);
   if (execution === undefined)
@@ -484,14 +484,14 @@ export async function reRunExecution(
 
 export async function listExecutions(
   pageRequest?: PageRequest,
-  filters?: ExecutionFilters
+  filters?: ExecutionFilters,
 ): Promise<ListExecutionsResult> {
   const executionIds = await executionsStore.keys();
   const data = new Map<string, Execution>();
 
   for (const executionId of executionIds) {
     const execution = (await executionsStore.get(
-      executionId
+      executionId,
     )) as InternalExecution;
 
     if (isExecutionMatchFilter(filters, execution))
@@ -504,14 +504,14 @@ export async function listExecutions(
 export async function listExecutionAttempts(
   id: string,
   pageRequest?: PageRequest,
-  filters?: ExecutionFilters
+  filters?: ExecutionFilters,
 ): Promise<ListExecutionAttemptsResult> {
   const executionIds = await executionsStore.keys();
   const data = new Map<string, Execution>();
 
   for (const executionId of executionIds) {
     const execution = (await executionsStore.get(
-      executionId
+      executionId,
     )) as InternalExecution;
 
     if (

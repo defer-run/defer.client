@@ -99,7 +99,7 @@ function defaultRetryPolicy(): RetryPolicy {
 }
 
 function parseRetryPolicy(
-  options?: DeferredFunctionConfiguration
+  options?: DeferredFunctionConfiguration,
 ): RetryPolicy {
   const retryPolicy: RetryPolicy = defaultRetryPolicy();
   switch (typeof options?.retry) {
@@ -179,7 +179,7 @@ async function enqueue<F extends DeferableFunction>(
     args,
     scheduleFor,
     discardAfter,
-    metadata
+    metadata,
   );
 
   info("execution enqueued", {
@@ -199,7 +199,7 @@ async function enqueue<F extends DeferableFunction>(
  */
 export function defer<F extends DeferableFunction>(
   fn: F,
-  config?: DeferredFunctionConfiguration
+  config?: DeferredFunctionConfiguration,
 ): DeferredFunction<F> {
   const wrapped: DeferredFunction<F> = async (
     ...args: Parameters<F>
@@ -228,7 +228,7 @@ export function defer<F extends DeferableFunction>(
 defer.cron = function <F extends DeferableFunction>(
   fn: F,
   cronExpr: string,
-  config?: DeferredFunctionConfiguration
+  config?: DeferredFunctionConfiguration,
 ): DeferredFunction<F> {
   const wrapped: DeferredFunction<F> = async (
     ...args: Parameters<F>
@@ -258,7 +258,7 @@ defer.cron = function <F extends DeferableFunction>(
  */
 export function delay<F extends DeferableFunction>(
   fn: DeferredFunction<F>,
-  delay: Duration | Date
+  delay: Duration | Date,
 ): DeferredFunction<F> {
   return assignOptions(fn, { delay });
 }
@@ -273,7 +273,7 @@ export function delay<F extends DeferableFunction>(
  */
 export function addMetadata<F extends DeferableFunction>(
   fn: DeferredFunction<F>,
-  metadata: ExecutionMetadata
+  metadata: ExecutionMetadata,
 ): DeferredFunction<F> {
   return assignOptions(fn, { metadata });
 }
@@ -288,7 +288,7 @@ export function addMetadata<F extends DeferableFunction>(
  */
 export function discardAfter<F extends DeferableFunction>(
   fn: DeferredFunction<F>,
-  value: Duration | Date
+  value: Duration | Date,
 ): DeferredFunction<F> {
   return assignOptions(fn, { discardAfter: value });
 }
@@ -302,7 +302,7 @@ export function discardAfter<F extends DeferableFunction>(
  */
 export function assignOptions<F extends DeferableFunction>(
   fn: DeferredFunction<F>,
-  options: ExecutionOptions
+  options: ExecutionOptions,
 ): DeferredFunction<F> {
   const wrapped: DeferredFunction<F> = async (
     ...args: Parameters<typeof fn>
@@ -354,7 +354,7 @@ export async function getExecutionResult<T = any>(id: string): Promise<T> {
  */
 export async function cancelExecution(
   id: string,
-  force: boolean = false
+  force: boolean = false,
 ): Promise<CancelExecutionResult> {
   return backend.cancelExecution(id, force);
 }
@@ -371,7 +371,7 @@ export async function cancelExecution(
  */
 export async function rescheduleExecution(
   id: string,
-  value?: Duration | Date | undefined
+  value?: Duration | Date | undefined,
 ): Promise<RescheduleExecutionResult> {
   const now = new Date();
   let scheduleFor: Date;
@@ -396,7 +396,7 @@ export async function rescheduleExecution(
  * @throws {DeferError} when error is unknown
  */
 export async function reRunExecution(
-  id: string
+  id: string,
 ): Promise<ReRunExecutionResult> {
   return backend.reRunExecution(id);
 }
@@ -411,10 +411,10 @@ export async function reRunExecution(
  * @throws {DeferError} when error is unknown
  */
 export async function getExecutionTries(
-  id: string
+  id: string,
 ): Promise<ListExecutionAttemptsResult> {
   warn(
-    `"getExecutionTries" is deprecated and will be removed in future versions. Please use "listExecutionAttempts" instead.`
+    `"getExecutionTries" is deprecated and will be removed in future versions. Please use "listExecutionAttempts" instead.`,
   );
   return listExecutionAttempts(id);
 }
@@ -433,7 +433,7 @@ export async function getExecutionTries(
 export async function listExecutionAttempts(
   id: string,
   page?: PageRequest,
-  filters?: ExecutionFilters
+  filters?: ExecutionFilters,
 ): Promise<ListExecutionAttemptsResult> {
   return backend.listExecutionAttempts(id, page, filters);
 }
@@ -448,7 +448,7 @@ export async function listExecutionAttempts(
  */
 export async function listExecutions(
   page?: PageRequest,
-  filters?: ExecutionFilters
+  filters?: ExecutionFilters,
 ): Promise<ListExecutionsResult> {
   return backend.listExecutions(page, filters);
 }
@@ -465,7 +465,7 @@ export async function listExecutions(
  * @throws {DeferError} when error is unknown
  */
 export function awaitResult<F extends DeferableFunction>(
-  fn: DeferredFunction<F>
+  fn: DeferredFunction<F>,
 ): (...args: Parameters<F>) => Promise<Awaited<F>> {
   return async function (...args: Parameters<F>): Promise<Awaited<F>> {
     const enqueueResponse = await enqueue(fn, ...args);
@@ -479,7 +479,7 @@ export function awaitResult<F extends DeferableFunction>(
         case "failed": {
           const result = await getExecutionResult(enqueueResponse.id);
           let error = new DeferError(
-            `execution ${enqueueResponse.id} has failed`
+            `execution ${enqueueResponse.id} has failed`,
           );
           if (result?.message) {
             error = new DeferError(result.message);
@@ -495,7 +495,7 @@ export function awaitResult<F extends DeferableFunction>(
         case "cancelled":
         case "discarded":
           throw new DeferError(
-            `execution "${enqueueResponse.id}" was "${response.state}"`
+            `execution "${enqueueResponse.id}" was "${response.state}"`,
           );
         default:
           await sleep(jitter(i) * 1000);

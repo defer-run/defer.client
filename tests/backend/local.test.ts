@@ -29,10 +29,10 @@ describe("enqueue/5", () => {
     expect(result.updatedAt).toStrictEqual(now);
     expect(result.scheduledAt).toStrictEqual(now);
     expect(result.functionId).toMatch(
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
     );
     expect(result.id).toMatch(
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
     );
     expect(result.functionName).toBe("myFunc");
     expect(result.state).toBe("created");
@@ -65,7 +65,7 @@ describe("getExecution/1", () => {
         [],
         now,
         now,
-        undefined
+        undefined,
       );
       const getResult = await getExecution(enqueueResult.id);
 
@@ -76,7 +76,7 @@ describe("getExecution/1", () => {
   describe("when the execution does not exist", () => {
     it("throws error", async () => {
       await expect(
-        async () => await getExecution("fake id")
+        async () => await getExecution("fake id"),
       ).rejects.toThrowError(ExecutionNotFound);
     });
   });
@@ -95,7 +95,7 @@ describe("cancelExecution/2", () => {
         [],
         now,
         now,
-        undefined
+        undefined,
       );
 
       jest.useFakeTimers();
@@ -113,7 +113,7 @@ describe("cancelExecution/2", () => {
   describe("when execution not exist", () => {
     it("throws an error", async () => {
       await expect(
-        async () => await cancelExecution("fake id", false)
+        async () => await cancelExecution("fake id", false),
       ).rejects.toThrowError(ExecutionNotFound);
     });
   });
@@ -128,7 +128,7 @@ describe("rescheduleExecution", () => {
         [],
         now,
         now,
-        undefined
+        undefined,
       );
 
       jest.useFakeTimers();
@@ -136,7 +136,7 @@ describe("rescheduleExecution", () => {
 
       const rescheduleResult = await rescheduleExecution(
         enqueueResult.id,
-        new Date("December 17, 1995 03:24:00")
+        new Date("December 17, 1995 03:24:00"),
       );
       expect(rescheduleResult).toStrictEqual({
         ...enqueueResult,
@@ -150,7 +150,7 @@ describe("rescheduleExecution", () => {
   describe("when execution not exist", () => {
     it("throws an error", async () => {
       await expect(
-        async () => await rescheduleExecution("fake id", new Date())
+        async () => await rescheduleExecution("fake id", new Date()),
       ).rejects.toThrowError(ExecutionNotFound);
     });
   });
@@ -167,10 +167,10 @@ describe("reRunExecution", () => {
         [],
         new Date("December 17, 1995 03:24:00"),
         undefined,
-        undefined
+        undefined,
       );
       expect(enqueueResult.scheduledAt).toStrictEqual(
-        new Date("December 17, 1995 03:24:00")
+        new Date("December 17, 1995 03:24:00"),
       );
 
       const reRunResult = await reRunExecution(enqueueResult.id);
@@ -187,7 +187,7 @@ describe("reRunExecution", () => {
   describe("when execution not exist", () => {
     it("throws an error", async () => {
       await expect(
-        async () => await reRunExecution("fake id")
+        async () => await reRunExecution("fake id"),
       ).rejects.toThrowError(ExecutionNotFound);
     });
   });
