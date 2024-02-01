@@ -40,7 +40,11 @@ if (getEnv("DEFER_TOKEN") === undefined) {
   if (getEnv("DEFER_NO_LOCAL_SCHEDULER") === undefined) localBackend.start();
 }
 
-export const deferEnabled = () => !!getEnv("DEFER_TOKEN");
+/**
+ * Check if defer is enqueuing on the Defer cloud
+ * @returns {boolean}
+ */
+export const deferEnabled = (): boolean => !!getEnv("DEFER_TOKEN");
 
 export interface ExecutionMetadata {
   [key: string]: string;
@@ -193,7 +197,7 @@ async function enqueue<F extends DeferableFunction>(
 /**
  * Define a deferred function
  * @template F
- * @param {DeferableFunction} fn
+ * @param {F} fn
  * @param {DeferredFunctionConfiguration=} config
  * @returns {DeferredFunction<F>}
  */
@@ -220,7 +224,7 @@ export function defer<F extends DeferableFunction>(
 /**
  * Define a defer cron
  * @template F
- * @param {DeferableFunction} fn
+ * @param {F} fn
  * @param {string} cronExpr
  * @param {DeferredFunctionConfiguration=} config
  * @returns {DeferredFunction<F>}
@@ -318,9 +322,9 @@ export function assignOptions<F extends DeferableFunction>(
  * Get an execution
  * @async
  * @param {string} id
- * @returns {Promise<GetExecutionResult>}
  * @throws {ExecutionNotFound} when execution does not exists
  * @throws {DeferError} when error is unknown
+ * @returns {Promise<GetExecutionResult>}
  */
 export async function getExecution(id: string): Promise<GetExecutionResult> {
   return backend.getExecution(id);
@@ -331,11 +335,11 @@ export async function getExecution(id: string): Promise<GetExecutionResult> {
  * @async
  * @template T
  * @param {string} id
- * @returns {Promise<T>}
  * @throws {ExecutionNotFound} when execution does not exists
  * @throws {ExecutionResultNotAvailableYet} when result is not yet available
  * @throws {ExecutionResultNotAvailable} when there's no result
  * @throws {DeferError} when error is unknown
+ * @returns {Promise<T>}
  */
 export async function getExecutionResult<T = any>(id: string): Promise<T> {
   return backend.getExecutionResult(id) as T;
@@ -346,11 +350,11 @@ export async function getExecutionResult<T = any>(id: string): Promise<T> {
  * @async
  * @param {string} id
  * @param {boolean} force
- * @returns {Promise<CancelExecutionResult>}
  * @throws {ExecutionNotFound} when execution does not exists
  * @throws {ExecutionAbortingAlreadyInProgress} when execution is started
  * @throws {ExecutionNotCancellable} when execution cannot be cancelled
  * @throws {DeferError} when error is unknown
+ * @returns {Promise<CancelExecutionResult>}
  */
 export async function cancelExecution(
   id: string,
@@ -364,10 +368,10 @@ export async function cancelExecution(
  * @async
  * @param {string} id
  * @param {Duration | Date | undefined} value
- * @returns {Promise<RescheduleExecutionResult>}
  * @throws {ExecutionNotFound} when execution does not exists
  * @throws {ExecutionNotReschedulable} when execution has started and/or completed.
  * @throws {DeferError} when error is unknown
+ * @returns {Promise<RescheduleExecutionResult>}
  */
 export async function rescheduleExecution(
   id: string,
@@ -391,9 +395,9 @@ export async function rescheduleExecution(
  * ReRun an execution
  * @async
  * @param {string} id
- * @returns {Promise<ReRunExecutionResult>}
  * @throws {ExecutionNotFound} when execution does not exists
  * @throws {DeferError} when error is unknown
+ * @returns {Promise<ReRunExecutionResult>}
  */
 export async function reRunExecution(
   id: string,
@@ -406,9 +410,9 @@ export async function reRunExecution(
  * @deprecated Prefer `listExecutionAttempts()` (https://www.defer.run/docs/references/defer-client/list-execution-attempts)
  * @async
  * @param {string} id
- * @returns {Promise<ListExecutionAttemptsResult>}
  * @throws {ExecutionNotFound} when execution does not exists
  * @throws {DeferError} when error is unknown
+ * @returns {Promise<ListExecutionAttemptsResult>}
  */
 export async function getExecutionTries(
   id: string,
@@ -421,14 +425,13 @@ export async function getExecutionTries(
 
 /**
  * List an execution attempts
- * @deprecated Prefer `listExecutionAttempts()` (https://www.defer.run/docs/references/defer-client/list-execution-attempts)
  * @async
  * @param {string} id
  * @param {PageRequest=} page
  * @param {ExecutionFilters=} filters
- * @returns {Promise<ListExecutionAttemptsResult>}
  * @throws {ExecutionNotFound} when execution does not exists
  * @throws {DeferError} when error is unknown
+ * @returns {Promise<ListExecutionAttemptsResult>}
  */
 export async function listExecutionAttempts(
   id: string,
@@ -443,8 +446,8 @@ export async function listExecutionAttempts(
  * @async
  * @param {PageRequest=} page
  * @param {ExecutionFilters=} filters
- * @returns {Promise<ListExecutionsResult>}
  * @throws {DeferError} when error is unknown
+ * @returns {Promise<ListExecutionsResult>}
  */
 export async function listExecutions(
   page?: PageRequest,
@@ -458,11 +461,11 @@ export async function listExecutions(
  * @async
  * @template F
  * @param {DeferredFunction<F>} fn
- * @returns {Promise<Awaited<F>>}
  * @throws {ExecutionNotFound} when execution does not exists
  * @throws {ExecutionResultNotAvailableYet} when result is not yet available
  * @throws {ExecutionResultNotAvailable} when there's no result
  * @throws {DeferError} when error is unknown
+ * @returns {Promise<Awaited<F>>}
  */
 export function awaitResult<F extends DeferableFunction>(
   fn: DeferredFunction<F>,
