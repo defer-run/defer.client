@@ -1,5 +1,11 @@
 # @defer/client
 
+## 2.1.0
+
+### Minor Changes
+
+- [#120](https://github.com/defer-run/defer.client/pull/120) [`c1f4ffe`](https://github.com/defer-run/defer.client/commit/c1f4ffe5e8bc3b64d608fdb914fe35552fc17da3) Thanks [@charlypoly](https://github.com/charlypoly)! - Fix local concurrency applied globally
+
 ## 2.0.0
 
 ### Major Changes
