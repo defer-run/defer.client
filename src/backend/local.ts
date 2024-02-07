@@ -341,10 +341,10 @@ export async function enqueue<F extends DeferableFunction>(
   discardAfter: Date | undefined,
   metadata: { [key: string]: string } | undefined,
 ): Promise<EnqueueResult> {
-  let functionId = functionIdMapping.get(func.name);
+  let functionId = functionIdMapping.get(func.__metadata.name);
   if (functionId === undefined) {
     functionId = randomUUID();
-    functionIdMapping.set(func.name, functionId);
+    functionIdMapping.set(func.__metadata.name, functionId);
   }
 
   const now = new Date();
@@ -352,7 +352,7 @@ export async function enqueue<F extends DeferableFunction>(
     id: randomUUID(),
     state: "created",
     functionId: functionId,
-    functionName: func.__fn.name,
+    functionName: func.__metadata.name,
     func,
     args: stringify(args),
     metadata: metadata || {},
