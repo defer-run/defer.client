@@ -70,7 +70,7 @@ export interface RetryPolicy {
   maxInterval: number;
 }
 
-export type DeferableFunction = (...args: any) => Promise<any>;
+export type DeferableFunction = (...args: any[]) => Promise<any>;
 
 export interface ExecutionOptions {
   delay?: Duration | Date;

@@ -44,10 +44,10 @@ import version from "../version.js";
 import { Counter } from "./local/counter.js";
 import { KV } from "./local/kv.js";
 
-interface InternalExecution {
+interface InternalExecution<F extends DeferableFunction> {
   id: string;
   args: string;
-  func: DeferableFunction;
+  func: F;
   functionId: string;
   functionName: string;
   state: ExecutionState;
@@ -63,7 +63,7 @@ interface InternalExecution {
 }
 
 const concurrencyCounter = new Counter();
-const executionsStore = new KV<InternalExecution>();
+const executionsStore = new KV<InternalExecution<any>>();
 const functionIdMapping = new Map<string, string>();
 const promisesState = new Set<Promise<void>>();
 
@@ -137,7 +137,7 @@ function paginate<T>(
 
 function isExecutionMatchFilter(
   filters: ExecutionFilters | undefined,
-  execution: InternalExecution,
+  execution: InternalExecution<any>,
 ): boolean {
   if (
     filters?.states &&
@@ -189,7 +189,7 @@ function isExecutionMatchFilter(
   return true;
 }
 
-function buildExecution(execution: InternalExecution): Execution {
+function buildExecution(execution: InternalExecution<any>): Execution {
   return {
     id: execution.id,
     state: execution.state,
@@ -348,7 +348,7 @@ export async function enqueue<F extends DeferableFunction>(
   }
 
   const now = new Date();
-  const execution: InternalExecution = {
+  const execution: InternalExecution<any> = {
     id: randomUUID(),
     state: "created",
     functionId: functionId,
@@ -464,7 +464,7 @@ export async function reRunExecution(
     throw new ExecutionNotFound(`cannot find execution "${id}"`);
 
   const now = new Date();
-  const newExecution: InternalExecution = {
+  const newExecution: InternalExecution<any> = {
     id: randomUUID(),
     state: "created",
     functionId: execution.functionId,
@@ -492,7 +492,7 @@ export async function listExecutions(
   for (const executionId of executionIds) {
     const execution = (await executionsStore.get(
       executionId,
-    )) as InternalExecution;
+    )) as InternalExecution<any>;
 
     if (isExecutionMatchFilter(filters, execution))
       data.set(executionId, buildExecution(execution));
@@ -512,7 +512,7 @@ export async function listExecutionAttempts(
   for (const executionId of executionIds) {
     const execution = (await executionsStore.get(
       executionId,
-    )) as InternalExecution;
+    )) as InternalExecution<any>;
 
     if (
       (execution.id === id || execution.retryOf === id) &&
