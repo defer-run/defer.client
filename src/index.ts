@@ -467,10 +467,10 @@ export async function listExecutions(
  * @throws {DeferError} when error is unknown
  * @returns {Promise<Awaited<F>>}
  */
-export function awaitResult<F extends DeferableFunction>(
+export function awaitResult<F extends DeferableFunction, R = ReturnType<F>>(
   fn: DeferredFunction<F>,
-): (...args: Parameters<F>) => Promise<Awaited<F>> {
-  return async function (...args: Parameters<F>): Promise<Awaited<F>> {
+): (...args: Parameters<F>) => Promise<Awaited<R>> {
+  return async function (...args: Parameters<F>): Promise<Awaited<R>> {
     const enqueueResponse = await enqueue(fn, ...args);
     await sleep(1000);
 
@@ -493,7 +493,7 @@ export function awaitResult<F extends DeferableFunction>(
           throw error;
         }
         case "succeed":
-          return await getExecutionResult<Awaited<F>>(enqueueResponse.id);
+          return await getExecutionResult<Awaited<R>>(enqueueResponse.id);
         case "aborted":
         case "cancelled":
         case "discarded":
