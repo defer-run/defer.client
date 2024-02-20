@@ -1,5 +1,15 @@
 # @defer/client
 
+## 2.1.1
+
+### Patch Changes
+
+- [#125](https://github.com/defer-run/defer.client/pull/125) [`dc38d60`](https://github.com/defer-run/defer.client/commit/dc38d609b5bcbea33762f52e83cabaf8c7d5cb30) Thanks [@codenem](https://github.com/codenem)! - Fix InternalExecution interface
+
+- [#125](https://github.com/defer-run/defer.client/pull/125) [`42b943b`](https://github.com/defer-run/defer.client/commit/42b943bd4dc77fcf5ae594b21815bb963580d430) Thanks [@codenem](https://github.com/codenem)! - update type definition for `DeferableFunction`
+
+- [#123](https://github.com/defer-run/defer.client/pull/123) [`cf3b12d`](https://github.com/defer-run/defer.client/commit/cf3b12def5245e165ecc0cb3504924d70680abdb) Thanks [@charlypoly](https://github.com/charlypoly)! - Fix `awaitResult()` typings
+
 ## 2.1.0
 
 ### Minor Changes
