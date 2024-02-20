@@ -44,10 +44,10 @@ import version from "../version.js";
 import { Counter } from "./local/counter.js";
 import { KV } from "./local/kv.js";
 
-interface InternalExecution {
+interface InternalExecution<F extends DeferableFunction> {
   id: string;
   args: string;
-  func: DeferableFunction;
+  func: DeferredFunction<F>;
   functionId: string;
   functionName: string;
   state: ExecutionState;
@@ -63,7 +63,7 @@ interface InternalExecution {
 }
 
 const concurrencyCounter = new Counter();
-const executionsStore = new KV<InternalExecution>();
+const executionsStore = new KV<InternalExecution<any>>();
 const functionIdMapping = new Map<string, string>();
 const promisesState = new Set<Promise<void>>();
 
@@ -137,7 +137,7 @@ function paginate<T>(
 
 function isExecutionMatchFilter(
   filters: ExecutionFilters | undefined,
-  execution: InternalExecution,
+  execution: InternalExecution<any>,
 ): boolean {
   if (
     filters?.states &&
@@ -189,7 +189,7 @@ function isExecutionMatchFilter(
   return true;
 }
 
-function buildExecution(execution: InternalExecution): Execution {
+function buildExecution(execution: InternalExecution<any>): Execution {
   return {
     id: execution.id,
     state: execution.state,
@@ -232,9 +232,7 @@ async function loop(shouldRun: () => boolean): Promise<void> {
         const execution = await executionsStore.transaction(
           executionId,
           async (execution) => {
-            const func = execution.func as DeferredFunction<
-              typeof execution.func
-            >;
+            const func = execution.func;
             shouldDiscard =
               execution.state === "created" &&
               execution.discardAfter !== undefined &&
@@ -348,7 +346,7 @@ export async function enqueue<F extends DeferableFunction>(
   }
 
   const now = new Date();
-  const execution: InternalExecution = {
+  const execution: InternalExecution<F> = {
     id: randomUUID(),
     state: "created",
     functionId: functionId,
@@ -464,7 +462,7 @@ export async function reRunExecution(
     throw new ExecutionNotFound(`cannot find execution "${id}"`);
 
   const now = new Date();
-  const newExecution: InternalExecution = {
+  const newExecution: InternalExecution<typeof execution.func.__fn> = {
     id: randomUUID(),
     state: "created",
     functionId: execution.functionId,
@@ -490,12 +488,10 @@ export async function listExecutions(
   const data = new Map<string, Execution>();
 
   for (const executionId of executionIds) {
-    const execution = (await executionsStore.get(
-      executionId,
-    )) as InternalExecution;
+    const execution = await executionsStore.get(executionId);
 
-    if (isExecutionMatchFilter(filters, execution))
-      data.set(executionId, buildExecution(execution));
+    if (isExecutionMatchFilter(filters, execution!))
+      data.set(executionId, buildExecution(execution!));
   }
 
   return paginate(pageRequest, data);
@@ -510,15 +506,13 @@ export async function listExecutionAttempts(
   const data = new Map<string, Execution>();
 
   for (const executionId of executionIds) {
-    const execution = (await executionsStore.get(
-      executionId,
-    )) as InternalExecution;
+    const execution = await executionsStore.get(executionId);
 
     if (
-      (execution.id === id || execution.retryOf === id) &&
-      isExecutionMatchFilter(filters, execution)
+      (execution!.id === id || execution!.retryOf === id) &&
+      isExecutionMatchFilter(filters, execution!)
     )
-      data.set(executionId, buildExecution(execution));
+      data.set(executionId, buildExecution(execution!));
   }
 
   return paginate(pageRequest, data);
