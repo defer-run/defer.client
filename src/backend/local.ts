@@ -162,7 +162,7 @@ function isExecutionMatchFilter(
     return false;
 
   if (filters?.metadata && filters.metadata.length > 0 && execution.metadata) {
-    filters.metadata
+    return filters.metadata
       .filter((mdFilter) => mdFilter.values.length > 0)
       .some((mdFilter) =>
         mdFilter.values.some(
