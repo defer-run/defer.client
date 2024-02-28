@@ -162,13 +162,18 @@ function isExecutionMatchFilter(
     return false;
 
   if (filters?.metadata && filters.metadata.length > 0 && execution.metadata) {
-    return filters.metadata
-      .filter((mdFilter) => mdFilter.values.length > 0)
-      .some((mdFilter) =>
+    const metadataFilters = filters.metadata.filter(
+      (mdFilter) => mdFilter.values.length > 0,
+    );
+    if (
+      !metadataFilters.some((mdFilter) =>
         mdFilter.values.some(
           (value) => execution.metadata[mdFilter.key] === value,
         ),
-      );
+      )
+    ) {
+      return false;
+    }
   }
 
   if (
