@@ -1,5 +1,11 @@
 # @defer/client
 
+## 2.2.0
+
+### Minor Changes
+
+- [#126](https://github.com/defer-run/defer.client/pull/126) [`f8a010d`](https://github.com/defer-run/defer.client/commit/f8a010d7ad82a9356c1b6b70c0ced87656fe7237) Thanks [@charlypoly](https://github.com/charlypoly)! - Local support for metadata filtering
+
 ## 2.1.1
 
 ### Patch Changes
