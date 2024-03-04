@@ -33,7 +33,7 @@ export class KV<T> {
 
   async transaction(
     key: string,
-    setFunc: (value: T) => Promise<T>,
+    setFunc: (value: T) => Promise<T>
   ): Promise<T> {
     const cur = (await this.get(key)) as T;
     const updated = await setFunc(cur);

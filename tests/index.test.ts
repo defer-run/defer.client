@@ -413,7 +413,7 @@ describe("delay/2", () => {
     const myDeferedDelayFunc = delay(myDeferedFunc, "2h");
 
     expect(myDeferedDelayFunc.__metadata).toStrictEqual(
-      myDeferedFunc.__metadata,
+      myDeferedFunc.__metadata
     );
 
     expect(myDeferedDelayFunc.__execOptions).toBeDefined();
@@ -455,7 +455,7 @@ describe("discardAfter/2", () => {
     const myDeferedDiscardyFunc = discardAfter(myDeferedFunc, "2h");
 
     expect(myDeferedDiscardyFunc.__metadata).toStrictEqual(
-      myDeferedFunc.__metadata,
+      myDeferedFunc.__metadata
     );
 
     expect(myDeferedDiscardyFunc.__execOptions).toBeDefined();
@@ -638,7 +638,7 @@ describe("getExecutionTries/1", () => {
     await getExecutionTries("the cake is a lie");
     expect(spy).toHaveBeenCalledWith("the cake is a lie", undefined, undefined);
     expect(logSpy).toHaveBeenCalledWith(
-      'level=warn message="\\"getExecutionTries\\" is deprecated and will be removed in future versions. Please use \\"listExecutionAttempts\\" instead."',
+      'level=warn message="\\"getExecutionTries\\" is deprecated and will be removed in future versions. Please use \\"listExecutionAttempts\\" instead."'
     );
   });
 });
@@ -659,7 +659,7 @@ describe("listExecutionAttempts/3", () => {
       expect(spy).toHaveBeenCalledWith(
         "the cake is a lie",
         undefined,
-        undefined,
+        undefined
       );
       expect(response).toStrictEqual({
         id: "the cake is a lie",
@@ -682,7 +682,7 @@ describe("listExecutionAttempts/3", () => {
       expect(spy).toHaveBeenCalledWith(
         "the cake is a lie",
         { first: 25 },
-        undefined,
+        undefined
       );
       expect(response).toStrictEqual({
         id: "the cake is a lie",
@@ -702,7 +702,7 @@ describe("listExecutionAttempts/3", () => {
       const response = await listExecutionAttempts(
         "the cake is a lie",
         undefined,
-        { states: ["succeed"] },
+        { states: ["succeed"] }
       );
       expect(spy).toHaveBeenCalledWith("the cake is a lie", undefined, {
         states: ["succeed"],
@@ -725,12 +725,12 @@ describe("listExecutionAttempts/3", () => {
       const response = await listExecutionAttempts(
         "the cake is a lie",
         { first: 25 },
-        { states: ["succeed"] },
+        { states: ["succeed"] }
       );
       expect(spy).toHaveBeenCalledWith(
         "the cake is a lie",
         { first: 25 },
-        { states: ["succeed"] },
+        { states: ["succeed"] }
       );
       expect(response).toStrictEqual({
         id: "the cake is a lie",
@@ -807,7 +807,7 @@ describe("listExecutions/2", () => {
         });
       const response = await listExecutions(
         { first: 25 },
-        { states: ["succeed"] },
+        { states: ["succeed"] }
       );
       expect(spy).toHaveBeenCalledWith({ first: 25 }, { states: ["succeed"] });
       expect(response).toStrictEqual({
@@ -832,10 +832,10 @@ describe("enqueue execution", () => {
             func: any,
             args: any,
             scheduleFor: Date,
-            discardAfter?: Date,
+            discardAfter?: Date
           ): any => {
             return { func, args, scheduleFor, discardAfter };
-          },
+          }
         );
 
       const myFunc = async () => console.log("the cake is a lie");
@@ -850,7 +850,7 @@ describe("enqueue execution", () => {
         [],
         now,
         undefined,
-        undefined,
+        undefined
       );
     });
   });
@@ -864,10 +864,10 @@ describe("enqueue execution", () => {
             func: any,
             args: any,
             scheduleFor: Date,
-            discardAfter?: Date,
+            discardAfter?: Date
           ): any => {
             return { func, args, scheduleFor, discardAfter };
-          },
+          }
         );
 
       const now = new Date();
@@ -884,7 +884,7 @@ describe("enqueue execution", () => {
         [],
         now,
         undefined,
-        { foo: "bar" },
+        { foo: "bar" }
       );
     });
   });

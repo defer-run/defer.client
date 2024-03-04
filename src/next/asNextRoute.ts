@@ -13,7 +13,7 @@ export interface DeferNextRoute {
 
 interface Options<
   F extends (...args: any) => Promise<R>,
-  R = ReturnType<F> extends Promise<infer RR> ? RR : ReturnType<F>,
+  R = ReturnType<F> extends Promise<infer RR> ? RR : ReturnType<F>
 > {
   proxy?: (request: NextRequest) => Promise<Parameters<F>>;
 }
@@ -22,7 +22,7 @@ const ResponseJSON = Response.json;
 
 export function asNextRoute<F extends (...args: any) => Promise<any>>(
   deferFn: DeferredFunction<F>,
-  options?: Options<F>,
+  options?: Options<F>
 ): DeferNextRoute {
   return {
     GetHandler: async (request: NextRequest) => {
@@ -42,21 +42,21 @@ export function asNextRoute<F extends (...args: any) => Promise<any>>(
               { id, error: e.toString() },
               {
                 status: 500,
-              },
+              }
             );
           } else {
             return ResponseJSON(
               { id, error: "Unexpected error." },
               {
                 status: 500,
-              },
+              }
             );
           }
         }
       } else {
         return ResponseJSON(
           { error: "missing `id` query parameter from `useDeferRoute()`" },
-          { status: 400 },
+          { status: 400 }
         );
       }
     },
@@ -76,7 +76,7 @@ export function asNextRoute<F extends (...args: any) => Promise<any>>(
               options?.proxy ? "- check your `proxy()`" : ""
             }`,
           },
-          { status: 400 },
+          { status: 400 }
         );
       }
     },

@@ -19,7 +19,7 @@ describe("asNextRoute()", () => {
   describe("POST() - background function invocation", () => {
     describe("valid empty params, without proxy", () => {
       beforeEach(() =>
-        jest.mocked(helloWorld).mockResolvedValue({ id: "test-id" }),
+        jest.mocked(helloWorld).mockResolvedValue({ id: "test-id" })
       );
 
       test("properly call the background function and forward the execution ID", async () => {
@@ -42,7 +42,7 @@ describe("asNextRoute()", () => {
 
     describe("valid params, without proxy", () => {
       beforeEach(() =>
-        jest.mocked(helloWorld).mockResolvedValue({ id: "test-id" }),
+        jest.mocked(helloWorld).mockResolvedValue({ id: "test-id" })
       );
       afterEach(() => {
         jest.mocked(helloWorld).mockReset();
@@ -68,7 +68,7 @@ describe("asNextRoute()", () => {
 
     describe("valid params, with proxy", () => {
       beforeEach(() =>
-        jest.mocked(helloWorld).mockResolvedValue({ id: "test-id" }),
+        jest.mocked(helloWorld).mockResolvedValue({ id: "test-id" })
       );
 
       test("properly call the background function with params and forward the execution ID", async () => {
@@ -121,7 +121,7 @@ describe("asNextRoute()", () => {
         queryParams,
         executionId,
         executionResult,
-        [expectedResponseStatus, expectedResponseBody],
+        [expectedResponseStatus, expectedResponseBody]
       ) => {
         beforeEach(() => {
           if (executionResult instanceof Error) {
@@ -142,7 +142,7 @@ describe("asNextRoute()", () => {
             `http://localhost:3000/api/helloWorld${queryParams}`,
             {
               method: "GET",
-            },
+            }
           );
 
           const res = await GET(req);
@@ -154,7 +154,7 @@ describe("asNextRoute()", () => {
           expect(res.status).toBe(expectedResponseStatus);
           expect(await res.json()).toEqual(expectedResponseBody);
         });
-      },
+      }
     );
   });
 });
