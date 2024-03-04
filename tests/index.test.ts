@@ -17,6 +17,16 @@ import {
   rescheduleExecution,
 } from "../src/index.js";
 
+var stop: () => Promise<void> | undefined;
+
+beforeAll(function () {
+  stop = (backend as any).start();
+});
+
+afterAll(function () {
+  stop();
+});
+
 describe("defer/2", () => {
   describe("when no options is set", () => {
     it("returns deferable function with default", () => {
