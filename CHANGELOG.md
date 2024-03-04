@@ -1,5 +1,11 @@
 # @defer/client
 
+## 2.2.1
+
+### Patch Changes
+
+- [#128](https://github.com/defer-run/defer.client/pull/128) [`17b344f`](https://github.com/defer-run/defer.client/commit/17b344f4f378a13ef5f5e74a0fe7d0200d224d5e) Thanks [@charlypoly](https://github.com/charlypoly)! - Regression on local `listExecutions()`
+
 ## 2.2.0
 
 ### Minor Changes
