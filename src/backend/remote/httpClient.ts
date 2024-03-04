@@ -19,7 +19,7 @@ import VERSION from "../../version.js";
 export type HTTPClient = <T>(
   method: string,
   path: string,
-  body?: string | null
+  body?: string | null,
 ) => Promise<{ status: number; response: T }>;
 
 const basicAuth = (username: string, password: string) => {
@@ -37,12 +37,12 @@ export class ClientError extends DeferError {
 export function makeHTTPClient(
   apiEndpoint: string,
   accessToken: string,
-  clientOptions?: RequestInit
+  clientOptions?: RequestInit,
 ): HTTPClient {
   return async <T>(
     method: string,
     path: string,
-    body: string | null = null
+    body: string | null = null,
   ): Promise<{ status: number; response: T }> => {
     let endpoint;
 

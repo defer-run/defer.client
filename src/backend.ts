@@ -154,7 +154,7 @@ export interface Backend {
     args: Parameters<F>,
     scheduleFor: Date,
     discardAfter: Date | undefined,
-    metadata: { [key: string]: string } | undefined
+    metadata: { [key: string]: string } | undefined,
   ): Promise<EnqueueResult>;
   getExecution(id: string): Promise<GetExecutionResult>;
   getExecutionResult(id: string): Promise<any>;
@@ -162,15 +162,15 @@ export interface Backend {
   reRunExecution(id: string): Promise<ReRunExecutionResult>;
   rescheduleExecution(
     id: string,
-    scheduleFor: Date
+    scheduleFor: Date,
   ): Promise<RescheduleExecutionResult>;
   listExecutions(
     page?: PageRequest,
-    filters?: ExecutionFilters
+    filters?: ExecutionFilters,
   ): Promise<ListExecutionsResult>;
   listExecutionAttempts(
     id: string,
     page?: PageRequest,
-    filters?: ExecutionFilters
+    filters?: ExecutionFilters,
   ): Promise<ListExecutionAttemptsResult>;
 }

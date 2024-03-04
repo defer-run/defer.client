@@ -9,7 +9,7 @@ export type UseDeferRoute<ARA extends boolean, A extends any[], R> = [
     loading: boolean;
     result: R;
     error?: Error | undefined;
-  }
+  },
 ];
 
 // const [uploadFile, { loading, result: fileName, error }] = useDeferRoute<typeof createThumbnails>("/api/upload", { refreshInterval: 1000 });
@@ -22,14 +22,14 @@ export const useDeferRoute = <
     : any,
   HP extends boolean = false,
   R = ReturnType<F> extends Promise<infer RR> ? RR : ReturnType<F>,
-  A extends any[] = Parameters<F>
+  A extends any[] = Parameters<F>,
 >(
   routePath: string,
   { refreshInterval }: { hasProxy: HP; refreshInterval: number } = {
     refreshInterval: 500,
     // @ts-expect-error to refine
     hasProxy: false,
-  }
+  },
 ): UseDeferRoute<HP, A, R> => {
   const [status, setStatus] = useState<ExecutionState>();
   const [result, setResult] = useState<any>();
@@ -70,10 +70,10 @@ export const useDeferRoute = <
       const data = await result.json();
       intervalRef.current = setInterval(
         pollExecution(data.id),
-        Math.max(500, refreshInterval)
+        Math.max(500, refreshInterval),
       ) as unknown as number;
     },
-    [pollExecution, refreshInterval]
+    [pollExecution, refreshInterval],
   );
 
   return [

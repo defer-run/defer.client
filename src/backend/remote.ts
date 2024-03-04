@@ -153,7 +153,7 @@ export async function enqueue<F extends DeferableFunction>(
   args: Parameters<F>,
   scheduleFor: Date,
   discardAfter: Date | undefined,
-  metadata: { [key: string]: string } | undefined
+  metadata: { [key: string]: string } | undefined,
 ): Promise<EnqueueResult> {
   const httpClient = newClientFromEnv();
   const request: CreateExecutionRequest = {
@@ -167,7 +167,7 @@ export async function enqueue<F extends DeferableFunction>(
   const { status, response } = await httpClient<CreateExecutionResponse>(
     "PUT",
     "/public/v2/executions",
-    stringify(request)
+    stringify(request),
   );
 
   if (status === 201) return newExecution(response.data);
@@ -175,7 +175,7 @@ export async function enqueue<F extends DeferableFunction>(
   throw new DeferError(
     `backend responds with "${status}" and message "${
       (response as any).message
-    }"`
+    }"`,
   );
 }
 
@@ -183,7 +183,7 @@ export async function getExecution(id: string): Promise<GetExecutionResult> {
   const httpClient = newClientFromEnv();
   const { status, response } = await httpClient<GetExecutionResponse>(
     "GET",
-    `/public/v2/executions/${id}`
+    `/public/v2/executions/${id}`,
   );
 
   if (status === 200) return newExecution(response.data);
@@ -193,7 +193,7 @@ export async function getExecution(id: string): Promise<GetExecutionResult> {
   throw new DeferError(
     `backend responds with "${status}" and message "${
       (response as any).message
-    }"`
+    }"`,
   );
 }
 
@@ -201,7 +201,7 @@ export async function getExecutionResult(id: string): Promise<any> {
   const httpClient = newClientFromEnv();
   const { status, response } = await httpClient<GetExecutionResponse>(
     "GET",
-    `/public/v2/executions/${id}/results`
+    `/public/v2/executions/${id}/results`,
   );
 
   if (status === 200) return response;
@@ -213,20 +213,20 @@ export async function getExecutionResult(id: string): Promise<any> {
   throw new DeferError(
     `backend responds with "${status}" and message "${
       (response as any).message
-    }"`
+    }"`,
   );
 }
 
 export async function cancelExecution(
   id: string,
-  force: boolean
+  force: boolean,
 ): Promise<CancelExecutionResult> {
   const httpClient = newClientFromEnv();
   const request: CancelExecutionRequest = { force: force };
   const { status, response } = await httpClient<CancelExecutionResponse>(
     "POST",
     `/public/v2/executions/${id}/cancellation`,
-    stringify(request)
+    stringify(request),
   );
 
   if (status === 200) return newExecution(response.data);
@@ -240,13 +240,13 @@ export async function cancelExecution(
   throw new DeferError(
     `backend responds with "${status}" and message "${
       (response as any).message
-    }"`
+    }"`,
   );
 }
 
 export async function rescheduleExecution(
   id: string,
-  scheduleFor: Date
+  scheduleFor: Date,
 ): Promise<RescheduleExecutionResult> {
   const httpClient = newClientFromEnv();
   const request: RescheduleExecutionRequest = {
@@ -255,7 +255,7 @@ export async function rescheduleExecution(
   const { status, response } = await httpClient<RescheduleExecutionResponse>(
     "PATCH",
     `/public/v2/executions/${id}/schedule`,
-    stringify(request)
+    stringify(request),
   );
 
   if (status === 200) return newExecution(response.data);
@@ -267,19 +267,19 @@ export async function rescheduleExecution(
   throw new DeferError(
     `backend responds with "${status}" and message "${
       (response as any).message
-    }"`
+    }"`,
   );
 }
 
 export async function reRunExecution(
-  id: string
+  id: string,
 ): Promise<ReRunExecutionResult> {
   const httpClient = newClientFromEnv();
   const request: ReRunExecutionRequest = {};
   const { status, response } = await httpClient<ReRunExecutionResponse>(
     "POST",
     `/public/v2/executions/${id}/reruns`,
-    stringify(request)
+    stringify(request),
   );
 
   if (status === 200) return newExecution(response.data);
@@ -289,13 +289,13 @@ export async function reRunExecution(
   throw new DeferError(
     `backend responds with "${status}" and message "${
       (response as any).message
-    }"`
+    }"`,
   );
 }
 
 export async function listExecutions(
   pageRequest?: PageRequest,
-  filters?: ExecutionFilters
+  filters?: ExecutionFilters,
 ): Promise<ListExecutionsResult> {
   const httpClient = newClientFromEnv();
   const request: ListExecutionsRequest = {
@@ -315,7 +315,7 @@ export async function listExecutions(
   const { status, response } = await httpClient<ListExecutionsResponse>(
     "POST",
     `/public/v2/executions`,
-    stringify(request)
+    stringify(request),
   );
 
   if (status === 200) {
@@ -336,14 +336,14 @@ export async function listExecutions(
   throw new DeferError(
     `backend responds with "${status}" and message "${
       (response as any).message
-    }"`
+    }"`,
   );
 }
 
 export async function listExecutionAttempts(
   id: string,
   pageRequest?: PageRequest,
-  filters?: ExecutionFilters
+  filters?: ExecutionFilters,
 ): Promise<ListExecutionAttemptsResult> {
   const httpClient = newClientFromEnv();
   const request: ListExecutionAttemptsRequest = {
@@ -363,7 +363,7 @@ export async function listExecutionAttempts(
   const { status, response } = await httpClient<ListExecutionAttemptsResponse>(
     "POST",
     `/public/v2/executions/${id}/attempts`,
-    stringify(request)
+    stringify(request),
   );
 
   if (status === 200) {
@@ -385,6 +385,6 @@ export async function listExecutionAttempts(
   throw new DeferError(
     `backend responds with "${status}" and message "${
       (response as any).message
-    }"`
+    }"`,
   );
 }
