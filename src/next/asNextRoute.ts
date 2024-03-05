@@ -18,7 +18,7 @@ interface Options<
   proxy?: (request: NextRequest) => Promise<Parameters<F>>;
 }
 
-const ResponseJSON = Responseon;
+const ResponseJSON = Response.json;
 
 export function asNextRoute<F extends (...args: any) => Promise<any>>(
   deferFn: DeferredFunction<F>,
@@ -64,7 +64,7 @@ export function asNextRoute<F extends (...args: any) => Promise<any>>(
     PostHandler: async (request: NextRequest) => {
       const args: any = options?.proxy
         ? await options.proxy(request)
-        : await requeston();
+        : await request.json();
       if (Array.isArray(args)) {
         // @ts-expect-error Charly: need to be refined
         const execution = await deferFn(...args);

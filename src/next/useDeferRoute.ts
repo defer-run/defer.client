@@ -40,7 +40,7 @@ export const useDeferRoute = <
     const res = await fetch(`${routePath}?id=${executionId}`, {
       method: "GET",
     });
-    const data = (await reson()) as any;
+    const data = (await res.json()) as any;
     setStatus(data.state);
     if (["succeed", "failed"].includes(data.state) && intervalRef.current) {
       clearInterval(intervalRef.current);
@@ -67,7 +67,7 @@ export const useDeferRoute = <
           "Content-type": "application/json",
         },
       });
-      const data = await resulton();
+      const data = await result.json();
       intervalRef.current = setInterval(
         pollExecution(data.id),
         Math.max(500, refreshInterval),
