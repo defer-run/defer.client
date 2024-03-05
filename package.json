@@ -2,7 +2,6 @@
   "name": "@defer/client",
   "version": "2.2.1",
   "description": "Zero infrastructure NodeJS background jobs",
-  "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "repository": {
