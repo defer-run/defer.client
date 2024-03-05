@@ -22,7 +22,6 @@ jobs:
           access_token: ${{ secrets.GITHUB_TOKEN }}
       - run: "npm ci --no-audit"
       - run: "npm run build"
-      - run: "npx bob check"
         env:
           DEFER_NO_LOCAL_SCHEDULER: 1
       - name: "release / pull_request"

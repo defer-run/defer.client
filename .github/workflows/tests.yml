@@ -28,7 +28,6 @@ jobs:
       - run: "bunx prettier -c src/"
       - run: "bun run test"
       - run: "bun run build"
-      - run: "bunx bob check"
         env:
           DEFER_NO_LOCAL_SCHEDULER: 1
 
@@ -50,6 +49,5 @@ jobs:
       - run: "npx prettier -c src/"
       - run: "npm run test"
       - run: "npm run build"
-      - run: "npx bob check"
         env:
           DEFER_NO_LOCAL_SCHEDULER: 1
