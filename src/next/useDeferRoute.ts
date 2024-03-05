@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useRef, useState } from "react";
-import type { ExecutionState } from "../backend.js";
-import type { DeferredFunction } from "../index.js";
+import type { ExecutionState } from "../backend";
+import type { DeferredFunction } from "../index";
 
 export type UseDeferRoute<ARA extends boolean, A extends any[], R> = [
   execute: (...args: ARA extends true ? any : A) => void,
@@ -40,7 +40,7 @@ export const useDeferRoute = <
     const res = await fetch(`${routePath}?id=${executionId}`, {
       method: "GET",
     });
-    const data = (await res.json()) as any;
+    const data = (await reson()) as any;
     setStatus(data.state);
     if (["succeed", "failed"].includes(data.state) && intervalRef.current) {
       clearInterval(intervalRef.current);
@@ -67,7 +67,7 @@ export const useDeferRoute = <
           "Content-type": "application/json",
         },
       });
-      const data = await result.json();
+      const data = await resulton();
       intervalRef.current = setInterval(
         pollExecution(data.id),
         Math.max(500, refreshInterval),

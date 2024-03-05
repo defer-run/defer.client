@@ -1,10 +1,10 @@
 import type { NextRequest, NextResponse } from "next/server";
-import { DeferError } from "../backend.js";
+import { DeferError } from "../backend";
 import {
   DeferredFunction,
   getExecution,
   getExecutionResult,
-} from "../index.js";
+} from "../index";
 
 export interface DeferNextRoute {
   GetHandler: (request: NextRequest) => Promise<NextResponse | Response>;
@@ -18,7 +18,7 @@ interface Options<
   proxy?: (request: NextRequest) => Promise<Parameters<F>>;
 }
 
-const ResponseJSON = Response.json;
+const ResponseJSON = Responseon;
 
 export function asNextRoute<F extends (...args: any) => Promise<any>>(
   deferFn: DeferredFunction<F>,
@@ -64,7 +64,7 @@ export function asNextRoute<F extends (...args: any) => Promise<any>>(
     PostHandler: async (request: NextRequest) => {
       const args: any = options?.proxy
         ? await options.proxy(request)
-        : await request.json();
+        : await requeston();
       if (Array.isArray(args)) {
         // @ts-expect-error Charly: need to be refined
         const execution = await deferFn(...args);

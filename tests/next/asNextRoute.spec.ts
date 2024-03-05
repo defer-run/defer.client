@@ -36,7 +36,7 @@ describe("asNextRoute()", () => {
         expect(helloWorld).toHaveBeenCalledWith();
 
         expect(res.status).toBe(200);
-        expect(await res.json()).toEqual({ id: "test-id" });
+        expect(await reson()).toEqual({ id: "test-id" });
       });
     });
 
@@ -62,7 +62,7 @@ describe("asNextRoute()", () => {
         expect(helloWorld).toHaveBeenCalledWith("charly");
 
         expect(res.status).toBe(200);
-        expect(await res.json()).toEqual({ id: "test-id" });
+        expect(await reson()).toEqual({ id: "test-id" });
       });
     });
 
@@ -85,7 +85,7 @@ describe("asNextRoute()", () => {
         expect(helloWorld).toHaveBeenCalledWith("prefix-charly");
 
         expect(res.status).toBe(200);
-        expect(await res.json()).toEqual({ id: "test-id" });
+        expect(await reson()).toEqual({ id: "test-id" });
       });
     });
   });
@@ -152,7 +152,7 @@ describe("asNextRoute()", () => {
           }
 
           expect(res.status).toBe(expectedResponseStatus);
-          expect(await res.json()).toEqual(expectedResponseBody);
+          expect(await reson()).toEqual(expectedResponseBody);
         });
       }
     );

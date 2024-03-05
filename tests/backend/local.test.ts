@@ -1,15 +1,15 @@
 process.env["DEFER_NO_LOCAL_SCHEDULER"] = "1";
 process.env["DEFER_NO_BANNER"] = "1";
 
-import { ExecutionNotFound } from "../../src/backend.js";
+import { ExecutionNotFound } from "../../src/backend";
 import {
   cancelExecution,
   enqueue,
   getExecution,
   reRunExecution,
   rescheduleExecution,
-} from "../../src/backend/local.js";
-import { defer } from "../../src/index.js";
+} from "../../src/backend/local";
+import { defer } from "../../src/index";
 
 const myFunc = async () => console.log("the cake is a lie");
 const myDeferedFunc = defer(myFunc);

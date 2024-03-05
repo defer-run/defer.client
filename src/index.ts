@@ -24,12 +24,12 @@ import {
   PageRequest,
   ReRunExecutionResult,
   RescheduleExecutionResult,
-} from "./backend.js";
-import * as localBackend from "./backend/local.js";
-import * as remoteBackend from "./backend/remote.js";
-import { jitter } from "./jitter.js";
-import { info, warn } from "./logger.js";
-import { Duration, fromDurationToDate, getEnv, sleep } from "./utils.js";
+} from "./backend";
+import * as localBackend from "./backend/local";
+import * as remoteBackend from "./backend/remote";
+import { jitter } from "./jitter";
+import { info, warn } from "./logger";
+import { Duration, fromDurationToDate, getEnv, sleep } from "./utils";
 
 const INTERNAL_VERSION = 6;
 const RETRY_MAX_ATTEMPTS_PLACEHOLDER = 13;

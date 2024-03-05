@@ -1,7 +1,7 @@
 import {
   makeHTTPClient,
   ClientError,
-} from "../../../src/backend/remote/httpClient.js";
+} from "../../../src/backend/remote/httpClient";
 
 global.fetch = jest.fn();
 

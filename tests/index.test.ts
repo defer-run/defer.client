@@ -15,7 +15,7 @@ import {
   listExecutions,
   reRunExecution,
   rescheduleExecution,
-} from "../src/index.js";
+} from "../src/index";
 
 var stop: () => Promise<void> | undefined;
 

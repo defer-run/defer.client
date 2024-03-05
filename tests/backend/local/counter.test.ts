@@ -1,4 +1,4 @@
-import { Counter } from "../../../src/backend/local/counter.js";
+import { Counter } from "../../../src/backend/local/counter";
 
 describe("incr/1", () => {
   describe("increment non existing key", () => {

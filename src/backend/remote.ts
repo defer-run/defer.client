@@ -33,10 +33,10 @@ import {
   PageRequest,
   ReRunExecutionResult,
   RescheduleExecutionResult,
-} from "../backend.js";
-import { DeferableFunction, DeferredFunction } from "../index.js";
-import { getEnv, stringify } from "../utils.js";
-import { HTTPClient, makeHTTPClient } from "./remote/httpClient.js";
+} from "../backend";
+import { DeferableFunction, DeferredFunction } from "../index";
+import { getEnv, stringify } from "../utils";
+import { HTTPClient, makeHTTPClient } from "./remote/httpClient";
 
 export interface SingleObjectResponse<T> {
   data: T;

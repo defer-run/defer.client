@@ -4,7 +4,7 @@ import helloWorld from "./helloWorld";
 const { GetHandler, PostHandler } = asNextRoute(helloWorld, {
   // @ts-expect-error too strict return type
   async proxy(request) {
-    const args = await request.json();
+    const args = await requeston();
     return [`prefix-${args[0]}`];
   },
 });

@@ -7,7 +7,7 @@ import {
   ExecutionNotCancellable,
   ExecutionNotFound,
   ExecutionNotReschedulable,
-} from "../../src/backend.js";
+} from "../../src/backend";
 import {
   cancelExecution,
   enqueue,
@@ -16,8 +16,8 @@ import {
   listExecutions,
   reRunExecution,
   rescheduleExecution,
-} from "../../src/backend/remote.js";
-import { defer } from "../../src/index.js";
+} from "../../src/backend/remote";
+import { defer } from "../../src/index";
 
 global.fetch = jest.fn();
 

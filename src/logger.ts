@@ -12,9 +12,9 @@
 // OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 // PERFORMANCE OF THIS SOFTWARE.
 
-import { isDebugEnabled } from "./utils.js";
+import { isDebugEnabled } from "./utils";
 
-// source: https://github.com/csquared/node-logfmt/blob/master/lib/stringify.js
+// source: https://github.com/csquared/node-logfmt/blob/master/lib/stringify
 function fmtData(data: any): string {
   var line = "";
 
