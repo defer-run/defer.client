@@ -14,7 +14,7 @@
 
 import { isDebugEnabled } from "./utils";
 
-// source: https://github.com/csquared/node-logfmt/blob/master/lib/stringify
+// source: https://github.com/csquared/node-logfmt/blob/master/lib/stringify.js
 function fmtData(data: any): string {
   var line = "";
 

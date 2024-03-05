@@ -1,9 +1,9 @@
 import { awaitResult, defer } from "../src";
-import { DeferError } from "../src/errors";
-import { makeHTTPClient } from "../src/httpClient";
+import { DeferError } from "../src/backend";
+import { makeHTTPClient } from "../src/backend/remote/httpClient";
 import { jitter } from "../src/jitter";
 
-jest.mock("../src/httpClient");
+jest.mock("../src/backend/remote/httpClient");
 jest.mock("../src/jitter");
 jest.setTimeout(20000);
 
@@ -57,7 +57,7 @@ describe("awaitResult(deferFn)", () => {
 
         const awaitable = awaitResult(deferred);
         const result = await awaitable("");
-        expect(result).toEqual("coucou");
+        expect(result).toEqual("Hello World!");
         expect(myFunction).not.toHaveBeenCalled();
       });
     });

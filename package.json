@@ -90,7 +90,7 @@
       "/tests/",
       "node_modules/",
       "coverage/",
-      "",
+      "dist/",
       "package-lock.json"
     ],
     "overrides": [

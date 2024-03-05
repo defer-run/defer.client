@@ -3,7 +3,7 @@ import helloWorld from "./fixtures/helloWorld";
 import { POST, GET } from "./fixtures/route";
 import { POST as POSTWithProxy } from "./fixtures/routeWithProxy";
 import { getExecution } from "../../src/index";
-import { APIError } from "../../src/errors";
+import { ExecutionNotFound } from "../../src/backend";
 
 jest.mock("./fixtures/helloWorld");
 jest.mock("../../src/index", () => {
@@ -19,7 +19,7 @@ describe("asNextRoute()", () => {
   describe("POST() - background function invocation", () => {
     describe("valid empty params, without proxy", () => {
       beforeEach(() =>
-        jest.mocked(helloWorld).mockResolvedValue({ id: "test-id" })
+        jest.mocked(helloWorld).mockResolvedValue({ id: "test-id" } as any)
       );
 
       test("properly call the background function and forward the execution ID", async () => {
@@ -36,13 +36,13 @@ describe("asNextRoute()", () => {
         expect(helloWorld).toHaveBeenCalledWith();
 
         expect(res.status).toBe(200);
-        expect(await reson()).toEqual({ id: "test-id" });
+        expect(await res.json()).toEqual({ id: "test-id" });
       });
     });
 
     describe("valid params, without proxy", () => {
       beforeEach(() =>
-        jest.mocked(helloWorld).mockResolvedValue({ id: "test-id" })
+        jest.mocked(helloWorld).mockResolvedValue({ id: "test-id" } as any)
       );
       afterEach(() => {
         jest.mocked(helloWorld).mockReset();
@@ -62,13 +62,13 @@ describe("asNextRoute()", () => {
         expect(helloWorld).toHaveBeenCalledWith("charly");
 
         expect(res.status).toBe(200);
-        expect(await reson()).toEqual({ id: "test-id" });
+        expect(await res.json()).toEqual({ id: "test-id" });
       });
     });
 
     describe("valid params, with proxy", () => {
       beforeEach(() =>
-        jest.mocked(helloWorld).mockResolvedValue({ id: "test-id" })
+        jest.mocked(helloWorld).mockResolvedValue({ id: "test-id" } as any)
       );
 
       test("properly call the background function with params and forward the execution ID", async () => {
@@ -85,7 +85,7 @@ describe("asNextRoute()", () => {
         expect(helloWorld).toHaveBeenCalledWith("prefix-charly");
 
         expect(res.status).toBe(200);
-        expect(await reson()).toEqual({ id: "test-id" });
+        expect(await res.json()).toEqual({ id: "test-id" });
       });
     });
   });
@@ -104,7 +104,7 @@ describe("asNextRoute()", () => {
         "valid query params, invalid execution ID",
         "?id=not-found-id",
         "not-found-id",
-        new APIError("execution not found", ""),
+        new ExecutionNotFound("execution not found"),
         [500, { error: "Error: execution not found", id: "not-found-id" }],
       ],
       [
@@ -129,8 +129,7 @@ describe("asNextRoute()", () => {
               throw executionResult;
             });
           } else {
-            // @ts-expect-error unflexible TS \o/
-            jest.mocked(getExecution).mockResolvedValue(executionResult);
+            jest.mocked(getExecution).mockResolvedValue(executionResult as any);
           }
         });
         afterEach(() => {
@@ -152,7 +151,7 @@ describe("asNextRoute()", () => {
           }
 
           expect(res.status).toBe(expectedResponseStatus);
-          expect(await reson()).toEqual(expectedResponseBody);
+          expect(await res.json()).toEqual(expectedResponseBody);
         });
       }
     );
