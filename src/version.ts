@@ -1,1 +1,1 @@
-export default "2.2.1";
+// Copyright (c) 2021-2023 Defer SAS <hello@defer.run>.
