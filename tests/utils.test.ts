@@ -3,7 +3,7 @@ import {
   getEnv,
   isDebugEnabled,
   randomUUID,
-} from "../src/utils.js";
+} from "../src/utils";
 
 describe("randomUUID/0", () => {
   describe("when globalThis.crypto exist", () => {

@@ -1,4 +1,4 @@
-import { KV } from "../../../src/backend/local/kv.js";
+import { KV } from "../../../src/backend/local/kv";
 
 describe("set/2", () => {
   it("adds value in the store", async () => {

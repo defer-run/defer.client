@@ -15,7 +15,6 @@ const config: Config.InitialOptions = {
   },
   coverageDirectory: "../coverage",
   testEnvironment: "node",
-  resolver: "bob-the-bundler/jest-resolver",
 };
 
 export default config;

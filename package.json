@@ -2,9 +2,8 @@
   "name": "@defer/client",
   "version": "2.2.1",
   "description": "Zero infrastructure NodeJS background jobs",
-  "type": "module",
-  "main": "dist/cjs/index.js",
-  "module": "dist/esm/index.js",
+  "main": "index.js",
+  "module": "index.js",
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/defer-run/defer.client.git"
@@ -15,7 +14,8 @@
     "node": ">=18"
   },
   "scripts": {
-    "build": "node utils/update-version.mjs && npx bob build && node utils/fix-ts-sub-exports.mjs",
+    "build": "npm run clean && node utils/update-version.mjs && tsc --project tsconfig.build.json && cp package.json LICENSE README.md CHANGELOG.md dist",
+    "clean": "rm -rf ./dist",
     "lint": "eslint src/**/*.ts",
     "release": "changeset publish",
     "test": "npx jest --passWithNoTests --config ./tests/jest.ts --silent --runInBand",
@@ -31,7 +31,6 @@
     "@types/jest": "^29.5.11",
     "@types/react": "^18.2.48",
     "@typescript-eslint/eslint-plugin": "^6.20.0",
-    "bob-the-bundler": "^7.0.1",
     "eslint": "8.56.0",
     "eslint-config-prettier": "9.1.0",
     "jest": "^29.7",
@@ -42,50 +41,40 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.3"
   },
-  "typings": "dist/typings/index.d.ts",
+  "typings": "index.d.ts",
   "typescript": {
-    "definition": "dist/typings/index.d.ts"
+    "definition": "index.d.ts"
   },
   "exports": {
     ".": {
       "require": {
-        "types": "./dist/typings/index.d.cts",
-        "default": "./dist/cjs/index.js"
+        "types": "./index.d.cts",
+        "default": "./index.js"
       },
       "import": {
-        "types": "./dist/typings/index.d.ts",
-        "default": "./dist/esm/index.js"
+        "types": "./index.d.ts",
+        "default": "./index.js"
       },
       "default": {
-        "types": "./dist/typings/index.d.ts",
-        "default": "./dist/esm/index.js"
+        "types": "./index.d.ts",
+        "default": "./index.js"
       }
     },
     "./next": {
       "require": {
-        "types": "./dist/typings/next/index.d.cts",
-        "default": "./dist/cjs/next/index.js"
+        "types": "./next/index.d.cts",
+        "default": "./next/index.js"
       },
       "import": {
-        "types": "./dist/typings/next/index.d.ts",
-        "default": "./dist/esm/next/index.js"
+        "types": "./next/index.d.ts",
+        "default": "./next/index.js"
       },
       "default": {
-        "types": "./dist/typings/next/index.d.ts",
-        "default": "./dist/esm/next/index.js"
+        "types": "./next/index.d.ts",
+        "default": "./next/index.js"
       }
     },
     "./package.json": "./package.json"
-  },
-  "typesVersions": {
-    "*": {
-      "index": [
-        "typings/index.d.ts"
-      ],
-      "next": [
-        "typings/next/index.d.ts"
-      ]
-    }
   },
   "publishConfig": {
     "directory": "dist",

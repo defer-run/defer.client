@@ -12,7 +12,7 @@
 // OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 // PERFORMANCE OF THIS SOFTWARE.
 
-import { DeferableFunction, DeferredFunction } from "./index.js";
+import { DeferableFunction, DeferredFunction } from "./index";
 
 export type ExecutionState =
   | "created"

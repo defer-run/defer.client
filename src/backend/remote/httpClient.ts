@@ -12,9 +12,9 @@
 // OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 // PERFORMANCE OF THIS SOFTWARE.
 
-import { DeferError } from "../../backend.js";
-import { errorMessage } from "../../utils.js";
-import VERSION from "../../version.js";
+import { DeferError } from "../../backend";
+import { errorMessage } from "../../utils";
+import VERSION from "../../version";
 
 export type HTTPClient = <T>(
   method: string,

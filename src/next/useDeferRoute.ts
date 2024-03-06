@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useRef, useState } from "react";
-import type { ExecutionState } from "../backend.js";
-import type { DeferredFunction } from "../index.js";
+import type { ExecutionState } from "../backend";
+import type { DeferredFunction } from "../index";
 
 export type UseDeferRoute<ARA extends boolean, A extends any[], R> = [
   execute: (...args: ARA extends true ? any : A) => void,

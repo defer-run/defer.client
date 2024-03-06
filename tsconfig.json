@@ -1,11 +1,11 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
-    "lib": ["es2022", "dom"],
-    "outDir": "./dist",
+    "target": "es2017",
+    "lib": ["es2022", "DOM"],
     "module": "commonjs",
+    "outDir": "./dist",
     "declaration": true,
-    "target": "es2021",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,

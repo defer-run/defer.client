@@ -1,4 +1,4 @@
-import { error, info, log, warn } from "../src/logger.js";
+import { error, info, log, warn } from "../src/logger";
 
 describe("log/3", () => {
   it("test without data", () => {

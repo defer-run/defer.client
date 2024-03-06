@@ -32,17 +32,17 @@ import {
   PageResult,
   ReRunExecutionResult,
   RescheduleExecutionResult,
-} from "../backend.js";
+} from "../backend";
 import {
   DeferableFunction,
   DeferredFunction,
   ExecutionMetadata,
-} from "../index.js";
-import { error, info } from "../logger.js";
-import { getEnv, randomUUID, sleep, stringify } from "../utils.js";
-import version from "../version.js";
-import { Counter } from "./local/counter.js";
-import { KV } from "./local/kv.js";
+} from "../index";
+import { error, info } from "../logger";
+import { getEnv, randomUUID, sleep, stringify } from "../utils";
+import version from "../version";
+import { Counter } from "./local/counter";
+import { KV } from "./local/kv";
 
 interface InternalExecution<F extends DeferableFunction> {
   id: string;
