@@ -1,6 +1,6 @@
 {
   "name": "@defer/client",
-  "version": "2.2.1",
+  "version": "2.3.0",
   "description": "Zero infrastructure NodeJS background jobs",
   "main": "index.js",
   "module": "index.js",

@@ -1,5 +1,11 @@
 # @defer/client
 
+## 2.3.0
+
+### Minor Changes
+
+- [#130](https://github.com/defer-run/defer.client/pull/130) [`70cb314`](https://github.com/defer-run/defer.client/commit/70cb31476bbf4656613a7b892b9d80c651b98acf) Thanks [@charlypoly](https://github.com/charlypoly)! - Fix VSCode dynamic imports resolving on `@defer/client/index`
+
 ## 2.2.1
 
 ### Patch Changes
