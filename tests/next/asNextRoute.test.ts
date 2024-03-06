@@ -1,3 +1,6 @@
+process.env["DEFER_NO_LOCAL_SCHEDULER"] = "1";
+process.env["DEFER_NO_BANNER"] = "1";
+
 import { NextRequest } from "next/server";
 import helloWorld from "./fixtures/helloWorld";
 import { POST, GET } from "./fixtures/route";
