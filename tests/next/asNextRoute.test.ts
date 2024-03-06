@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import helloWorld from "./fixtures/helloWorld";
 import { POST, GET } from "./fixtures/route";
 import { POST as POSTWithProxy } from "./fixtures/routeWithProxy";
-import { getExecution } from "../../src/index";
+import { backend, getExecution } from "../../src/index";
 import { ExecutionNotFound } from "../../src/backend";
 
 jest.mock("./fixtures/helloWorld");
@@ -14,6 +14,17 @@ jest.mock("../../src/index", () => {
     getExecution: jest.fn(),
   };
 });
+
+var stop: () => Promise<void> | undefined;
+
+beforeAll(function () {
+  stop = (backend as any).start();
+});
+
+afterAll(function () {
+  stop();
+});
+
 
 describe("asNextRoute()", () => {
   describe("POST() - background function invocation", () => {
